@@ -109,12 +109,9 @@ class CustomUserAdmin(UserAdmin):
     def is_verified_display(self, obj):
         """Visual indicator for verification status"""
         if obj.is_verified:
-            return format_html(
-                '<span style="color: green;">✓ Verified</span>'
-            )
-        return format_html(
-            '<span style="color: orange;">⚠ Pending</span>'
-        )
+            return format_html('<span style="color: {};">{}</span>', 'green', '✓ Verified')
+        return format_html('<span style="color: {};">{}</span>', 'orange', '⚠ Pending')
+
     is_verified_display.short_description = 'Verified'
     is_verified_display.admin_order_field = 'is_verified'
     

@@ -1,0 +1,154 @@
+{% extends 'base/base.html' %}
+
+{% block title %}{{ student.get_full_name }} - Student Details{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto space-y-6">
+    <div class="bg-white shadow rounded-lg">
+        <div class="px-4 py-5 sm:p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h2 class="text-2xl font-bold text-gray-900">{{ student.get_full_name }}</h2>
+                    <p class="mt-1 text-sm text-gray-600">{{ profile.church_name }}</p>
+                </div>
+                <div class="flex space-x-2">
+                    {% if not student.is_verified %}
+                    <a href="{% url 'accounts:verify_student' student.id %}" 
+                       class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700">
+                        Verify Account
+                    </a>
+                    {% else %}
+                    <a href="{% url 'accounts:unverify_student' student.id %}" 
+                       class="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                        Remove Verification
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        <div class="lg:col-span-2 space-y-6">
+            <div class="bg-white shadow rounded-lg">
+                <div class="px-4 py-5 sm:p-6">
+                    <h3 class="text-lg font-medium text-gray-900 mb-4">Personal Information</h3>
+                    <dl class="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500">Username</dt>
+                            <dd class="mt-1 text-sm text-gray-900">{{ student.username }}</dd>
+                        </div>
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500">Phone Number</dt>
+                            <dd class="mt-1 text-sm text-gray-900">{{ student.phone_number }}</dd>
+                        </div>
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500">Email</dt>
+                            <dd class="mt-1 text-sm text-gray-900">{{ student.email|default:"Not provided" }}</dd>
+                        </div>
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500">Education Level</dt>
+                            <dd class="mt-1 text-sm text-gray-900">{{ profile.get_education_level_display|default:"Not provided" }}</dd>
+                        </div>
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500">Languages</dt>
+                            <dd class="mt-1 text-sm text-gray-900">{{ profile.languages_spoken|default:"Not provided" }}</dd>
+                        </div>
+                    </dl>
+                </div>
+            </div>
+            
+            <div class="bg-white shadow rounded-lg">
+                <div class="px-4 py-5 sm:p-6">
+                    <h3 class="text-lg font-medium text-gray-900 mb-4">Ministry Information</h3>
+                    <dl class="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500">Church Name</dt>
+                            <dd class="mt-1 text-sm text-gray-900">{{ profile.church_name }}</dd>
+                        </div>
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500">Church Affiliation</dt>
+                            <dd class="mt-1 text-sm text-gray-900">{{ profile.church_affiliation|default:"Not provided" }}</dd>
+                        </div>
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500">Church Size</dt>
+                            <dd class="mt-1 text-sm text-gray-900">{{ profile.get_church_size_display|default:"Not provided" }}</dd>
+                        </div>
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500">Position</dt>
+                            <dd class="mt-1 text-sm text-gray-900">{{ profile.position_title|default:"Not provided" }}</dd>
+                        </div>
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500">Years in Ministry</dt>
+                            <dd class="mt-1 text-sm text-gray-900">{{ profile.years_in_ministry|default:"Not provided" }}</dd>
+                        </div>
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500">Location</dt>
+                            <dd class="mt-1 text-sm text-gray-900">{{ profile.region }}, {{ profile.country }}</dd>
+                        </div>
+                    </dl>
+                </div>
+            </div>
+        </div>
+        
+        <div class="space-y-6">
+            <div class="bg-white shadow rounded-lg">
+                <div class="px-4 py-5 sm:p-6">
+                    <h3 class="text-lg font-medium text-gray-900 mb-4">Account Status</h3>
+                    <dl class="space-y-4">
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500">Verification Status</dt>
+                            <dd class="mt-1">
+                                {% if student.is_verified %}
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                        Verified
+                                    </span>
+                                {% else %}
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                                        Pending
+                                    </span>
+                                {% endif %}
+                            </dd>
+                        </div>
+                        
+                        {% if student.verified_by %}
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500">Verified By</dt>
+                            <dd class="mt-1 text-sm text-gray-900">{{ student.verified_by.get_full_name }}</dd>
+                        </div>
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500">Verified On</dt>
+                            <dd class="mt-1 text-sm text-gray-900">{{ student.verified_at|date:"d M Y" }}</dd>
+                        </div>
+                        {% endif %}
+                        
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500">Registered</dt>
+                            <dd class="mt-1 text-sm text-gray-900">{{ student.created_at|date:"d M Y" }}</dd>
+                        </div>
+                        
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500">Last Active</dt>
+                            <dd class="mt-1 text-sm text-gray-900">{{ student.last_login|date:"d M Y"|default:"Never" }}</dd>
+                        </div>
+                    </dl>
+                </div>
+            </div>
+            
+            <div class="bg-white shadow rounded-lg">
+                <div class="px-4 py-5 sm:p-6">
+                    <h3 class="text-lg font-medium text-gray-900 mb-4">Learning Progress</h3>
+                    <p class="text-sm text-gray-500">Course progress information will appear here.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="flex justify-end">
+        <a href="{% url 'accounts:student_list' %}" 
+           class="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+            Back to Students
+        </a>
+    </div>
+</div>
+{% endblock %}

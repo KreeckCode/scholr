@@ -18,6 +18,7 @@ from .forms import (
     UserProfileForm,
     UserUpdateForm
 )
+from django.db.models import Q, Count
 
 
 def get_client_ip(request):
@@ -330,8 +331,9 @@ def admin_dashboard_view(request):
     
     # Geographic distribution
     countries = UserProfile.objects.values('country').annotate(
-        count=models.Count('country')
+        count=Count('country')
     ).order_by('-count')[:5]
+
     
     context = {
         'stats': stats,
