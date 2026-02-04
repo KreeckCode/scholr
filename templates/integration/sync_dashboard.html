@@ -1,0 +1,261 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Sync Dashboard - Judea Harvest CAS{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <div class="bg-white shadow rounded-lg">
+        <div class="px-4 py-5 sm:p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-2xl font-bold text-gray-900">Sync Dashboard</h1>
+                    <p class="mt-1 text-sm text-gray-600">Review and synchronize data to Moodle</p>
+                </div>
+                <div class="flex space-x-3">
+                    <a href="{% url 'integration:dashboard' %}" 
+                       class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                        Back to Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="bg-white shadow rounded-lg">
+        <div class="px-4 py-5 sm:p-6">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">Sync Operations</h3>
+            
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                <form method="post" action="{% url 'integration:trigger_sync' %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="sync_type" value="full">
+                    <button type="submit" 
+                            class="w-full px-4 py-3 border-2 border-blue-300 rounded-lg hover:bg-blue-50 text-left">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-gray-900">Full Sync</p>
+                                <p class="text-xs text-gray-500">Sync everything</p>
+                            </div>
+                            <svg class="h-5 w-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                            </svg>
+                        </div>
+                    </button>
+                </form>
+                
+                <form method="post" action="{% url 'integration:trigger_sync' %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="sync_type" value="categories">
+                    <button type="submit" 
+                            class="w-full px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 text-left">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-gray-900">Categories</p>
+                                <p class="text-xs text-gray-500">{{ pending_categories.count }} pending</p>
+                            </div>
+                            <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+                            </svg>
+                        </div>
+                    </button>
+                </form>
+                
+                <form method="post" action="{% url 'integration:trigger_sync' %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="sync_type" value="courses">
+                    <button type="submit" 
+                            class="w-full px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 text-left">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-gray-900">Courses</p>
+                                <p class="text-xs text-gray-500">{{ pending_courses.count }} pending</p>
+                            </div>
+                            <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+                            </svg>
+                        </div>
+                    </button>
+                </form>
+                
+                <form method="post" action="{% url 'integration:trigger_sync' %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="sync_type" value="users">
+                    <button type="submit" 
+                            class="w-full px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 text-left">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-gray-900">Users</p>
+                                <p class="text-xs text-gray-500">{{ pending_users.count }} pending</p>
+                            </div>
+                            <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                            </svg>
+                        </div>
+                    </button>
+                </form>
+                
+                <form method="post" action="{% url 'integration:trigger_sync' %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="sync_type" value="enrollments">
+                    <button type="submit" 
+                            class="w-full px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 text-left">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-gray-900">Enrollments</p>
+                                <p class="text-xs text-gray-500">{{ pending_enrollments.count }} pending</p>
+                            </div>
+                            <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                            </svg>
+                        </div>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    {% if pending_courses %}
+    <div class="bg-white shadow rounded-lg">
+        <div class="px-4 py-5 sm:p-6">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">Pending Courses ({{ pending_courses.count }})</h3>
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Course</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Category</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for course in pending_courses|slice:":10" %}
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm font-medium text-gray-900">{{ course.title }}</div>
+                                <div class="text-sm text-gray-500">{{ course.short_name }}</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {{ course.category.name }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                    {% if course.sync_status == 'pending' %}bg-yellow-100 text-yellow-800
+                                    {% elif course.sync_status == 'modified' %}bg-blue-100 text-blue-800
+                                    {% elif course.sync_status == 'failed' %}bg-red-100 text-red-800
+                                    {% endif %}">
+                                    {{ course.get_sync_status_display }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% if pending_courses.count > 10 %}
+            <p class="mt-3 text-sm text-gray-500">Showing 10 of {{ pending_courses.count }} courses</p>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+    
+    {% if pending_users %}
+    <div class="bg-white shadow rounded-lg">
+        <div class="px-4 py-5 sm:p-6">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">Pending Users ({{ pending_users.count }})</h3>
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Location</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Church</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for user in pending_users|slice:":10" %}
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm font-medium text-gray-900">{{ user.get_full_name }}</div>
+                                <div class="text-sm text-gray-500">{{ user.username }}</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {{ user.profile.region }}, {{ user.profile.country }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {{ user.profile.church_name }}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% if pending_users.count > 10 %}
+            <p class="mt-3 text-sm text-gray-500">Showing 10 of {{ pending_users.count }} users</p>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+    
+    <div class="bg-white shadow rounded-lg">
+        <div class="px-4 py-5 sm:p-6">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">Recent Sync History</h3>
+            {% if sync_history %}
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Type</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Results</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Time</th>
+                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for log in sync_history %}
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                {{ log.get_sync_type_display }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                {% if log.status == 'completed' %}
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                        Completed
+                                    </span>
+                                {% elif log.status == 'failed' %}
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
+                                        Failed
+                                    </span>
+                                {% elif log.status == 'partial' %}
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                                        Partial
+                                    </span>
+                                {% else %}
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
+                                        {{ log.get_status_display }}
+                                    </span>
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {{ log.successful_items }}/{{ log.total_items }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {{ log.started_at|date:"d M H:i" }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                <a href="{% url 'integration:sync_log_detail' log.id %}" class="text-blue-600 hover:text-blue-900">
+                                    Details
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-sm text-gray-500">No sync history available.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

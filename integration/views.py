@@ -1,3 +1,754 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from django.http import JsonResponse, HttpResponse
+from django.db.models import Q, Count
+from django.utils import timezone
+from django.views.decorators.http import require_http_methods
+from django.core.paginator import Paginator
+from django.db import transaction
 
-# Create your views here.
+from accounts.models import User
+from .models import (
+    MoodleInstance, Course, CourseCategory, 
+    CourseEnrollment, SyncLog, MoodleUserMapping
+)
+from .forms import (
+    MoodleConfigurationForm, CourseForm, CourseCategoryForm,
+    BulkEnrollmentForm, SyncFilterForm, TestConnectionForm
+)
+from .services import MoodleIntegrationService
+from .exceptions import MoodleConnectionError, MoodleAPIError
+
+
+def admin_required(view_func):
+    """Decorator to ensure only admins can access integration features"""
+    def wrapper(request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            messages.error(request, 'Please log in to access this page.')
+            return redirect('accounts:login')
+        
+        if request.user.role != User.ADMIN:
+            messages.error(request, 'Only administrators can access Moodle integration.')
+            return redirect('accounts:dashboard')
+        
+        return view_func(request, *args, **kwargs)
+    
+    return wrapper
+
+
+@login_required
+@admin_required
+def integration_dashboard(request):
+    """
+    Main dashboard for Moodle integration
+    Shows sync status, pending items, recent activity
+    """
+    # Get primary Moodle instance
+    moodle_instance = MoodleInstance.objects.filter(
+        is_active=True,
+        is_primary=True
+    ).first()
+    
+    # Connection status
+    connection_status = {
+        'connected': False,
+        'error': None
+    }
+    
+    if moodle_instance:
+        connection_status['instance'] = moodle_instance
+        connection_status['connected'] = moodle_instance.health_status == 'healthy'
+        connection_status['error'] = moodle_instance.last_error
+    
+    # Pending sync counts
+    pending_counts = {
+        'categories': CourseCategory.objects.filter(
+            is_active=True,
+            moodle_category_id__isnull=True
+        ).count(),
+        'courses': Course.objects.filter(
+            sync_status__in=['pending', 'modified', 'failed']
+        ).count(),
+        'users': MoodleUserMapping.objects.filter(
+            sync_status__in=['pending', 'modified', 'failed']
+        ).count(),
+        'enrollments': CourseEnrollment.objects.filter(
+            sync_status='pending'
+        ).count(),
+    }
+    
+    pending_counts['total'] = sum(pending_counts.values())
+    
+    # Recent sync logs
+    recent_syncs = SyncLog.objects.select_related(
+        'initiated_by', 'moodle_instance'
+    ).order_by('-started_at')[:10]
+    
+    # Course statistics
+    course_stats = {
+        'total': Course.objects.count(),
+        'synced': Course.objects.filter(sync_status='synced').count(),
+        'auto_enroll_enabled': Course.objects.filter(auto_enroll_enabled=True).count(),
+        'visible': Course.objects.filter(visible=True).count(),
+    }
+    
+    # User sync statistics
+    user_stats = {
+        'total_verified': User.objects.filter(
+            role=User.STUDENT,
+            is_verified=True
+        ).count(),
+        'synced': MoodleUserMapping.objects.filter(
+            sync_status='synced'
+        ).count(),
+        'pending': MoodleUserMapping.objects.filter(
+            sync_status='pending'
+        ).count(),
+    }
+    
+    context = {
+        'connection_status': connection_status,
+        'pending_counts': pending_counts,
+        'recent_syncs': recent_syncs,
+        'course_stats': course_stats,
+        'user_stats': user_stats,
+    }
+    
+    return render(request, 'integration/dashboard.html', context)
+
+
+@login_required
+@admin_required
+def sync_dashboard(request):
+    """
+    Dedicated sync control panel
+    Shows detailed sync status and provides sync controls
+    """
+    # Get primary instance
+    moodle_instance = MoodleInstance.objects.filter(
+        is_active=True,
+        is_primary=True
+    ).first()
+    
+    if not moodle_instance:
+        messages.error(request, 'No Moodle instance configured. Please configure one first.')
+        return redirect('integration:moodle_config')
+    
+    # Pending items detail
+    pending_categories = CourseCategory.objects.filter(
+        is_active=True,
+        moodle_category_id__isnull=True
+    )
+    
+    pending_courses = Course.objects.filter(
+        sync_status__in=['pending', 'modified', 'failed']
+    ).select_related('category')
+    
+    pending_users = User.objects.filter(
+        role=User.STUDENT,
+        is_verified=True,
+        moodle_mapping__sync_status__in=['pending', 'modified', 'failed']
+    ).select_related('profile')
+    
+    pending_enrollments = CourseEnrollment.objects.filter(
+        sync_status='pending'
+    ).select_related('user', 'course')[:20]
+    
+    # Recent sync history
+    sync_history = SyncLog.objects.select_related(
+        'initiated_by'
+    ).order_by('-started_at')[:20]
+    
+    context = {
+        'moodle_instance': moodle_instance,
+        'pending_categories': pending_categories,
+        'pending_courses': pending_courses,
+        'pending_users': pending_users,
+        'pending_enrollments': pending_enrollments,
+        'sync_history': sync_history,
+    }
+    
+    return render(request, 'integration/sync_dashboard.html', context)
+
+
+@login_required
+@admin_required
+@require_http_methods(['POST'])
+def trigger_sync(request):
+    """
+    Trigger manual sync operation
+    Accepts sync_type parameter to determine what to sync
+    """
+    sync_type = request.POST.get('sync_type', 'full')
+    
+    try:
+        # Get primary instance
+        moodle_instance = MoodleInstance.objects.filter(
+            is_active=True,
+            is_primary=True
+        ).first()
+        
+        if not moodle_instance:
+            messages.error(request, 'No Moodle instance configured.')
+            return redirect('integration:sync_dashboard')
+        
+        # Create service
+        service = MoodleIntegrationService(moodle_instance)
+        
+        # Trigger appropriate sync
+        if sync_type == 'categories':
+            sync_log = service.sync_categories(initiated_by=request.user)
+            messages.success(request, f'Category sync completed: {sync_log.successful_items} successful, {sync_log.failed_items} failed')
+        
+        elif sync_type == 'courses':
+            sync_log = service.sync_courses(initiated_by=request.user)
+            messages.success(request, f'Course sync completed: {sync_log.successful_items} successful, {sync_log.failed_items} failed')
+        
+        elif sync_type == 'users':
+            sync_log = service.sync_users(initiated_by=request.user)
+            messages.success(request, f'User sync completed: {sync_log.successful_items} successful, {sync_log.failed_items} failed')
+        
+        elif sync_type == 'enrollments':
+            sync_log = service.sync_enrollments(initiated_by=request.user)
+            messages.success(request, f'Enrollment sync completed: {sync_log.successful_items} successful, {sync_log.failed_items} failed')
+        
+        elif sync_type == 'full':
+            sync_log = service.full_sync(initiated_by=request.user)
+            messages.success(request, f'Full sync completed: {sync_log.successful_items}/{sync_log.total_items} successful')
+        
+        else:
+            messages.error(request, f'Invalid sync type: {sync_type}')
+            return redirect('integration:sync_dashboard')
+        
+        # Show errors if any
+        if sync_log.failed_items > 0:
+            messages.warning(request, f'{sync_log.failed_items} items failed to sync. Check sync log for details.')
+        
+        return redirect('integration:sync_log_detail', log_id=sync_log.id)
+        
+    except MoodleConnectionError as e:
+        messages.error(request, f'Cannot connect to Moodle: {str(e)}')
+        return redirect('integration:sync_dashboard')
+    
+    except Exception as e:
+        messages.error(request, f'Sync failed: {str(e)}')
+        return redirect('integration:sync_dashboard')
+
+
+@login_required
+@admin_required
+def test_connection(request):
+    """Test connection to Moodle"""
+    try:
+        moodle_instance = MoodleInstance.objects.filter(
+            is_active=True,
+            is_primary=True
+        ).first()
+        
+        if not moodle_instance:
+            messages.error(request, 'No Moodle instance configured.')
+            return redirect('integration:moodle_config')
+        
+        service = MoodleIntegrationService(moodle_instance)
+        result = service.test_connection()
+        
+        if result['success']:
+            messages.success(
+                request,
+                f"✓ Connected to {result['site_name']} (Moodle {result['moodle_version']})"
+            )
+        else:
+            messages.error(
+                request,
+                f"✗ Connection failed: {result['error']}"
+            )
+        
+    except Exception as e:
+        messages.error(request, f'Connection test failed: {str(e)}')
+    
+    return redirect('integration:dashboard')
+
+
+@login_required
+@admin_required
+def moodle_config(request):
+    """Configure Moodle instance settings"""
+    instance = MoodleInstance.objects.filter(is_primary=True).first()
+    
+    if request.method == 'POST':
+        form = MoodleConfigurationForm(request.POST, instance=instance)
+        
+        if form.is_valid():
+            # If setting as primary, unmark others
+            if form.cleaned_data['is_primary']:
+                MoodleInstance.objects.update(is_primary=False)
+            
+            instance = form.save()
+            
+            # Test connection
+            try:
+                service = MoodleIntegrationService(instance)
+                result = service.test_connection()
+                
+                if result['success']:
+                    messages.success(request, f"Configuration saved and connection verified!")
+                else:
+                    messages.warning(request, f"Configuration saved but connection failed: {result['error']}")
+            except Exception as e:
+                messages.warning(request, f"Configuration saved but connection test failed: {str(e)}")
+            
+            return redirect('integration:dashboard')
+    else:
+        form = MoodleConfigurationForm(instance=instance)
+    
+    context = {
+        'form': form,
+        'instance': instance,
+    }
+    
+    return render(request, 'integration/moodle_config.html', context)
+
+
+# ==================== COURSE MANAGEMENT ====================
+
+@login_required
+@admin_required
+def course_list(request):
+    """List all courses with filtering and search"""
+    courses = Course.objects.select_related('category', 'created_by').all()
+    
+    # Search
+    search = request.GET.get('search', '')
+    if search:
+        courses = courses.filter(
+            Q(title__icontains=search) |
+            Q(short_name__icontains=search) |
+            Q(code__icontains=search)
+        )
+    
+    # Filter by category
+    category_id = request.GET.get('category', '')
+    if category_id:
+        courses = courses.filter(category_id=category_id)
+    
+    # Filter by sync status
+    sync_status = request.GET.get('sync_status', '')
+    if sync_status:
+        courses = courses.filter(sync_status=sync_status)
+    
+    # Filter by auto-enroll
+    auto_enroll = request.GET.get('auto_enroll', '')
+    if auto_enroll == 'yes':
+        courses = courses.filter(auto_enroll_enabled=True)
+    elif auto_enroll == 'no':
+        courses = courses.filter(auto_enroll_enabled=False)
+    
+    # Pagination
+    paginator = Paginator(courses, 25)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    # Get categories for filter
+    categories = CourseCategory.objects.filter(is_active=True)
+    
+    context = {
+        'page_obj': page_obj,
+        'categories': categories,
+        'search': search,
+        'selected_category': category_id,
+        'selected_sync_status': sync_status,
+        'selected_auto_enroll': auto_enroll,
+    }
+    
+    return render(request, 'integration/course_list.html', context)
+
+
+@login_required
+@admin_required
+def course_create(request):
+    """Create a new course"""
+    if request.method == 'POST':
+        form = CourseForm(request.POST)
+        
+        if form.is_valid():
+            course = form.save(commit=False)
+            course.created_by = request.user
+            course.sync_status = 'pending'
+            course.save()
+            
+            messages.success(
+                request,
+                f'Course "{course.title}" created successfully. Use sync to push to Moodle.'
+            )
+            return redirect('integration:course_detail', course_id=course.id)
+    else:
+        form = CourseForm()
+    
+    context = {
+        'form': form,
+        'action': 'Create',
+    }
+    
+    return render(request, 'integration/course_form.html', context)
+
+
+@login_required
+@admin_required
+def course_edit(request, course_id):
+    """Edit an existing course"""
+    course = get_object_or_404(Course, id=course_id)
+    
+    if request.method == 'POST':
+        form = CourseForm(request.POST, instance=course)
+        
+        if form.is_valid():
+            form.save()
+            
+            messages.success(
+                request,
+                f'Course "{course.title}" updated. Changes will sync to Moodle on next sync.'
+            )
+            return redirect('integration:course_detail', course_id=course.id)
+    else:
+        form = CourseForm(instance=course)
+    
+    context = {
+        'form': form,
+        'course': course,
+        'action': 'Edit',
+    }
+    
+    return render(request, 'integration/course_form.html', context)
+
+
+@login_required
+@admin_required
+def course_detail(request, course_id):
+    """View course details and enrollment"""
+    course = get_object_or_404(
+        Course.objects.select_related('category', 'created_by'),
+        id=course_id
+    )
+    
+    # Get enrollments
+    enrollments = CourseEnrollment.objects.filter(
+        course=course,
+        is_active=True
+    ).select_related('user', 'user__profile').order_by('-enrolled_at')
+    
+    # Pagination
+    paginator = Paginator(enrollments, 50)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    context = {
+        'course': course,
+        'page_obj': page_obj,
+        'total_enrollments': enrollments.count(),
+    }
+    
+    return render(request, 'integration/course_detail.html', context)
+
+
+@login_required
+@admin_required
+@require_http_methods(['POST'])
+def course_delete(request, course_id):
+    """Delete a course"""
+    course = get_object_or_404(Course, id=course_id)
+    
+    # Check if synced to Moodle
+    if course.moodle_course_id:
+        messages.warning(
+            request,
+            f'Course "{course.title}" is synced to Moodle. Delete from Moodle first or it will be recreated on next sync.'
+        )
+    
+    course_title = course.title
+    course.delete()
+    
+    messages.success(request, f'Course "{course_title}" deleted.')
+    return redirect('integration:course_list')
+
+
+@login_required
+@admin_required
+@require_http_methods(['POST'])
+def toggle_auto_enroll(request, course_id):
+    """Toggle auto-enrollment for a course"""
+    course = get_object_or_404(Course, id=course_id)
+    
+    course.auto_enroll_enabled = not course.auto_enroll_enabled
+    course.save()
+    
+    status = "enabled" if course.auto_enroll_enabled else "disabled"
+    messages.success(request, f'Auto-enrollment {status} for "{course.title}"')
+    
+    return redirect('integration:course_detail', course_id=course.id)
+
+
+@login_required
+@admin_required
+def bulk_enroll(request):
+    """Bulk enroll students in a course"""
+    if request.method == 'POST':
+        form = BulkEnrollmentForm(request.POST)
+        
+        if form.is_valid():
+            course = form.cleaned_data['course']
+            filter_type = form.cleaned_data['filter_type']
+            
+            # Build user queryset based on filter
+            users = User.objects.filter(
+                role=User.STUDENT,
+                is_verified=True,
+                is_active=True
+            )
+            
+            if filter_type == 'region':
+                region = form.cleaned_data['region']
+                users = users.filter(profile__region__iexact=region)
+            
+            elif filter_type == 'education':
+                education = form.cleaned_data['education_level']
+                users = users.filter(profile__education_level=education)
+            
+            elif filter_type == 'church_size':
+                size = form.cleaned_data['church_size']
+                users = users.filter(profile__church_size=size)
+            
+            # Create enrollments
+            enrolled_count = 0
+            already_enrolled = 0
+            
+            for user in users:
+                enrollment, created = CourseEnrollment.objects.get_or_create(
+                    user=user,
+                    course=course,
+                    defaults={
+                        'is_active': True,
+                        'enrolled_by': request.user,
+                        'sync_status': 'pending'
+                    }
+                )
+                
+                if created:
+                    enrolled_count += 1
+                else:
+                    already_enrolled += 1
+            
+            messages.success(
+                request,
+                f'Enrolled {enrolled_count} students in "{course.title}". '
+                f'{already_enrolled} were already enrolled. Use sync to push to Moodle.'
+            )
+            
+            return redirect('integration:course_detail', course_id=course.id)
+    else:
+        form = BulkEnrollmentForm()
+    
+    context = {
+        'form': form,
+    }
+    
+    return render(request, 'integration/bulk_enroll.html', context)
+
+
+# ==================== SYNC LOG VIEWS ====================
+
+@login_required
+@admin_required
+def sync_log_list(request):
+    """List all sync logs"""
+    logs = SyncLog.objects.select_related('initiated_by', 'moodle_instance').order_by('-started_at')
+    
+    # Filter by type
+    sync_type = request.GET.get('type', '')
+    if sync_type:
+        logs = logs.filter(sync_type=sync_type)
+    
+    # Filter by status
+    status = request.GET.get('status', '')
+    if status:
+        logs = logs.filter(status=status)
+    
+    # Pagination
+    paginator = Paginator(logs, 20)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    context = {
+        'page_obj': page_obj,
+        'selected_type': sync_type,
+        'selected_status': status,
+    }
+    
+    return render(request, 'integration/sync_log_list.html', context)
+
+
+@login_required
+@admin_required
+def sync_log_detail(request, log_id):
+    """View detailed sync log"""
+    log = get_object_or_404(
+        SyncLog.objects.select_related('initiated_by', 'moodle_instance'),
+        id=log_id
+    )
+    
+    context = {
+        'log': log,
+    }
+    
+    return render(request, 'integration/sync_log_detail.html', context)
+
+
+# ==================== SSO / STUDENT ACCESS ====================
+
+@login_required
+def access_lms(request):
+    """
+    Generate SSO URL for student to access Moodle
+    Available to verified students only
+    """
+    user = request.user
+    
+    # Check if student and verified
+    if user.role != User.STUDENT or not user.is_verified:
+        messages.error(request, 'Only verified students can access the LMS.')
+        return redirect('accounts:dashboard')
+    
+    try:
+        # Get primary instance
+        moodle_instance = MoodleInstance.objects.filter(
+            is_active=True,
+            is_primary=True
+        ).first()
+        
+        if not moodle_instance:
+            messages.error(
+                request,
+                'LMS is not configured. Please contact an administrator.'
+            )
+            return redirect('accounts:dashboard')
+        
+        # Check connection health
+        if moodle_instance.health_status == 'offline':
+            messages.error(
+                request,
+                'LMS is currently offline. Please try again later.'
+            )
+            return redirect('accounts:dashboard')
+        
+        # Check if user is synced
+        if not hasattr(user, 'moodle_mapping') or not user.moodle_mapping.moodle_user_id:
+            messages.error(
+                request,
+                'Your account is not yet synced to the LMS. Please contact your dean.'
+            )
+            return redirect('accounts:dashboard')
+        
+        # Generate SSO URL
+        service = MoodleIntegrationService(moodle_instance)
+        sso_url = service.generate_sso_url(user)
+        
+        # Redirect to Moodle
+        return redirect(sso_url)
+        
+    except MoodleConnectionError:
+        messages.error(
+            request,
+            'Cannot connect to LMS. It may be offline. Please try again later.'
+        )
+        return redirect('accounts:dashboard')
+    
+    except Exception as e:
+        messages.error(
+            request,
+            f'Error accessing LMS: {str(e)}'
+        )
+        return redirect('accounts:dashboard')
+
+
+# ==================== AJAX / API ENDPOINTS ====================
+
+@login_required
+@admin_required
+def get_sync_status(request):
+    """
+    AJAX endpoint to get current sync status
+    Returns JSON with pending counts and health
+    """
+    moodle_instance = MoodleInstance.objects.filter(
+        is_active=True,
+        is_primary=True
+    ).first()
+    
+    data = {
+        'connected': False,
+        'health_status': 'unknown',
+        'pending': {
+            'categories': 0,
+            'courses': 0,
+            'users': 0,
+            'enrollments': 0,
+            'total': 0,
+        }
+    }
+    
+    if moodle_instance:
+        data['connected'] = True
+        data['health_status'] = moodle_instance.health_status
+        data['last_check'] = moodle_instance.last_health_check.isoformat() if moodle_instance.last_health_check else None
+        
+        data['pending']['categories'] = CourseCategory.objects.filter(
+            is_active=True,
+            moodle_category_id__isnull=True
+        ).count()
+        
+        data['pending']['courses'] = Course.objects.filter(
+            sync_status__in=['pending', 'modified', 'failed']
+        ).count()
+        
+        data['pending']['users'] = MoodleUserMapping.objects.filter(
+            sync_status__in=['pending', 'modified', 'failed']
+        ).count()
+        
+        data['pending']['enrollments'] = CourseEnrollment.objects.filter(
+            sync_status='pending'
+        ).count()
+        
+        data['pending']['total'] = sum(data['pending'].values())
+    
+    return JsonResponse(data)
+
+
+@login_required
+@admin_required
+def check_course_name(request):
+    """
+    AJAX endpoint to check if course short name is available
+    Returns JSON with availability status
+    """
+    short_name = request.GET.get('short_name', '').strip().upper()
+    course_id = request.GET.get('course_id', None)
+    
+    if not short_name:
+        return JsonResponse({'available': False, 'message': 'Short name is required'})
+    
+    # Check database
+    existing = Course.objects.filter(short_name__iexact=short_name)
+    
+    if course_id:
+        existing = existing.exclude(id=course_id)
+    
+    if existing.exists():
+        return JsonResponse({
+            'available': False,
+            'message': f'Short name "{short_name}" is already in use'
+        })
+    
+    return JsonResponse({
+        'available': True,
+        'message': f'Short name "{short_name}" is available'
+    })

@@ -1,0 +1,336 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Moodle Integration - Judea Harvest CAS{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <div class="bg-white shadow rounded-lg">
+        <div class="px-4 py-5 sm:p-6">
+            <h1 class="text-2xl font-bold text-gray-900">Moodle Integration</h1>
+            <p class="mt-1 text-sm text-gray-600">Manage LMS integration and sync status</p>
+        </div>
+    </div>
+    
+    {% if not connection_status.instance %}
+    <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4">
+        <div class="flex">
+            <div class="flex-shrink-0">
+                <svg class="h-5 w-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                </svg>
+            </div>
+            <div class="ml-3">
+                <p class="text-sm text-yellow-700">
+                    No Moodle instance configured.
+                    <a href="{% url 'integration:moodle_config' %}" class="font-medium underline">
+                        Configure now
+                    </a>
+                </p>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    
+    <div class="bg-white shadow rounded-lg">
+        <div class="px-4 py-5 sm:p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg leading-6 font-medium text-gray-900">Connection Status</h3>
+                <a href="{% url 'integration:test_connection' %}" 
+                   class="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                    Test Connection
+                </a>
+            </div>
+            
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                <div class="border rounded-lg p-4">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            {% if connection_status.connected %}
+                                <div class="h-3 w-3 rounded-full bg-green-400"></div>
+                            {% else %}
+                                <div class="h-3 w-3 rounded-full bg-red-400"></div>
+                            {% endif %}
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-sm font-medium text-gray-900">
+                                {{ connection_status.instance.name }}
+                            </p>
+                            <p class="text-xs text-gray-500">
+                                {% if connection_status.connected %}
+                                    Connected
+                                {% else %}
+                                    Offline
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="border rounded-lg p-4">
+                    <p class="text-sm font-medium text-gray-500">Base URL</p>
+                    <p class="mt-1 text-sm text-gray-900 truncate">{{ connection_status.instance.base_url }}</p>
+                </div>
+                
+                <div class="border rounded-lg p-4">
+                    <p class="text-sm font-medium text-gray-500">Last Health Check</p>
+                    <p class="mt-1 text-sm text-gray-900">
+                        {% if connection_status.instance.last_health_check %}
+                            {{ connection_status.instance.last_health_check|date:"d M Y H:i" }}
+                        {% else %}
+                            Never
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+            
+            {% if connection_status.error %}
+            <div class="mt-4 bg-red-50 border border-red-200 rounded-md p-3">
+                <p class="text-sm text-red-800">{{ connection_status.error }}</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+        <div class="bg-white overflow-hidden shadow rounded-lg">
+            <div class="p-5">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <svg class="h-6 w-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2 1 3 3 3h10c2 0 3-1 3-3V7c0-2-1-3-3-3H7C5 4 4 5 4 7z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 11l3 3 5-5"></path>
+                        </svg>
+                    </div>
+                    <div class="ml-5 w-0 flex-1">
+                        <dl>
+                            <dt class="text-sm font-medium text-gray-500 truncate">Pending Sync</dt>
+                            <dd class="text-lg font-semibold text-gray-900">{{ pending_counts.total }}</dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-gray-50 px-5 py-3">
+                <div class="text-sm">
+                    <a href="{% url 'integration:sync_dashboard' %}" class="font-medium text-blue-600 hover:text-blue-500">
+                        View details →
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="bg-white overflow-hidden shadow rounded-lg">
+            <div class="p-5">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <svg class="h-6 w-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+                        </svg>
+                    </div>
+                    <div class="ml-5 w-0 flex-1">
+                        <dl>
+                            <dt class="text-sm font-medium text-gray-500 truncate">Total Courses</dt>
+                            <dd class="text-lg font-semibold text-gray-900">{{ course_stats.total }}</dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-gray-50 px-5 py-3">
+                <div class="text-sm">
+                    <a href="{% url 'integration:course_list' %}" class="font-medium text-blue-600 hover:text-blue-500">
+                        Manage courses →
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="bg-white overflow-hidden shadow rounded-lg">
+            <div class="p-5">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <svg class="h-6 w-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                        </svg>
+                    </div>
+                    <div class="ml-5 w-0 flex-1">
+                        <dl>
+                            <dt class="text-sm font-medium text-gray-500 truncate">Synced Users</dt>
+                            <dd class="text-lg font-semibold text-gray-900">{{ user_stats.synced }}</dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-gray-50 px-5 py-3">
+                <div class="text-sm text-gray-500">
+                    {{ user_stats.pending }} pending
+                </div>
+            </div>
+        </div>
+        
+        <div class="bg-white overflow-hidden shadow rounded-lg">
+            <div class="p-5">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <svg class="h-6 w-6 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                    <div class="ml-5 w-0 flex-1">
+                        <dl>
+                            <dt class="text-sm font-medium text-gray-500 truncate">Auto-Enroll</dt>
+                            <dd class="text-lg font-semibold text-gray-900">{{ course_stats.auto_enroll_enabled }}</dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-gray-50 px-5 py-3">
+                <div class="text-sm text-gray-500">
+                    of {{ course_stats.total }} courses
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="bg-white shadow rounded-lg">
+        <div class="px-4 py-5 sm:p-6">
+            <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Recent Sync Activity</h3>
+            
+            {% if recent_syncs %}
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Type</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Results</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Started</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">By</th>
+                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for log in recent_syncs %}
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                {{ log.get_sync_type_display }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                {% if log.status == 'completed' %}
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                        Completed
+                                    </span>
+                                {% elif log.status == 'failed' %}
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
+                                        Failed
+                                    </span>
+                                {% elif log.status == 'running' %}
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+                                        Running
+                                    </span>
+                                {% elif log.status == 'partial' %}
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                                        Partial
+                                    </span>
+                                {% else %}
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
+                                        {{ log.get_status_display }}
+                                    </span>
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {{ log.successful_items }}/{{ log.total_items }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {{ log.started_at|date:"d M Y H:i" }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {{ log.initiated_by.get_full_name|default:"System" }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                <a href="{% url 'integration:sync_log_detail' log.id %}" class="text-blue-600 hover:text-blue-900">
+                                    View
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-sm text-gray-500">No sync activity yet.</p>
+            {% endif %}
+            
+            <div class="mt-4">
+                <a href="{% url 'integration:sync_log_list' %}" class="text-sm font-medium text-blue-600 hover:text-blue-500">
+                    View all sync logs →
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="grid grid-cols-1 gap-5 lg:grid-cols-2">
+        <div class="bg-white shadow rounded-lg">
+            <div class="px-4 py-5 sm:p-6">
+                <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Quick Actions</h3>
+                <div class="space-y-3">
+                    <a href="{% url 'integration:sync_dashboard' %}" 
+                       class="block px-4 py-3 border border-gray-300 rounded-md hover:bg-gray-50">
+                        <div class="flex items-center">
+                            <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                            </svg>
+                            <span class="ml-3 text-sm font-medium text-gray-900">Sync Dashboard</span>
+                        </div>
+                    </a>
+                    
+                    <a href="{% url 'integration:course_create' %}" 
+                       class="block px-4 py-3 border border-gray-300 rounded-md hover:bg-gray-50">
+                        <div class="flex items-center">
+                            <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                            </svg>
+                            <span class="ml-3 text-sm font-medium text-gray-900">Create New Course</span>
+                        </div>
+                    </a>
+                    
+                    <a href="{% url 'integration:moodle_config' %}" 
+                       class="block px-4 py-3 border border-gray-300 rounded-md hover:bg-gray-50">
+                        <div class="flex items-center">
+                            <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            </svg>
+                            <span class="ml-3 text-sm font-medium text-gray-900">Configure Settings</span>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="bg-white shadow rounded-lg">
+            <div class="px-4 py-5 sm:p-6">
+                <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Sync Breakdown</h3>
+                <dl class="space-y-3">
+                    <div class="flex items-center justify-between">
+                        <dt class="text-sm font-medium text-gray-500">Categories</dt>
+                        <dd class="text-sm text-gray-900">{{ pending_counts.categories }} pending</dd>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <dt class="text-sm font-medium text-gray-500">Courses</dt>
+                        <dd class="text-sm text-gray-900">{{ pending_counts.courses }} pending</dd>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <dt class="text-sm font-medium text-gray-500">Users</dt>
+                        <dd class="text-sm text-gray-900">{{ pending_counts.users }} pending</dd>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <dt class="text-sm font-medium text-gray-500">Enrollments</dt>
+                        <dd class="text-sm text-gray-900">{{ pending_counts.enrollments }} pending</dd>
+                    </div>
+                </dl>
+            </div>
+        </div>
+    </div>
+    
+    {% endif %}
+</div>
+{% endblock %}

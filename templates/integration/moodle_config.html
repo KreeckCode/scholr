@@ -1,0 +1,147 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Moodle Configuration - Judea Harvest CAS{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto">
+    <div class="bg-white shadow rounded-lg">
+        <div class="px-4 py-5 sm:p-6">
+            <div class="mb-6">
+                <h2 class="text-2xl font-bold text-gray-900">Moodle Configuration</h2>
+                <p class="mt-1 text-sm text-gray-600">Configure connection to your Moodle instance</p>
+            </div>
+            
+            {% if instance %}
+            <div class="mb-6 bg-blue-50 border border-blue-200 rounded-md p-4">
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        <svg class="h-5 w-5 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                        </svg>
+                    </div>
+                    <div class="ml-3">
+                        <p class="text-sm text-blue-700">
+                            You are updating an existing Moodle instance configuration.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            
+            <form method="post" class="space-y-6">
+                {% csrf_token %}
+                
+                <div>
+                    <label for="{{ form.name.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                        Instance Name
+                    </label>
+                    {{ form.name }}
+                    {% if form.name.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.name.errors.0 }}</p>
+                    {% endif %}
+                    <p class="mt-1 text-xs text-gray-500">A friendly name to identify this Moodle instance</p>
+                </div>
+                
+                <div>
+                    <label for="{{ form.base_url.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                        Base URL *
+                    </label>
+                    {{ form.base_url }}
+                    {% if form.base_url.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.base_url.errors.0 }}</p>
+                    {% endif %}
+                    <p class="mt-1 text-xs text-gray-500">{{ form.base_url.help_text }}</p>
+                </div>
+                
+                <div>
+                    <label for="{{ form.ws_token.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                        Web Service Token *
+                    </label>
+                    {{ form.ws_token }}
+                    {% if form.ws_token.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.ws_token.errors.0 }}</p>
+                    {% endif %}
+                    <p class="mt-1 text-xs text-gray-500">{{ form.ws_token.help_text }}</p>
+                </div>
+                
+                <div>
+                    <label for="{{ form.ws_service_name.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                        Service Name
+                    </label>
+                    {{ form.ws_service_name }}
+                    {% if form.ws_service_name.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.ws_service_name.errors.0 }}</p>
+                    {% endif %}
+                    <p class="mt-1 text-xs text-gray-500">{{ form.ws_service_name.help_text }}</p>
+                </div>
+                
+                <div class="border-t border-gray-200 pt-6">
+                    <div class="space-y-4">
+                        <div class="flex items-start">
+                            <div class="flex items-center h-5">
+                                {{ form.is_active }}
+                            </div>
+                            <div class="ml-3 text-sm">
+                                <label for="{{ form.is_active.id_for_label }}" class="font-medium text-gray-700">
+                                    Active
+                                </label>
+                                <p class="text-gray-500">This instance is active and can be used for sync operations</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-start">
+                            <div class="flex items-center h-5">
+                                {{ form.is_primary }}
+                            </div>
+                            <div class="ml-3 text-sm">
+                                <label for="{{ form.is_primary.id_for_label }}" class="font-medium text-gray-700">
+                                    Primary Instance
+                                </label>
+                                <p class="text-gray-500">{{ form.is_primary.help_text }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    {% if form.is_primary.errors %}
+                        <p class="mt-2 text-sm text-red-600">{{ form.is_primary.errors.0 }}</p>
+                    {% endif %}
+                </div>
+                
+                {% if form.non_field_errors %}
+                <div class="bg-red-50 border border-red-200 rounded-md p-3">
+                    {% for error in form.non_field_errors %}
+                    <p class="text-sm text-red-800">{{ error }}</p>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                
+                <div class="flex justify-end space-x-3 pt-6 border-t border-gray-200">
+                    <a href="{% url 'integration:dashboard' %}" 
+                       class="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                        Cancel
+                    </a>
+                    <button type="submit" 
+                            class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700">
+                        Save Configuration
+                    </button>
+                </div>
+            </form>
+            
+            {% if instance %}
+            <div class="mt-6 pt-6 border-t border-gray-200">
+                <h3 class="text-sm font-medium text-gray-900 mb-3">Setup Instructions</h3>
+                <div class="bg-gray-50 rounded-md p-4">
+                    <ol class="list-decimal list-inside space-y-2 text-sm text-gray-700">
+                        <li>Log in to your Moodle instance as administrator</li>
+                        <li>Navigate to Site administration → Server → Web services</li>
+                        <li>Enable web services and select REST protocol</li>
+                        <li>Create an external service with the necessary functions</li>
+                        <li>Generate a token for the service</li>
+                        <li>Copy the token and paste it in the form above</li>
+                    </ol>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

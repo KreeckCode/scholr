@@ -1,0 +1,171 @@
+{% extends 'base/base.html' %}
+
+{% block title %}{{ action }} Course - Judea Harvest CAS{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <div class="bg-white shadow rounded-lg">
+        <div class="px-4 py-5 sm:p-6">
+            <div class="mb-6">
+                <h2 class="text-2xl font-bold text-gray-900">{{ action }} Course</h2>
+                <p class="mt-1 text-sm text-gray-600">
+                    {% if action == 'Create' %}
+                        Create a new course. It will be synced to Moodle when you click the sync button.
+                    {% else %}
+                        Changes will be marked for sync to Moodle.
+                    {% endif %}
+                </p>
+            </div>
+            
+            <form method="post" class="space-y-6">
+                {% csrf_token %}
+                
+                <div class="border-b border-gray-200 pb-6">
+                    <h3 class="text-lg font-medium text-gray-900 mb-4">Basic Information</h3>
+                    
+                    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                        <div class="sm:col-span-2">
+                            <label for="{{ form.title.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                                Course Title *
+                            </label>
+                            {{ form.title }}
+                            {% if form.title.errors %}
+                                <p class="mt-1 text-sm text-red-600">{{ form.title.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                        
+                        <div>
+                            <label for="{{ form.short_name.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                                Short Name *
+                            </label>
+                            {{ form.short_name }}
+                            {% if form.short_name.errors %}
+                                <p class="mt-1 text-sm text-red-600">{{ form.short_name.errors.0 }}</p>
+                            {% endif %}
+                            <p class="mt-1 text-xs text-gray-500">{{ form.short_name.help_text }}</p>
+                        </div>
+                        
+                        <div>
+                            <label for="{{ form.code.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                                Course Code
+                            </label>
+                            {{ form.code }}
+                            {% if form.code.errors %}
+                                <p class="mt-1 text-sm text-red-600">{{ form.code.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="sm:col-span-2">
+                            <label for="{{ form.category.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                                Category *
+                            </label>
+                            {{ form.category }}
+                            {% if form.category.errors %}
+                                <p class="mt-1 text-sm text-red-600">{{ form.category.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="sm:col-span-2">
+                            <label for="{{ form.summary.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                                Summary
+                            </label>
+                            {{ form.summary }}
+                            {% if form.summary.errors %}
+                                <p class="mt-1 text-sm text-red-600">{{ form.summary.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="border-b border-gray-200 pb-6">
+                    <h3 class="text-lg font-medium text-gray-900 mb-4">Dates & Visibility</h3>
+                    
+                    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                        <div>
+                            <label for="{{ form.start_date.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                                Start Date
+                            </label>
+                            {{ form.start_date }}
+                            {% if form.start_date.errors %}
+                                <p class="mt-1 text-sm text-red-600">{{ form.start_date.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                        
+                        <div>
+                            <label for="{{ form.end_date.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                                End Date
+                            </label>
+                            {{ form.end_date }}
+                            {% if form.end_date.errors %}
+                                <p class="mt-1 text-sm text-red-600">{{ form.end_date.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="sm:col-span-2">
+                            <div class="flex items-start">
+                                <div class="flex items-center h-5">
+                                    {{ form.visible }}
+                                </div>
+                                <div class="ml-3 text-sm">
+                                    <label for="{{ form.visible.id_for_label }}" class="font-medium text-gray-700">
+                                        Course is visible to students
+                                    </label>
+                                    <p class="text-gray-500">{{ form.visible.help_text }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="border-b border-gray-200 pb-6">
+                    <h3 class="text-lg font-medium text-gray-900 mb-4">Enrollment Settings</h3>
+                    
+                    <div class="space-y-4">
+                        <div class="flex items-start">
+                            <div class="flex items-center h-5">
+                                {{ form.auto_enroll_enabled }}
+                            </div>
+                            <div class="ml-3 text-sm">
+                                <label for="{{ form.auto_enroll_enabled.id_for_label }}" class="font-medium text-gray-700">
+                                    Enable auto-enrollment
+                                </label>
+                                <p class="text-gray-500">{{ form.auto_enroll_enabled.help_text }}</p>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label for="{{ form.enrollment_capacity.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                                Enrollment Capacity
+                            </label>
+                            {{ form.enrollment_capacity }}
+                            {% if form.enrollment_capacity.errors %}
+                                <p class="mt-1 text-sm text-red-600">{{ form.enrollment_capacity.errors.0 }}</p>
+                            {% endif %}
+                            <p class="mt-1 text-xs text-gray-500">{{ form.enrollment_capacity.help_text }}</p>
+                        </div>
+                    </div>
+                </div>
+                
+                {% if form.non_field_errors %}
+                <div class="bg-red-50 border border-red-200 rounded-md p-3">
+                    {% for error in form.non_field_errors %}
+                    <p class="text-sm text-red-800">{{ error }}</p>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                
+                <div class="flex justify-end space-x-3 pt-6">
+                    <a href="{% url 'integration:course_list' %}" 
+                       class="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                        Cancel
+                    </a>
+                    <button type="submit" 
+                            class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700">
+                        {{ action }} Course
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
