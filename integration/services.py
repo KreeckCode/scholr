@@ -9,7 +9,7 @@ from .models import (
     CourseEnrollment, SyncLog
 )
 from .moodle_client import MoodleClient
-from .exceptions import MoodleConnectionError, MoodleAPIError
+from .exceptions import MoodleConnectionError, MoodleAPIError, UserNotSyncedError
 
 User = get_user_model()
 logger = logging.getLogger(__name__)
@@ -587,28 +587,31 @@ class MoodleIntegrationService:
     
     # ==================== SSO ====================
     
-    def generate_sso_url(self, user: User) -> str:
+    def generate_sso_url(self, user) -> str:
         """
-        Generate SSO login URL for user
+        Generate SSO URL for user to access Moodle
         
         Args:
-            user: CAS user to generate login for
+            user: CAS User instance
             
         Returns:
-            Login URL for Moodle
+            SSO login URL
         """
-        # Check if user has Moodle account
+        # Validate user mapping
         if not hasattr(user, 'moodle_mapping'):
-            raise ValueError("User not synced to Moodle")
+            raise UserNotSyncedError(user.username)
         
         mapping = user.moodle_mapping
+        
         if not mapping.moodle_user_id:
-            raise ValueError("User has no Moodle ID")
+            raise UserNotSyncedError(user.username)
         
-        # Generate login URL
-        login_url = self.client.generate_login_token(mapping.moodle_user_id)
+        # Generate SSO URL using username (preferred by auth_userkey)
+        login_url = self.client.generate_login_token(
+            username=mapping.moodle_username
+        )
         
-        # Track SSO access
+        # Update last SSO access
         mapping.last_sso_access = timezone.now()
         mapping.save(update_fields=['last_sso_access'])
         

@@ -1,2 +1,7 @@
 django
 pillow
+requests
+djangorestframework
+django-allauth
+django-crispy-forms
+django-filter

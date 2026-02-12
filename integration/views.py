@@ -752,3 +752,48 @@ def check_course_name(request):
         'available': True,
         'message': f'Short name "{short_name}" is available'
     })
+
+
+@login_required
+@admin_required
+def preview_bulk_enrollment(request):
+    """AJAX endpoint to preview enrollment count"""
+    course_id = request.GET.get('course_id')
+    filter_type = request.GET.get('filter_type')
+    
+    if not course_id or not filter_type:
+        return JsonResponse({'count': 0})
+    
+    from accounts.models import User
+    
+    users = User.objects.filter(
+        role=User.STUDENT,
+        is_verified=True,
+        is_active=True
+    )
+    
+    if filter_type == 'region':
+        region = request.GET.get('region', '')
+        if region:
+            users = users.filter(profile__region__iexact=region)
+    
+    elif filter_type == 'education':
+        education = request.GET.get('education_level', '')
+        if education:
+            users = users.filter(profile__education_level=education)
+    
+    elif filter_type == 'church_size':
+        size = request.GET.get('church_size', '')
+        if size:
+            users = users.filter(profile__church_size=size)
+    
+    # Exclude already enrolled
+    from integration.models import CourseEnrollment
+    already_enrolled = CourseEnrollment.objects.filter(
+        course_id=course_id,
+        is_active=True
+    ).values_list('user_id', flat=True)
+    
+    users = users.exclude(id__in=already_enrolled)
+    
+    return JsonResponse({'count': users.count()})

@@ -223,11 +223,11 @@ class Command(BaseCommand):
         test_username = f'testuser_{int(timezone.now().timestamp())}'
         
         user_data = {
-            'username': test_username,
+            'username': 'test_username',
             'password': 'TestPass123!',
             'firstname': 'Test',
             'lastname': 'User',
-            'email': f'{test_username}@test.local',
+            'email': f'test@test.local',
         }
         
         try:

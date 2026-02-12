@@ -29,6 +29,37 @@ class MoodleClient:
         
         logger.info(f"Initialized Moodle client for {self.base_url}")
     
+    def _flatten_params(self, params: Dict, prefix: str = '') -> Dict:
+        """
+        Flatten nested parameters for Moodle REST API
+        
+        Moodle expects: categories[0][name] instead of nested dicts
+        
+        Args:
+            params: Parameters to flatten
+            prefix: Current prefix for keys
+            
+        Returns:
+            Flattened dict
+        """
+        flattened = {}
+        
+        for key, value in params.items():
+            new_key = f"{prefix}[{key}]" if prefix else key
+            
+            if isinstance(value, dict):
+                flattened.update(self._flatten_params(value, new_key))
+            elif isinstance(value, list):
+                for i, item in enumerate(value):
+                    if isinstance(item, dict):
+                        flattened.update(self._flatten_params(item, f"{new_key}[{i}]"))
+                    else:
+                        flattened[f"{new_key}[{i}]"] = item
+            else:
+                flattened[new_key] = value
+        
+        return flattened
+    
     def _make_request(self, function: str, params: Dict = None) -> Any:
         """
         Make a request to Moodle Web Services
@@ -48,12 +79,15 @@ class MoodleClient:
         if params is None:
             params = {}
         
+        # Flatten nested parameters for Moodle REST API
+        flattened_params = self._flatten_params(params)
+        
         # Build request parameters
         request_params = {
             'wstoken': self.token,
             'wsfunction': function,
             'moodlewsrestformat': 'json',
-            **params
+            **flattened_params
         }
         
         try:
@@ -280,12 +314,11 @@ class MoodleClient:
             'shortname': course_data['shortname'],
             'categoryid': course_data['categoryid'],
             'summary': course_data.get('summary', ''),
-            'summaryformat': 1,  # HTML
+            'summaryformat': 1,
             'format': 'topics',
             'visible': 1 if course_data.get('visible', True) else 0,
             'startdate': course_data.get('startdate', 0),
             'enddate': course_data.get('enddate', 0),
-            **{k: v for k, v in course_data.items() if k not in ['fullname', 'shortname', 'categoryid', 'summary', 'visible', 'startdate', 'enddate']}
         }]
         
         response = self._make_request('core_course_create_courses', {'courses': courses})
@@ -419,30 +452,39 @@ class MoodleClient:
     
     # ==================== SSO / TOKEN OPERATIONS ====================
     
-    def generate_login_token(self, user_id: int) -> str:
+    def generate_login_token(self, user_id: int = None, username: str = None) -> str:
         """
         Generate a login token for SSO
         This requires the auth_userkey plugin to be installed in Moodle
         
         Args:
-            user_id: Moodle user ID
+            user_id: Moodle user ID (deprecated, use username)
+            username: Moodle username (preferred)
             
         Returns:
-            Login token
+            Login URL with key
         """
         try:
-            response = self._make_request('auth_userkey_request_login_url', {'user': {'id': user_id}})
+            # Prefer username over user_id for auth_userkey
+            if username:
+                params = {'user': {'username': username}}
+            elif user_id:
+                params = {'user': {'id': user_id}}
+            else:
+                raise ValueError("Either user_id or username must be provided")
+            
+            response = self._make_request('auth_userkey_request_login_url', params)
             
             if 'loginurl' in response:
                 return response['loginurl']
             
             raise MoodleAPIError("No login URL returned")
             
-        except MoodleAPIError:
+        except MoodleAPIError as e:
             # Fallback if auth_userkey not available
-            logger.warning("auth_userkey plugin not available, using alternative login method")
-            # Return direct login URL (requires additional setup)
-            return f"{self.base_url}/login/index.php?token={self.token}"
+            logger.warning(f"auth_userkey plugin error: {str(e)}, using alternative login method")
+            # Return direct login URL (requires manual login)
+            return f"{self.base_url}/login/index.php"
     
     # ==================== HELPER METHODS ====================
     

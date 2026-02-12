@@ -25,6 +25,8 @@ urlpatterns = [
     path('courses/<int:course_id>/delete/', views.course_delete, name='course_delete'),
     path('courses/<int:course_id>/toggle-auto-enroll/', views.toggle_auto_enroll, name='toggle_auto_enroll'),
     
+    
+    path('enrollment/preview/', views.preview_bulk_enrollment, name='preview_bulk_enrollment'),
     # Enrollment
     path('enrollment/bulk/', views.bulk_enroll, name='bulk_enroll'),
     
