@@ -26,8 +26,11 @@ SECRET_KEY = 'django-insecure-p0!$%(hwub@k@i(ab(^hg(pfw1d%@6btomf!pjcc#j@8-25z*j
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["*"]
-
+ALLOWED_HOSTS = [
+    'localhost',
+    '127.0.0.1',
+    'judea.uorivo.com',
+]
 
 # Application definition
 
@@ -42,6 +45,9 @@ INSTALLED_APPS = [
     # Project apps
     'accounts',
     'integration',
+]
+CSRF_TRUSTED_ORIGINS = [
+    'https://judea.uorivo.com',
 ]
 
 MIDDLEWARE = [

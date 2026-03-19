@@ -651,7 +651,18 @@ def access_lms(request):
         # Generate SSO URL
         service = MoodleIntegrationService(moodle_instance)
         sso_url = service.generate_sso_url(user)
-        
+
+        # Log the URL for debugging
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.info(f"Redirecting {user.username} to SSO URL: {sso_url}")
+
+        # Check if it's a proper SSO URL
+        if 'auth/userkey/login.php' in sso_url and 'key=' in sso_url:
+            logger.info("Using auth_userkey SSO")
+        elif 'login/index.php' in sso_url:
+            logger.warning("Falling back to manual login page")
+
         # Redirect to Moodle
         return redirect(sso_url)
         

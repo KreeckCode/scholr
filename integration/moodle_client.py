@@ -18,7 +18,7 @@ class MoodleClient:
         Initialize Moodle client
         
         Args:
-            base_url: Moodle base URL (e.g., http://localhost:8888/moodle501)
+            base_url: Moodle base URL 
             token: Web service token
             timeout: Request timeout in seconds
         """

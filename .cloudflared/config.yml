@@ -1,0 +1,19 @@
+# Tunnel ID
+tunnel: c055fe3c-6eb2-418a-aa85-3cf0f14f0d4f
+
+# Credentials file location
+credentials-file: /Users/dave/.cloudflared/c055fe3c-6eb2-418a-aa85-3cf0f14f0d4f.json
+
+# Ingress rules - order matters!
+ingress:
+  # Route /moodle501/* to MAMP (path is automatically preserved)
+  - hostname: judea.uorivo.com
+    path: /moodle501/*
+    service: http://localhost:8888
+  
+  # Route everything else to Django
+  - hostname: judea.uorivo.com
+    service: http://localhost:8000
+  
+  # Catch-all
+  - service: http_status:404
