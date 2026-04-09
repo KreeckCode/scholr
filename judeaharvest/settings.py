@@ -142,7 +142,8 @@ TIME_ZONE = 'Africa/Johannesburg'  # Set to appropriate timezone for South Afric
 USE_I18N = True
 
 USE_TZ = True
-
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'
+SESSION_COOKIE_AGE = 86400 * 7  # 7 days
 
 # Custom User Model
 AUTH_USER_MODEL = 'accounts.User'
@@ -209,6 +210,63 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 # EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
 # DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'noreply@judeaharvest.org')
 # SERVER_EMAIL = os.getenv('SERVER_EMAIL', 'server@judeaharvest.org')
+
+# ==================== SHOP CONFIGURATION ====================
+
+# Currency
+CURRENCY_SYMBOL = 'R'
+CURRENCY_CODE = 'ZAR'
+SHOP_NAME = 'African Pastoral Academy'
+
+# Payment Gateways
+PAYSTACK_PUBLIC_KEY = os.getenv('PAYSTACK_PUBLIC_KEY', '')
+PAYSTACK_SECRET_KEY = os.getenv('PAYSTACK_SECRET_KEY', '')
+
+STRIPE_PUBLIC_KEY = os.getenv('STRIPE_PUBLIC_KEY', '')
+STRIPE_SECRET_KEY = os.getenv('STRIPE_SECRET_KEY', '')
+
+# Email
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'  # Development
+DEFAULT_FROM_EMAIL = 'noreply@judeaharvest.co.za'
+
+# Moodle URL (for SSO links)
+MOODLE_URL = 'https://judea.uorivo.com/moodle501'
+
+# Session for cart
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'
+SESSION_COOKIE_AGE = 86400 * 7  # 7 days
+
+# Logging
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'file': {
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
+            'filename': 'logs/shop.log',
+            'formatter': 'verbose',
+        },
+        'console': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+        },
+    },
+    'loggers': {
+        'shop': {
+            'handlers': ['file', 'console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+    },
+}
 
 
 # Logging configuration

@@ -1,0 +1,900 @@
+"""
+Shop views - E-commerce functionality
+
+Architecture:
+- Class-based views for CRUD operations
+- Function-based views for simple actions
+- Mixins for reusable functionality
+
+Security:
+- CSRF protection on all POST requests
+- Authentication where required
+- Authorization checks
+- SQL injection prevention (ORM usage)
+- XSS prevention (Django templates auto-escape)
+"""
+
+import logging
+from decimal import Decimal
+
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.contrib import messages
+from django.views.generic import ListView, DetailView, View
+from django.views.decorators.http import require_http_methods, require_POST
+from django.views.decorators.csrf import csrf_exempt
+from django.http import JsonResponse, HttpResponse, Http404
+from django.db.models import Q, Count, Avg, Sum
+from django.core.paginator import Paginator
+from django.utils import timezone
+from django.conf import settings
+from django.urls import reverse
+
+from accounts.models import (
+    User, Product, ProductBundle, Order, OrderItem,
+    StudentEnrollment, DiscountCode, GradeLevel, Subject
+)
+
+from .cart import Cart
+from .forms import (
+    CheckoutForm, DiscountCodeForm, ProductSearchForm,
+    BulkEnrollmentForm
+)
+from .services import OrderService, EnrollmentService, PaymentService
+
+logger = logging.getLogger(__name__)
+
+
+# ==================== MIXINS ====================
+
+class AdminRequiredMixin(UserPassesTestMixin):
+    """
+    Mixin to restrict views to admin users only
+    
+    Security: Prevents unauthorized access to admin features
+    """
+    
+    def test_func(self):
+        return self.request.user.is_authenticated and self.request.user.role == User.ADMIN
+    
+    def handle_no_permission(self):
+        messages.error(self.request, 'Only administrators can access this page.')
+        return redirect('accounts:dashboard')
+
+
+class StudentRequiredMixin(UserPassesTestMixin):
+    """
+    Mixin to restrict views to students
+    
+    Used for: Student dashboard, course access
+    """
+    
+    def test_func(self):
+        return self.request.user.is_authenticated and self.request.user.role == User.STUDENT
+    
+    def handle_no_permission(self):
+        messages.error(self.request, 'This page is only accessible to students.')
+        return redirect('accounts:dashboard')
+
+
+# ==================== CATALOG VIEWS ====================
+
+class ProductCatalogView(ListView):
+    """
+    Main product catalog with search, filter, and pagination
+    
+    Features:
+    - Search by name/description
+    - Filter by grade, subject, price
+    - Sort options
+    - Pagination
+    - SEO-friendly URLs
+    
+    Performance:
+    - select_related for foreign keys
+    - prefetch_related for reverse relations
+    - Database query optimization
+    """
+    
+    model = Product
+    template_name = 'shop/catalog.html'
+    context_object_name = 'products'
+    paginate_by = 12
+    
+    def get_queryset(self):
+        """
+        Build filtered and sorted queryset
+        
+        Optimization: Uses select_related to reduce queries
+        """
+        queryset = Product.objects.filter(
+            is_active=True
+        ).select_related(
+            'grade_level',
+            'subject',
+            'moodle_course'
+        ).prefetch_related(
+            'bundle_items__course'
+        )
+        
+        # Get form data
+        form = ProductSearchForm(self.request.GET)
+        
+        if form.is_valid():
+            # Search query
+            q = form.cleaned_data.get('q')
+            if q:
+                queryset = queryset.filter(
+                    Q(name__icontains=q) |
+                    Q(description__icontains=q) |
+                    Q(short_description__icontains=q)
+                )
+            
+            # Grade filter
+            grade = form.cleaned_data.get('grade')
+            if grade:
+                queryset = queryset.filter(grade_level_id=grade)
+            
+            # Subject filter
+            subject = form.cleaned_data.get('subject')
+            if subject:
+                queryset = queryset.filter(subject_id=subject)
+            
+            # Price filter
+            price = form.cleaned_data.get('price')
+            if price == 'free':
+                queryset = queryset.filter(is_free=True)
+            elif price == 'paid':
+                queryset = queryset.filter(is_free=False)
+            elif price == '0-500':
+                queryset = queryset.filter(price__lte=500, is_free=False)
+            elif price == '500-1000':
+                queryset = queryset.filter(price__gte=500, price__lte=1000)
+            elif price == '1000+':
+                queryset = queryset.filter(price__gt=1000)
+            
+            # Sorting
+            sort = form.cleaned_data.get('sort', 'featured')
+            if sort == 'price_asc':
+                queryset = queryset.order_by('price')
+            elif sort == 'price_desc':
+                queryset = queryset.order_by('-price')
+            elif sort == 'name_asc':
+                queryset = queryset.order_by('name')
+            elif sort == 'newest':
+                queryset = queryset.order_by('-created_at')
+            else:  # featured
+                queryset = queryset.order_by('-is_featured', 'sort_order', '-created_at')
+        else:
+            # Default sort
+            queryset = queryset.order_by('-is_featured', 'sort_order', '-created_at')
+        
+        return queryset
+    
+    def get_context_data(self, **kwargs):
+        """Add search form and stats to context"""
+        context = super().get_context_data(**kwargs)
+        context['search_form'] = ProductSearchForm(self.request.GET)
+        context['total_products'] = self.get_queryset().count()
+        
+        # Cart count
+        cart = Cart(self.request)
+        context['cart_count'] = len(cart)
+        
+        return context
+
+
+class ProductDetailView(DetailView):
+    """
+    Product detail page
+    
+    Features:
+    - Full product information
+    - Bundle contents (if applicable)
+    - Reviews/ratings (future)
+    - Related products
+    - Add to cart button
+    
+    SEO:
+    - Meta tags
+    - Structured data
+    """
+    
+    model = Product
+    template_name = 'shop/product_detail.html'
+    context_object_name = 'product'
+    slug_field = 'slug'
+    slug_url_kwarg = 'slug'
+    
+    def get_queryset(self):
+        """Only show active products"""
+        return Product.objects.filter(
+            is_active=True
+        ).select_related(
+            'grade_level',
+            'subject',
+            'moodle_course'
+        ).prefetch_related(
+            'bundle_items__course'
+        )
+    
+    def get_context_data(self, **kwargs):
+        """Add related products and enrollment status"""
+        context = super().get_context_data(**kwargs)
+        product = self.object
+        
+        # Check if user already enrolled
+        if self.request.user.is_authenticated:
+            context['is_enrolled'] = StudentEnrollment.objects.filter(
+                user=self.request.user,
+                product=product,
+                is_active=True
+            ).exists()
+        else:
+            context['is_enrolled'] = False
+        
+        # Related products (same grade or subject)
+        context['related_products'] = Product.objects.filter(
+            is_active=True
+        ).filter(
+            Q(grade_level=product.grade_level) | Q(subject=product.subject)
+        ).exclude(
+            id=product.id
+        ).select_related('grade_level', 'subject')[:4]
+        
+        # Cart count
+        cart = Cart(self.request)
+        context['cart_count'] = len(cart)
+        
+        return context
+
+
+# ==================== CART VIEWS ====================
+
+@require_POST
+def cart_add(request, product_id):
+    """
+    Add product to cart
+    
+    Security:
+    - CSRF protected
+    - Validates product exists and is active
+    - Server-side validation
+    
+    UX:
+    - AJAX-friendly
+    - Returns JSON for AJAX requests
+    - Redirects for form submissions
+    """
+    try:
+        product = get_object_or_404(Product, id=product_id, is_active=True)
+        cart = Cart(request)
+        
+        # Get quantity (default 1)
+        quantity = int(request.POST.get('quantity', 1))
+        
+        # Validate quantity
+        if quantity < 1 or quantity > 10:
+            raise ValueError("Invalid quantity")
+        
+        cart.add(product, quantity)
+        
+        logger.info(f"Added to cart: {product.name} x{quantity} by {request.user.username if request.user.is_authenticated else 'guest'}")
+        
+        # AJAX response
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({
+                'success': True,
+                'cart_count': len(cart),
+                'cart_total': str(cart.get_total_price()),
+                'message': f'{product.name} added to cart'
+            })
+        
+        # Regular response
+        messages.success(request, f'✓ {product.name} added to cart')
+        return redirect('shop:cart_detail')
+        
+    except Product.DoesNotExist:
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'success': False, 'error': 'Product not found'}, status=404)
+        messages.error(request, 'Product not found')
+        return redirect('shop:catalog')
+    
+    except Exception as e:
+        logger.error(f"Error adding to cart: {str(e)}")
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'success': False, 'error': 'An error occurred'}, status=500)
+        messages.error(request, 'Could not add item to cart')
+        return redirect('shop:catalog')
+
+
+@require_POST
+def cart_remove(request, product_id):
+    """
+    Remove product from cart
+    
+    Security: CSRF protected
+    """
+    cart = Cart(request)
+    cart.remove(product_id)
+    
+    messages.info(request, 'Item removed from cart')
+    return redirect('shop:cart_detail')
+
+
+@require_POST
+def cart_update(request, product_id):
+    """
+    Update product quantity in cart
+    
+    Security:
+    - CSRF protected
+    - Validates quantity
+    """
+    try:
+        quantity = int(request.POST.get('quantity', 1))
+        
+        if quantity < 0 or quantity > 10:
+            raise ValueError("Invalid quantity")
+        
+        cart = Cart(request)
+        cart.update_quantity(product_id, quantity)
+        
+        # AJAX response
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({
+                'success': True,
+                'cart_count': len(cart),
+                'cart_total': str(cart.get_total_price())
+            })
+        
+        messages.success(request, 'Cart updated')
+        return redirect('shop:cart_detail')
+        
+    except Exception as e:
+        logger.error(f"Error updating cart: {str(e)}")
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'success': False, 'error': str(e)}, status=400)
+        messages.error(request, 'Could not update cart')
+        return redirect('shop:cart_detail')
+
+
+def cart_detail(request):
+    """
+    Shopping cart detail page
+    
+    Features:
+    - Shows all cart items
+    - Quantity adjustment
+    - Discount code application
+    - Total calculation
+    - Checkout button
+    """
+    cart = Cart(request)
+    
+    # Handle discount code
+    discount = None
+    discount_form = DiscountCodeForm()
+    
+    if request.method == 'POST':
+        discount_form = DiscountCodeForm(
+            request.POST,
+            cart_total=cart.get_total_price(),
+            user=request.user
+        )
+        
+        if discount_form.is_valid():
+            discount = discount_form.get_discount()
+            request.session['discount_code'] = discount.code
+            messages.success(request, f'✓ Discount code "{discount.code}" applied!')
+            return redirect('shop:cart_detail')
+    
+    # Check for existing discount in session
+    elif 'discount_code' in request.session:
+        try:
+            discount = DiscountCode.objects.get(code=request.session['discount_code'])
+            if not discount.is_valid():
+                del request.session['discount_code']
+                discount = None
+                messages.warning(request, 'Your discount code has expired')
+        except DiscountCode.DoesNotExist:
+            del request.session['discount_code']
+            discount = None
+    
+    # Calculate totals
+    subtotal = cart.get_total_price()
+    discount_amount = Decimal('0.00')
+    
+    if discount:
+        discount_amount = discount.calculate_discount(subtotal)
+    
+    total = subtotal - discount_amount
+    
+    context = {
+        'cart': cart,
+        'subtotal': subtotal,
+        'discount': discount,
+        'discount_amount': discount_amount,
+        'total': total,
+        'discount_form': discount_form,
+        'cart_count': len(cart)
+    }
+    
+    return render(request, 'shop/cart_detail.html', context)
+
+
+@require_POST
+def remove_discount(request):
+    """Remove applied discount code"""
+    if 'discount_code' in request.session:
+        del request.session['discount_code']
+        messages.info(request, 'Discount code removed')
+    
+    return redirect('shop:cart_detail')
+
+
+# ==================== CHECKOUT VIEWS ====================
+
+def checkout(request):
+    """
+    Checkout process
+    
+    Flow:
+    1. Validate cart not empty
+    2. If FREE cart → Auto-create order and enroll
+    3. If PAID cart → Show checkout form
+    4. Create order
+    5. Redirect to payment or confirmation
+    
+    Security:
+    - Validates cart contents
+    - Uses database prices (not client prices)
+    - Creates atomic orders
+    """
+    cart = Cart(request)
+    
+    # Check cart not empty
+    if len(cart) == 0:
+        messages.warning(request, 'Your cart is empty')
+        return redirect('shop:catalog')
+    
+    # Get discount if applied
+    discount = None
+    if 'discount_code' in request.session:
+        try:
+            discount = DiscountCode.objects.get(code=request.session['discount_code'])
+            if not discount.is_valid():
+                del request.session['discount_code']
+                discount = None
+        except DiscountCode.DoesNotExist:
+            del request.session['discount_code']
+    
+    # Calculate totals
+    subtotal = cart.get_total_price()
+    discount_amount = discount.calculate_discount(subtotal) if discount else Decimal('0.00')
+    total = subtotal - discount_amount
+    
+    # Handle form submission
+    if request.method == 'POST':
+        # If user authenticated, skip form
+        if request.user.is_authenticated:
+            user = request.user
+        else:
+            # Validate checkout form
+            form = CheckoutForm(request.POST)
+            
+            if not form.is_valid():
+                context = {
+                    'form': form,
+                    'cart': cart,
+                    'subtotal': subtotal,
+                    'discount': discount,
+                    'discount_amount': discount_amount,
+                    'total': total,
+                    'cart_count': len(cart)
+                }
+                return render(request, 'shop/checkout.html', context)
+            
+            # Create or get user
+            phone = form.cleaned_data['phone_number']
+            email = form.cleaned_data.get('email', '')
+            
+            # Try to find existing user
+            user = User.objects.filter(Q(phone_number=phone) | Q(email=email)).first()
+            
+            if not user:
+                # Create new user
+                import uuid
+                user = User.objects.create_user(
+                    username=f"user_{uuid.uuid4().hex[:8]}",
+                    phone_number=phone,
+                    email=email or None,
+                    first_name=form.cleaned_data['first_name'],
+                    last_name=form.cleaned_data['last_name'],
+                    role=User.STUDENT
+                )
+                
+                # Create profile
+                from accounts.models import UserProfile
+                UserProfile.objects.create(
+                    user=user,
+                    country=form.cleaned_data['country'],
+                    church_name=form.cleaned_data.get('church_name', '')
+                )
+                
+                messages.info(request, 'Account created! Please set a password to access your courses.')
+        
+        # Create order
+        order_service = OrderService()
+        
+        try:
+            order = order_service.create_order_from_cart(
+                user=user,
+                cart=cart,
+                discount_code=discount,
+                customer_notes=request.POST.get('customer_notes', '')
+            )
+            
+            # Clear cart and discount
+            cart.clear()
+            if 'discount_code' in request.session:
+                del request.session['discount_code']
+            
+            # If free order, process immediately
+            if order.is_free_order():
+                enrollment_service = EnrollmentService()
+                enrollment_service.process_order_enrollment(order)
+                
+                messages.success(request, '✓ Enrollment complete! You now have access to your courses.')
+                
+                # Log user in if not authenticated
+                if not request.user.is_authenticated:
+                    from django.contrib.auth import login
+                    login(request, user)
+                
+                return redirect('shop:order_confirmation', order_number=order.order_number)
+            
+            # Paid order - redirect to payment
+            return redirect('shop:payment', order_number=order.order_number)
+            
+        except Exception as e:
+            logger.error(f"Checkout error: {str(e)}", exc_info=True)
+            messages.error(request, 'An error occurred during checkout. Please try again.')
+            return redirect('shop:cart_detail')
+    
+    # GET request - show checkout form
+    form = CheckoutForm() if not request.user.is_authenticated else None
+    
+    context = {
+        'form': form,
+        'cart': cart,
+        'subtotal': subtotal,
+        'discount': discount,
+        'discount_amount': discount_amount,
+        'total': total,
+        'cart_count': len(cart),
+        'user_authenticated': request.user.is_authenticated
+    }
+    
+    return render(request, 'shop/checkout.html', context)
+
+
+# ==================== PAYMENT VIEWS ====================
+
+@login_required
+def payment(request, order_number):
+    """
+    Payment page
+    
+    Features:
+    - Shows order summary
+    - Initiates payment with gateway
+    - Handles payment redirect
+    
+    Security:
+    - Verifies user owns order
+    - Only shows pending orders
+    """
+    order = get_object_or_404(Order, order_number=order_number)
+    
+    # Security: Verify ownership
+    order_service = OrderService()
+    try:
+        order_service.verify_order_ownership(order, request.user)
+    except PermissionError:
+        raise Http404
+    
+    # Only process pending orders
+    if order.status != Order.PENDING:
+        messages.info(request, 'This order has already been processed')
+        return redirect('shop:order_confirmation', order_number=order.order_number)
+    
+    # Paystack integration
+    if request.method == 'POST':
+        # Initialize payment with Paystack
+        # This would typically redirect to Paystack payment page
+        
+        # For now, show payment details
+        context = {
+            'order': order,
+            'paystack_public_key': getattr(settings, 'PAYSTACK_PUBLIC_KEY', ''),
+            'payment_reference': f"PAY-{order.order_number}",
+            'amount_kobo': int(order.total_amount * 100),  # Convert to kobo
+            'email': request.user.email or 'customer@example.com',
+            'callback_url': request.build_absolute_uri(
+                reverse('shop:payment_callback')
+            )
+        }
+        
+        return render(request, 'shop/payment_process.html', context)
+    
+    context = {
+        'order': order,
+    }
+    
+    return render(request, 'shop/payment.html', context)
+
+
+@csrf_exempt
+@require_POST
+def payment_webhook(request):
+    """
+    Paystack webhook handler
+    
+    Security:
+    - CSRF exempt (uses signature verification instead)
+    - Verifies webhook signature
+    - Idempotent processing
+    
+    Critical: This must be publicly accessible
+    """
+    payment_service = PaymentService()
+    
+    try:
+        # Verify signature
+        data = payment_service.verify_paystack_webhook(request)
+        
+        # Extract payment details
+        event_type = data.get('event')
+        
+        if event_type == 'charge.success':
+            payment_data = data['data']
+            reference = payment_data['reference']
+            amount = payment_data['amount']
+            metadata = payment_data.get('metadata', {})
+            
+            # Process payment
+            order = payment_service.process_payment_confirmation(
+                payment_reference=reference,
+                amount=amount,
+                metadata=metadata
+            )
+            
+            logger.info(f"Payment webhook processed: {reference}")
+            
+            return HttpResponse(status=200)
+        
+        # Other events - log and ignore
+        logger.info(f"Webhook event ignored: {event_type}")
+        return HttpResponse(status=200)
+        
+    except Exception as e:
+        logger.error(f"Webhook error: {str(e)}", exc_info=True)
+        return HttpResponse(status=400)
+
+
+def payment_callback(request):
+    """
+    Payment callback/redirect page
+    
+    User lands here after payment on gateway
+    Shows processing message while webhook processes in background
+    """
+    reference = request.GET.get('reference')
+    
+    if not reference:
+        messages.error(request, 'Invalid payment reference')
+        return redirect('shop:catalog')
+    
+    # Try to find order
+    # Note: Webhook might not have processed yet
+    order = Order.objects.filter(payment_reference=reference).first()
+    
+    context = {
+        'reference': reference,
+        'order': order
+    }
+    
+    return render(request, 'shop/payment_callback.html', context)
+
+
+# ==================== ORDER VIEWS ====================
+
+@login_required
+def order_confirmation(request, order_number):
+    """
+    Order confirmation page
+    
+    Shows:
+    - Order details
+    - Enrolled courses
+    - Access instructions
+    """
+    order = get_object_or_404(Order, order_number=order_number)
+    
+    # Security: Verify ownership
+    order_service = OrderService()
+    try:
+        order_service.verify_order_ownership(order, request.user)
+    except PermissionError:
+        raise Http404
+    
+    # Get enrollments
+    enrollments = StudentEnrollment.objects.filter(
+        order=order
+    ).select_related('product')
+    
+    context = {
+        'order': order,
+        'enrollments': enrollments
+    }
+    
+    return render(request, 'shop/order_confirmation.html', context)
+
+
+class OrderListView(LoginRequiredMixin, ListView):
+    """
+    User's order history
+    
+    Security: Users only see their own orders
+    """
+    
+    model = Order
+    template_name = 'shop/order_list.html'
+    context_object_name = 'orders'
+    paginate_by = 20
+    
+    def get_queryset(self):
+        """Filter by user"""
+        order_service = OrderService()
+        return order_service.get_user_orders(self.request.user).order_by('-created_at')
+
+
+class OrderDetailView(LoginRequiredMixin, DetailView):
+    """
+    Order detail page
+    
+    Security: Verifies user ownership
+    """
+    
+    model = Order
+    template_name = 'shop/order_detail.html'
+    context_object_name = 'order'
+    slug_field = 'order_number'
+    slug_url_kwarg = 'order_number'
+    
+    def get_object(self, queryset=None):
+        """Get order and verify ownership"""
+        obj = super().get_object(queryset)
+        
+        order_service = OrderService()
+        try:
+            order_service.verify_order_ownership(obj, self.request.user)
+        except PermissionError:
+            raise Http404
+        
+        return obj
+
+
+# ==================== STUDENT DASHBOARD VIEWS ====================
+
+class MyCoursesView(StudentRequiredMixin, ListView):
+    """
+    Student's enrolled courses
+    
+    Shows:
+    - Active enrollments
+    - Progress
+    - Access links
+    """
+    
+    model = StudentEnrollment
+    template_name = 'shop/my_courses.html'
+    context_object_name = 'enrollments'
+    paginate_by = 20
+    
+    def get_queryset(self):
+        """Get user's active enrollments"""
+        return StudentEnrollment.objects.filter(
+            user=self.request.user,
+            is_active=True
+        ).select_related('product', 'order').order_by('-created_at')
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        
+        # Stats
+        enrollments = self.get_queryset()
+        context['total_courses'] = enrollments.count()
+        context['completed_courses'] = enrollments.filter(completed_at__isnull=False).count()
+        context['active_courses'] = enrollments.filter(completed_at__isnull=True).count()
+        
+        return context
+
+
+# ==================== ADMIN VIEWS ====================
+
+class BulkEnrollmentView(AdminRequiredMixin, View):
+    """
+    Admin: Bulk enrollment tool
+    
+    Features:
+    - Enroll multiple users at once
+    - Comp/promotional access
+    - Audit trail
+    
+    Security: Admin only
+    """
+    
+    template_name = 'shop/admin/bulk_enrollment.html'
+    
+    def get(self, request):
+        form = BulkEnrollmentForm()
+        return render(request, self.template_name, {'form': form})
+    
+    def post(self, request):
+        form = BulkEnrollmentForm(request.POST)
+        
+        if form.is_valid():
+            users = form.get_users()
+            product = form.cleaned_data['product']
+            duration_months = form.cleaned_data['duration_months']
+            reason = form.cleaned_data['reason']
+            
+            # Process enrollments
+            enrollment_service = EnrollmentService()
+            enrolled_count = 0
+            
+            for user in users:
+                try:
+                    # Create free order for audit trail
+                    order = Order.objects.create(
+                        user=user,
+                        status=Order.FREE,
+                        total_amount=Decimal('0.00'),
+                        payment_method='admin_comp',
+                        admin_notes=f"Bulk enrollment by {request.user.username}: {reason}"
+                    )
+                    
+                    OrderItem.objects.create(
+                        order=order,
+                        product=product,
+                        unit_price=Decimal('0.00'),
+                        quantity=1
+                    )
+                    
+                    # Create enrollment
+                    StudentEnrollment.objects.create(
+                        user=user,
+                        product=product,
+                        order=order,
+                        is_free=True,
+                        enrolled_by=request.user,
+                        starts_at=timezone.now(),
+                        expires_at=timezone.now() + timezone.timedelta(days=duration_months * 30)
+                    )
+                    
+                    enrolled_count += 1
+                    
+                except Exception as e:
+                    logger.error(f"Bulk enrollment error for {user.username}: {str(e)}")
+            
+            messages.success(
+                request,
+                f'✓ Successfully enrolled {enrolled_count} users in {product.name}'
+            )
+            
+            return redirect('shop:bulk_enrollment')
+        
+        return render(request, self.template_name, {'form': form})
