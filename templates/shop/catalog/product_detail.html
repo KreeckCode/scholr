@@ -1,0 +1,266 @@
+{% extends 'shop/base/_base.html' %}
+{% load shop_tags %}
+
+{% block title %}{{ product.name }} - African Pastoral Academy{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    
+    <!-- Breadcrumbs -->
+    {% include 'shop/components/_breadcrumbs.html' with breadcrumbs=breadcrumbs %}
+    
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        <!-- Main Content -->
+        <div class="lg:col-span-2 space-y-8">
+            
+            <!-- Product Image -->
+            <div class="glass-card rounded-2xl overflow-hidden">
+                <div class="aspect-video bg-gradient-to-br from-gray-100 to-gray-200">
+                    {% if product.image %}
+                    <img src="{{ product.image.url }}" 
+                         alt="{{ product.name }}"
+                         class="w-full h-full object-cover">
+                    {% else %}
+                    <div class="flex items-center justify-center h-full">
+                        <svg class="w-24 h-24 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                        </svg>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Product Info -->
+            <div class="glass-card rounded-2xl p-8">
+                <!-- Header -->
+                <div class="mb-6">
+                    <div class="flex items-center gap-3 mb-3">
+                        {% if product.grade_level %}
+                        <span class="px-3 py-1 bg-gray-100 text-gray-700 text-sm font-medium rounded-full">
+                            {{ product.grade_level.name }}
+                        </span>
+                        {% endif %}
+                        {% if product.subject %}
+                        <span class="px-3 py-1 bg-gray-100 text-gray-700 text-sm font-medium rounded-full">
+                            {{ product.subject.name }}
+                        </span>
+                        {% endif %}
+                        {% if product.is_free %}
+                        <span class="px-3 py-1 bg-green-100 text-green-700 text-sm font-semibold rounded-full">
+                            FREE
+                        </span>
+                        {% endif %}
+                    </div>
+                    
+                    <h1 class="text-3xl sm:text-4xl font-bold text-gray-900 text-display mb-4">
+                        {{ product.name }}
+                    </h1>
+                    
+                    <p class="text-lg text-gray-600">
+                        {{ product.short_description }}
+                    </p>
+                </div>
+                
+                <!-- Description -->
+                <div class="prose prose-sm max-w-none mb-8">
+                    {{ product.description|linebreaks }}
+                </div>
+                
+                <!-- What's Included -->
+                {% if product.included_features %}
+                <div class="mb-8">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">What's Included</h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        {% for feature in product.included_features %}
+                        <div class="flex items-center gap-3">
+                            <svg class="w-5 h-5 text-green-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span class="text-sm text-gray-700">{{ feature }}</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+                
+                <!-- Course Outline -->
+                {% if product.course_outline %}
+                <div class="mb-8">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Course Outline</h3>
+                    <div class="space-y-3">
+                        {% for item in product.course_outline %}
+                        <div class="p-4 bg-gray-50/50 rounded-xl border border-gray-200/50">
+                            <h4 class="font-medium text-gray-900 mb-1">{{ item.title }}</h4>
+                            {% if item.description %}
+                            <p class="text-sm text-gray-600">{{ item.description }}</p>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+                
+                <!-- Bundle Contents -->
+                {% if product.product_type == 'bundle' and product.bundle_items.all %}
+                <div class="mb-8">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Bundle Includes</h3>
+                    <div class="space-y-3">
+                        {% for bundle_item in product.bundle_items.all %}
+                        <div class="flex items-center gap-4 p-4 bg-gray-50/50 rounded-xl border border-gray-200/50">
+                            <div class="flex-shrink-0 w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
+                                <svg class="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                                </svg>
+                            </div>
+                            <div class="flex-grow">
+                                <h4 class="font-medium text-gray-900">{{ bundle_item.course.title }}</h4>
+                                {% if bundle_item.include_terms %}
+                                <p class="text-sm text-gray-600">Terms: {{ bundle_item.include_terms|join:", " }}</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+                
+                <!-- Learning Outcomes -->
+                {% if product.learning_outcomes %}
+                <div class="mb-8">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Learning Outcomes</h3>
+                    <div class="prose prose-sm max-w-none text-gray-600">
+                        {{ product.learning_outcomes|linebreaks }}
+                    </div>
+                </div>
+                {% endif %}
+                
+                <!-- Requirements -->
+                {% if product.requirements %}
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Requirements</h3>
+                    <div class="prose prose-sm max-w-none text-gray-600">
+                        {{ product.requirements|linebreaks }}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Sidebar -->
+        <div class="lg:col-span-1">
+            <div class="glass-card rounded-2xl p-6 sticky top-24">
+                
+                <!-- Price -->
+                <div class="mb-6 pb-6 border-b border-gray-200/50">
+                    {% if product.is_free %}
+                    <div class="text-4xl font-bold text-green-600 mb-2">FREE</div>
+                    <p class="text-sm text-gray-600">No payment required</p>
+                    {% else %}
+                    <div class="text-4xl font-bold text-gray-900 mb-2">{{ product.price|currency }}</div>
+                    <p class="text-sm text-gray-600">One-time payment</p>
+                    {% endif %}
+                </div>
+                
+                <!-- Access Duration -->
+                <div class="mb-6 space-y-3">
+                    <div class="flex items-center gap-3 text-sm text-gray-700">
+                        <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span>{{ product.duration_months }} months access</span>
+                    </div>
+                    
+                    {% if product.product_type == 'bundle' %}
+                    <div class="flex items-center gap-3 text-sm text-gray-700">
+                        <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                        </svg>
+                        <span>{{ product.bundle_items.count }} courses included</span>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="flex items-center gap-3 text-sm text-gray-700">
+                        <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                        </svg>
+                        <span>Certificate included</span>
+                    </div>
+                </div>
+                
+                <!-- CTA Buttons -->
+                <div class="space-y-3">
+                    {% if is_enrolled %}
+                    <a href="{% url 'shop:my_courses' %}" 
+                       class="block w-full py-3 bg-green-600 text-white text-center font-medium rounded-lg hover:bg-green-700 transition-smooth shadow-sm">
+                        ✓ Already Enrolled - View Course
+                    </a>
+                    {% else %}
+                        <form method="post" action="{% url 'shop:cart_add' product.id %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="quantity" value="1">
+                            <button type="submit" 
+                                    class="w-full py-3 btn-primary text-white font-medium rounded-lg transition-smooth">
+                                {% if product.is_free %}
+                                Enroll Now - FREE
+                                {% else %}
+                                Add to Cart
+                                {% endif %}
+                            </button>
+                        </form>
+                        
+                        {% if not product.is_free %}
+                        <a href="{% url 'shop:cart_detail' %}" 
+                           class="block w-full py-3 bg-gray-100 text-gray-900 text-center font-medium rounded-lg hover:bg-gray-200 transition-smooth">
+                            View Cart
+                        </a>
+                        {% endif %}
+                    {% endif %}
+                </div>
+                
+                <!-- Preview Link -->
+                {% if product.preview_url %}
+                <div class="mt-6 pt-6 border-t border-gray-200/50">
+                    <a href="{{ product.preview_url }}" 
+                       target="_blank"
+                       class="flex items-center justify-center gap-2 text-sm font-medium text-primary hover:text-primary-dark transition-smooth">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        Preview Course
+                    </a>
+                </div>
+                {% endif %}
+                
+                <!-- Money-back guarantee (if paid) -->
+                {% if not product.is_free %}
+                <div class="mt-6 pt-6 border-t border-gray-200/50">
+                    <div class="flex items-start gap-3">
+                        <svg class="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                        </svg>
+                        <div>
+                            <h4 class="font-medium text-gray-900 text-sm mb-1">Satisfaction Guaranteed</h4>
+                            <p class="text-xs text-gray-600">30-day money-back guarantee</p>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Related Products -->
+    {% if related_products %}
+    <div class="mt-16">
+        <h2 class="text-2xl font-bold text-gray-900 mb-6">You Might Also Like</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {% for related in related_products %}
+                {% include 'shop/catalog/_product_card.html' with product=related %}
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

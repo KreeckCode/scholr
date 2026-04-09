@@ -1,0 +1,42 @@
+Welcome to Judea Harvest!
+
+Dear {{ user.get_full_name }},
+
+{% if is_free %}
+Thank you for enrolling in your course! We're excited to have you join our learning community.
+{% else %}
+Thank you for your purchase! Your payment has been confirmed and you now have access to your courses.
+{% endif %}
+
+ORDER DETAILS
+-------------
+Order Number: {{ order.order_number }}
+Date: {{ order.created_at|date:"F j, Y" }}
+{% if not is_free %}
+Amount Paid: R {{ order.total_amount }}
+{% endif %}
+
+YOUR COURSES
+------------
+{% for enrollment in enrollments %}
+- {{ enrollment.product.name }}
+  Access until: {{ enrollment.expires_at|date:"F j, Y" }}
+{% endfor %}
+
+NEXT STEPS
+----------
+1. Visit your dashboard: {{ lms_url }}
+2. Sign in with your credentials
+3. Start learning!
+
+NEED HELP?
+----------
+If you have any questions, our support team is here to help.
+Contact us at: support@ajudeaharvest.co.za
+
+Best regards,
+The Judea Harvest Team
+
+---
+This email was sent to {{ user.email }}
+Order #{{ order.order_number }}

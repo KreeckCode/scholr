@@ -1,0 +1,82 @@
+{% load shop_tags %}
+
+<div class="glass-card rounded-xl p-4">
+    <div class="flex gap-4">
+        <!-- Product Image -->
+        <div class="flex-shrink-0 w-24 h-24 bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg overflow-hidden">
+            {% if item.product.image %}
+            <img src="{{ item.product.image.url }}" 
+                 alt="{{ item.product.name }}"
+                 class="w-full h-full object-cover">
+            {% else %}
+            <div class="flex items-center justify-center h-full">
+                <svg class="w-8 h-8 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                </svg>
+            </div>
+            {% endif %}
+        </div>
+        
+        <!-- Product Info -->
+        <div class="flex-grow">
+            <div class="flex justify-between items-start mb-2">
+                <div>
+                    <h3 class="font-semibold text-gray-900 mb-1">
+                        <a href="{% url 'shop:product_detail' item.product.slug %}" 
+                           class="hover:text-primary transition-smooth">
+                            {{ item.product.name }}
+                        </a>
+                    </h3>
+                    <div class="flex items-center gap-2 text-xs text-gray-600">
+                        {% if item.product.grade_level %}
+                        <span>{{ item.product.grade_level.name }}</span>
+                        {% endif %}
+                        {% if item.product.subject %}
+                        <span>•</span>
+                        <span>{{ item.product.subject.name }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <!-- Remove Button -->
+                <form method="post" action="{% url 'shop:cart_remove' item.product.id %}">
+                    {% csrf_token %}
+                    <button type="submit" 
+                            class="p-1 text-gray-400 hover:text-red-600 transition-smooth">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                    </button>
+                </form>
+            </div>
+            
+            <!-- Quantity & Price -->
+            <div class="flex items-center justify-between mt-4">
+                <!-- Quantity -->
+                <form method="post" action="{% url 'shop:cart_update' item.product.id %}" class="flex items-center gap-2">
+                    {% csrf_token %}
+                    <label class="text-sm text-gray-600">Qty:</label>
+                    <select name="quantity" 
+                            onchange="this.form.submit()"
+                            class="px-3 py-1 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent">
+                        {% for i in "12345678910"|make_list %}
+                        <option value="{{ forloop.counter }}" {% if item.quantity == forloop.counter %}selected{% endif %}>
+                            {{ forloop.counter }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </form>
+                
+                <!-- Price -->
+                <div class="text-right">
+                    <div class="font-semibold text-gray-900">
+                        {{ item.total_price|currency }}
+                    </div>
+                    <div class="text-xs text-gray-600">
+                        {{ item.price|currency }} each
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

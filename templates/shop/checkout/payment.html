@@ -1,0 +1,119 @@
+{% extends 'shop/base/_base.html' %}
+{% load shop_tags %}
+
+{% block title %}Payment - Judea Harvest{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    
+    <div class="glass-card rounded-2xl p-8">
+        
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <div class="w-16 h-16 bg-gradient-to-br from-primary to-primary-dark rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                </svg>
+            </div>
+            <h1 class="text-2xl font-bold text-gray-900 mb-2">Complete Your Payment</h1>
+            <p class="text-gray-600">Order #{{ order.order_number }}</p>
+        </div>
+        
+        <!-- Order Summary -->
+        <div class="bg-gray-50/50 rounded-xl p-6 mb-8">
+            <h2 class="text-lg font-semibold text-gray-900 mb-4">Order Summary</h2>
+            
+            <div class="space-y-3 mb-4">
+                {% for item in order.items.all %}
+                <div class="flex justify-between text-sm">
+                    <span class="text-gray-700">{{ item.product.name }} × {{ item.quantity }}</span>
+                    <span class="font-medium text-gray-900">{{ item.subtotal|currency }}</span>
+                </div>
+                {% endfor %}
+            </div>
+            
+            {% if order.discount_amount > 0 %}
+            <div class="flex justify-between text-sm text-green-600 mb-2">
+                <span>Discount</span>
+                <span class="font-medium">-{{ order.discount_amount|currency }}</span>
+            </div>
+            {% endif %}
+            
+            <div class="flex justify-between text-xl font-bold pt-4 border-t border-gray-200">
+                <span class="text-gray-900">Total</span>
+                <span class="text-primary">{{ order.total_amount|currency }}</span>
+            </div>
+        </div>
+        
+        <!-- Payment Method Selection -->
+        <form method="post">
+            {% csrf_token %}
+            
+            <div class="mb-6">
+                <h3 class="text-sm font-semibold text-gray-900 mb-3">Select Payment Method</h3>
+                
+                <div class="space-y-3">
+                    <!-- Paystack -->
+                    <label class="flex items-center p-4 glass-card rounded-xl cursor-pointer hover:bg-white/70 transition-smooth">
+                        <input type="radio" 
+                               name="payment_method" 
+                               value="paystack" 
+                               checked
+                               class="w-4 h-4 text-primary focus:ring-primary">
+                        <div class="ml-3 flex-grow">
+                            <div class="flex items-center justify-between">
+                                <span class="font-medium text-gray-900">Card Payment</span>
+                                <div class="flex items-center gap-2">
+                                    <img src="https://cdn.paystack.co/assets/img/logo.svg" alt="Paystack" class="h-4">
+                                </div>
+                            </div>
+                            <p class="text-xs text-gray-600 mt-1">Pay securely with Visa, Mastercard, or bank transfer</p>
+                        </div>
+                    </label>
+                </div>
+            </div>
+            
+            <!-- Proceed Button -->
+            <button type="submit" 
+                    class="w-full py-3 btn-primary text-white font-medium rounded-lg transition-smooth mb-3">
+                Pay {{ order.total_amount|currency }} Securely
+            </button>
+            
+            <a href="{% url 'shop:cart_detail' %}" 
+               class="block w-full py-3 bg-gray-100 text-gray-900 text-center font-medium rounded-lg hover:bg-gray-200 transition-smooth">
+                Cancel & Return to Cart
+            </a>
+            
+        </form>
+        
+        <!-- Security Features -->
+        <div class="mt-8 pt-8 border-t border-gray-200/50">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-center">
+                <div class="flex flex-col items-center">
+                    <svg class="w-8 h-8 text-green-600 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                    </svg>
+                    <span class="text-xs font-medium text-gray-900">Secure Payment</span>
+                    <span class="text-xs text-gray-600">SSL Encrypted</span>
+                </div>
+                
+                <div class="flex flex-col items-center">
+                    <svg class="w-8 h-8 text-blue-600 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                    <span class="text-xs font-medium text-gray-900">Instant Access</span>
+                    <span class="text-xs text-gray-600">Immediate enrollment</span>
+                </div>
+                
+                <div class="flex flex-col items-center">
+                    <svg class="w-8 h-8 text-purple-600 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+                    </svg>
+                    <span class="text-xs font-medium text-gray-900">Money Back</span>
+                    <span class="text-xs text-gray-600">30-day guarantee</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

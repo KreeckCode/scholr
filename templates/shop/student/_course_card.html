@@ -1,0 +1,81 @@
+{% load shop_tags %}
+
+<div class="glass-card rounded-2xl overflow-hidden hover-lift">
+    <!-- Course Image -->
+    <div class="relative aspect-video bg-gradient-to-br from-primary/10 to-primary/5">
+        {% if enrollment.product.image %}
+        <img src="{{ enrollment.product.image.url }}" 
+             alt="{{ enrollment.product.name }}"
+             class="w-full h-full object-cover">
+        {% else %}
+        <div class="absolute inset-0 flex items-center justify-center">
+            <svg class="w-16 h-16 text-primary/20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+            </svg>
+        </div>
+        {% endif %}
+        
+        <!-- Status Badge -->
+        {% if enrollment.completed_at %}
+        <div class="absolute top-3 right-3">
+            <span class="px-3 py-1 bg-green-600/90 backdrop-blur-sm text-white text-xs font-semibold rounded-full">
+                Completed
+            </span>
+        </div>
+        {% endif %}
+    </div>
+    
+    <!-- Course Info -->
+    <div class="p-6">
+        <h3 class="text-lg font-semibold text-gray-900 mb-2 line-clamp-2">
+            {{ enrollment.product.name }}
+        </h3>
+        
+        <!-- Progress Bar -->
+        <div class="mb-4">
+            <div class="flex items-center justify-between text-xs text-gray-600 mb-1">
+                <span>Progress</span>
+                <span class="font-medium">{{ enrollment.progress_percentage|floatformat:0 }}%</span>
+            </div>
+            <div class="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                <div class="bg-gradient-to-r from-primary to-primary-dark h-full rounded-full transition-all duration-500"
+                     style="width: {{ enrollment.progress_percentage }}%"></div>
+            </div>
+        </div>
+        
+        <!-- Meta Info -->
+        <div class="space-y-2 mb-4 text-xs text-gray-600">
+            {% if enrollment.last_accessed %}
+            <div class="flex items-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span>Last accessed {{ enrollment.last_accessed|timesince }} ago</span>
+            </div>
+            {% endif %}
+            
+            <div class="flex items-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                <span>
+                    {% if enrollment.is_expired %}
+                    Expired {{ enrollment.expires_at|date:"M j, Y" }}
+                    {% else %}
+                    {{ enrollment.days_remaining }} days remaining
+                    {% endif %}
+                </span>
+            </div>
+        </div>
+        
+        <!-- Action Button -->
+        <a href="#" 
+           class="block w-full py-2.5 bg-primary text-white text-center text-sm font-medium rounded-lg hover:bg-primary-dark transition-smooth">
+            {% if enrollment.completed_at %}
+            Review Course
+            {% else %}
+            Continue Learning
+            {% endif %}
+        </a>
+    </div>
+</div>

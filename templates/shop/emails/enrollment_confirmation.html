@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to Judea Harvest</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f9fafb;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+        }
+        .header {
+            background: linear-gradient(135deg, #0071e3 0%, #0077ed 100%);
+            padding: 40px 30px;
+            text-align: center;
+        }
+        .logo {
+            width: 60px;
+            height: 60px;
+            background: white;
+            border-radius: 12px;
+            margin: 0 auto 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: bold;
+            color: #0071e3;
+        }
+        .header h1 {
+            color: white;
+            font-size: 28px;
+            margin: 0;
+            font-weight: 600;
+        }
+        .content {
+            padding: 40px 30px;
+        }
+        .greeting {
+            font-size: 18px;
+            color: #1d1d1f;
+            margin-bottom: 20px;
+        }
+        .section {
+            margin-bottom: 30px;
+        }
+        .section h2 {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1d1d1f;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid #f3f4f6;
+        }
+        .info-label {
+            color: #6e6e73;
+            font-size: 14px;
+        }
+        .info-value {
+            color: #1d1d1f;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        .course-item {
+            background: #f9fafb;
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 12px;
+        }
+        .course-name {
+            color: #1d1d1f;
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        .course-meta {
+            color: #6e6e73;
+            font-size: 13px;
+        }
+        .cta-button {
+            display: inline-block;
+            background: linear-gradient(180deg, #0077ed 0%, #0071e3 100%);
+            color: white;
+            text-decoration: none;
+            padding: 14px 28px;
+            border-radius: 8px;
+            font-weight: 500;
+            font-size: 15px;
+            margin: 20px 0;
+        }
+        .steps {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .steps li {
+            padding: 12px 0;
+            color: #1d1d1f;
+            font-size: 14px;
+            position: relative;
+            padding-left: 30px;
+        }
+        .steps li:before {
+            content: counter(step);
+            counter-increment: step;
+            position: absolute;
+            left: 0;
+            top: 12px;
+            width: 20px;
+            height: 20px;
+            background: #0071e3;
+            color: white;
+            border-radius: 50%;
+            font-size: 12px;
+            font-weight: 600;
+            text-align: center;
+            line-height: 20px;
+        }
+        .footer {
+            background: #f9fafb;
+            padding: 30px;
+            text-align: center;
+            border-top: 1px solid #e5e7eb;
+        }
+        .footer p {
+            color: #6e6e73;
+            font-size: 13px;
+            margin: 8px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="logo">A</div>
+            <h1>Welcome to Your Course!</h1>
+        </div>
+        
+        <!-- Content -->
+        <div class="content">
+            <p class="greeting">Dear {{ user.get_full_name }},</p>
+            
+            {% if is_free %}
+            <p style="color: #6e6e73; line-height: 1.6;">
+                Thank you for enrolling! We're excited to have you join our learning community at Judea Harvest.
+            </p>
+            {% else %}
+            <p style="color: #6e6e73; line-height: 1.6;">
+                Thank you for your purchase! Your payment has been confirmed and you now have full access to your courses.
+            </p>
+            {% endif %}
+            
+            <!-- Order Details -->
+            <div class="section">
+                <h2>Order Details</h2>
+                <div class="info-row">
+                    <span class="info-label">Order Number</span>
+                    <span class="info-value">{{ order.order_number }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Date</span>
+                    <span class="info-value">{{ order.created_at|date:"F j, Y" }}</span>
+                </div>
+                {% if not is_free %}
+                <div class="info-row">
+                    <span class="info-label">Amount Paid</span>
+                    <span class="info-value">R {{ order.total_amount }}</span>
+                </div>
+                {% endif %}
+            </div>
+            
+            <!-- Courses -->
+            <div class="section">
+                <h2>Your Courses</h2>
+                {% for enrollment in enrollments %}
+                <div class="course-item">
+                    <div class="course-name">{{ enrollment.product.name }}</div>
+                    <div class="course-meta">Access until {{ enrollment.expires_at|date:"F j, Y" }}</div>
+                </div>
+                {% endfor %}
+            </div>
+            
+            <!-- CTA Button -->
+            <div style="text-align: center;">
+                <a href="{{ lms_url }}" class="cta-button">Access Your Courses</a>
+            </div>
+            
+            <!-- Next Steps -->
+            <div class="section">
+                <h2>Next Steps</h2>
+                <ol class="steps" style="counter-reset: step;">
+                    <li>Visit your dashboard and sign in with your credentials</li>
+                    <li>Explore your course materials and set your learning goals</li>
+                    <li>Start learning at your own pace!</li>
+                </ol>
+            </div>
+            
+            <!-- Support -->
+            <div class="section">
+                <h2>Need Help?</h2>
+                <p style="color: #6e6e73; line-height: 1.6;">
+                    If you have any questions, our support team is here to help.<br>
+                    Email: <a href="mailto:support@judeaharvest.co.za" style="color: #0071e3;">support@judeaharvest.co.za</a>
+                </p>
+            </div>
+        </div>
+        
+        <!-- Footer -->
+        <div class="footer">
+            <p><strong>Judea Harvest</strong></p>
+            <p>Empowering church leaders across Africa</p>
+            <p style="margin-top: 20px;">
+                This email was sent to {{ user.email }}<br>
+                Order #{{ order.order_number }}
+            </p>
+        </div>
+    </div>
+</body>
+</html>

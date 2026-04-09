@@ -1,0 +1,171 @@
+{% extends 'shop/base/_base.html' %}
+{% load shop_tags %}
+
+{% block title %}Order Confirmation - Judea Harvest{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    
+    <!-- Success Header -->
+    <div class="glass-card rounded-2xl p-8 text-center mb-8">
+        <div class="w-20 h-20 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+            </svg>
+        </div>
+        
+        <h1 class="text-3xl font-bold text-gray-900 mb-2">
+            {% if order.is_free_order %}
+            Welcome to Your Course!
+            {% else %}
+            Thank You for Your Purchase!
+            {% endif %}
+        </h1>
+        
+        <p class="text-lg text-gray-600 mb-4">
+            Order #{{ order.order_number }}
+        </p>
+        
+        {% if not order.is_free_order %}
+        <div class="inline-flex items-center gap-2 px-4 py-2 bg-green-100 text-green-800 rounded-lg text-sm font-medium">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            Payment Confirmed
+        </div>
+        {% endif %}
+    </div>
+    
+    <!-- Order Details -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        <!-- Left Column -->
+        <div class="lg:col-span-2 space-y-6">
+            
+            <!-- What's Next -->
+            <div class="glass-card rounded-2xl p-6">
+                <h2 class="text-xl font-semibold text-gray-900 mb-4">What Happens Next?</h2>
+                
+                <div class="space-y-4">
+                    <div class="flex items-start gap-4">
+                        <div class="flex-shrink-0 w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
+                            <span class="text-sm font-bold text-primary">1</span>
+                        </div>
+                        <div>
+                            <h3 class="font-medium text-gray-900 mb-1">Enrollment Complete</h3>
+                            <p class="text-sm text-gray-600">You've been enrolled in all your courses</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-start gap-4">
+                        <div class="flex-shrink-0 w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
+                            <span class="text-sm font-bold text-primary">2</span>
+                        </div>
+                        <div>
+                            <h3 class="font-medium text-gray-900 mb-1">Check Your Email</h3>
+                            <p class="text-sm text-gray-600">We've sent login instructions and course details</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-start gap-4">
+                        <div class="flex-shrink-0 w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
+                            <span class="text-sm font-bold text-primary">3</span>
+                        </div>
+                        <div>
+                            <h3 class="font-medium text-gray-900 mb-1">Start Learning</h3>
+                            <p class="text-sm text-gray-600">Access your courses from your dashboard</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-6 pt-6 border-t border-gray-200/50">
+                    <a href="{% url 'shop:my_courses' %}" 
+                       class="block w-full py-3 btn-primary text-white text-center font-medium rounded-lg transition-smooth">
+                        Go to My Courses
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Enrolled Courses -->
+            <div class="glass-card rounded-2xl p-6">
+                <h2 class="text-xl font-semibold text-gray-900 mb-4">Your Courses</h2>
+                
+                <div class="space-y-3">
+                    {% for enrollment in enrollments %}
+                    <div class="flex items-center gap-4 p-4 bg-gray-50/50 rounded-xl">
+                        <div class="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-primary/20 to-primary/10 rounded-lg flex items-center justify-center">
+                            <svg class="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                            </svg>
+                        </div>
+                        <div class="flex-grow">
+                            <h3 class="font-medium text-gray-900">{{ enrollment.product.name }}</h3>
+                            <p class="text-sm text-gray-600">Access until {{ enrollment.expires_at|date:"F j, Y" }}</p>
+                        </div>
+                        <div class="flex-shrink-0">
+                            <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Right Column -->
+        <div class="lg:col-span-1 space-y-6">
+            
+            <!-- Order Summary -->
+            <div class="glass-card rounded-2xl p-6">
+                <h2 class="text-lg font-semibold text-gray-900 mb-4">Order Summary</h2>
+                
+                <div class="space-y-3 mb-4">
+                    {% for item in order.items.all %}
+                    <div class="flex justify-between text-sm">
+                        <span class="text-gray-700">{{ item.product.name }}</span>
+                        <span class="font-medium text-gray-900">{{ item.subtotal|currency }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                {% if order.discount_amount > 0 %}
+                <div class="flex justify-between text-sm text-green-600 mb-2">
+                    <span>Discount</span>
+                    <span class="font-medium">-{{ order.discount_amount|currency }}</span>
+                </div>
+                {% endif %}
+                
+                <div class="flex justify-between text-lg font-bold pt-4 border-t border-gray-200/50">
+                    <span class="text-gray-900">Total</span>
+                    <span class="text-gray-900">{{ order.total_amount|currency }}</span>
+                </div>
+                
+                {% if not order.is_free_order %}
+                <div class="mt-4 pt-4 border-t border-gray-200/50 text-sm text-gray-600">
+                    <div class="flex justify-between mb-1">
+                        <span>Payment Method</span>
+                        <span class="font-medium text-gray-900 capitalize">{{ order.payment_method }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span>Payment Date</span>
+                        <span class="font-medium text-gray-900">{{ order.paid_at|date:"M j, Y" }}</span>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            
+            <!-- Support -->
+            <div class="glass-card rounded-2xl p-6">
+                <h3 class="font-semibold text-gray-900 mb-3">Need Help?</h3>
+                <p class="text-sm text-gray-600 mb-4">
+                    Our support team is here to assist you with any questions
+                </p>
+                <a href="#" class="text-sm font-medium text-primary hover:text-primary-dark">
+                    Contact Support →
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
