@@ -1,0 +1,46 @@
+<footer class="bg-gray-800 text-white mt-auto">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+            <div>
+                <h3 class="text-lg font-semibold mb-4">African Pastoral Academy</h3>
+                <p class="text-gray-400 text-sm">
+                    Equipping church leaders across Africa with theological training and practical ministry skills.
+                </p>
+            </div>
+            
+            <div>
+                <h4 class="text-sm font-semibold mb-4 uppercase tracking-wider">Quick Links</h4>
+                <ul class="space-y-2">
+                    <li><a href="{% url 'shop:catalog' %}" class="text-gray-400 hover:text-white text-sm">Browse Courses</a></li>
+                    <li><a href="{% url 'accounts:dashboard' %}" class="text-gray-400 hover:text-white text-sm">Dashboard</a></li>
+                    {% if user.is_authenticated and user.role == 'student' %}
+                    <li><a href="{% url 'shop:my_courses' %}" class="text-gray-400 hover:text-white text-sm">My Courses</a></li>
+                    {% endif %}
+                </ul>
+            </div>
+            
+            <div>
+                <h4 class="text-sm font-semibold mb-4 uppercase tracking-wider">Support</h4>
+                <ul class="space-y-2">
+                    <li><a href="#" class="text-gray-400 hover:text-white text-sm">Help Center</a></li>
+                    <li><a href="#" class="text-gray-400 hover:text-white text-sm">Contact Us</a></li>
+                    <li><a href="{% url 'accounts:profile' %}" class="text-gray-400 hover:text-white text-sm">My Profile</a></li>
+                </ul>
+            </div>
+            
+            <div>
+                <h4 class="text-sm font-semibold mb-4 uppercase tracking-wider">Contact</h4>
+                <ul class="space-y-2 text-sm text-gray-400">
+                    <li>Email: support@judeaharvest.co.za</li>
+                    <li>Phone: +27 XX XXX XXXX</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="mt-8 pt-8 border-t border-gray-700">
+            <p class="text-center text-gray-400 text-sm">
+                &copy; {{ "now"|date:"Y" }} African Pastoral Academy. All rights reserved.
+            </p>
+        </div>
+    </div>
+</footer>

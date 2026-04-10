@@ -391,6 +391,49 @@ class MoodleClient:
         
         return None
     
+    def get_course_by_shortname(self, shortname: str) -> Optional[Dict]:
+        """
+        Get course by shortname
+        
+        Args:
+            shortname: Course shortname to search for
+            
+        Returns:
+            Course dict or None if not found
+        """
+        try:
+            # Get all courses and filter by shortname
+            # Moodle doesn't have a direct "search by shortname" API
+            courses = self.get_courses()
+            
+            for course in courses:
+                if course.get('shortname') == shortname:
+                    logger.debug(f"Found course by shortname: {shortname} (ID: {course['id']})")
+                    return course
+            
+            logger.debug(f"Course not found by shortname: {shortname}")
+            return None
+            
+        except Exception as e:
+            logger.error(f"Error searching course by shortname: {str(e)}")
+            return None
+
+    def course_exists(self, course_id: int) -> bool:
+        """
+        Check if course exists in Moodle
+        
+        Args:
+            course_id: Moodle course ID
+            
+        Returns:
+            True if course exists, False otherwise
+        """
+        try:
+            course = self.get_course_by_id(course_id)
+            return course is not None
+        except Exception:
+            return False
+    
     # ==================== ENROLLMENT OPERATIONS ====================
     
     def enrol_user(self, user_id: int, course_id: int, role_id: int = 5) -> bool:

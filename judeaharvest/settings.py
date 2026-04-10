@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     # Project apps
     'accounts',
     'integration',
+    'shop',
 ]
 CSRF_TRUSTED_ORIGINS = [
     'https://judea.uorivo.com',

@@ -1,8 +1,3 @@
-"""
-Enrollment and product services for Judea Harvest
-Handles order processing and automatic enrollment into Moodle courses
-"""
-
 import logging
 from typing import List, Dict
 from decimal import Decimal
@@ -14,7 +9,7 @@ from django.conf import settings
 
 from .models import (
     User, Order, OrderItem, Product, ProductBundle, 
-    StudentEnrollment
+    StudentEnrollment, DiscountCode
 )
 from integration.models import CourseEnrollment
 from integration.services import MoodleIntegrationService
@@ -28,56 +23,152 @@ class EnrollmentService:
     Works for both FREE and PAID courses
     """
     
-    def process_order_enrollment(self, order: Order) -> List[StudentEnrollment]:
+    def process_order_enrollment(self, order):
         """
-        Main entry point after payment confirmation (or immediate for free orders)
+        Process enrollments for a completed order
+        Creates both StudentEnrollment AND integration.CourseEnrollment
+        Then triggers Moodle sync
         
-        Args:
-            order: Order instance (can be free or paid)
-            
         Returns:
-            List of StudentEnrollment instances created
+            List of created enrollments
         """
+        from integration.models import CourseEnrollment
+        from integration.services import MoodleIntegrationService
+        
         enrollments = []
+        course_enrollments = []
         
-        try:
-            with transaction.atomic():
-                # Expand products into courses
-                courses_to_enroll = self._expand_products_to_courses(order)
+        # Process each order item
+        for item in order.items.all():
+            product = item.product
+            courses_to_enroll = []
+            
+            # Determine which courses to enroll in based on product type
+            if product.product_type == Product.COURSE:
+                # Single course product
+                if product.moodle_course:
+                    courses_to_enroll.append(product.moodle_course)
+            
+            elif product.product_type == Product.BUNDLE:
+                # Bundle product - get all courses in bundle
+                bundle_items = product.bundle_items.select_related('course')
+                courses_to_enroll.extend([bi.course for bi in bundle_items])
+            
+            elif product.product_type == Product.TERM:
+                # Term-specific access to single course
+                if product.moodle_course:
+                    courses_to_enroll.append(product.moodle_course)
+            
+            # Create StudentEnrollment (product-level access tracking)
+            student_enrollment, created = StudentEnrollment.objects.get_or_create(
+                user=order.user,
+                product=product,
+                defaults={
+                    'order': order,
+                    'is_free': product.is_free,
+                    'expires_at': timezone.now() + timedelta(days=product.duration_months * 30)
+                }
+            )
+            
+            if created:
+                enrollments.append(student_enrollment)
+                logger.info(f"Created StudentEnrollment: {order.user.username} → {product.name}")
+            
+            # Create integration.CourseEnrollment for each course (Moodle sync)
+            for course in courses_to_enroll:
+                course_enrollment, created = CourseEnrollment.objects.get_or_create(
+                    user=order.user,
+                    course=course,
+                    defaults={
+                        'is_active': True,
+                        'sync_status': 'pending',
+                        'enrolled_at': timezone.now()
+                    }
+                )
                 
-                logger.info(f"Processing enrollment for order {order.order_number}: {len(courses_to_enroll)} courses")
-                
-                # Create enrollment records
-                for course_data in courses_to_enroll:
-                    enrollment = self._create_enrollment_record(
-                        user=order.user,
-                        product=course_data['product'],
-                        course=course_data['course'],
-                        terms=course_data['terms'],
-                        duration_months=course_data['duration_months'],
-                        order=order
+                if created:
+                    course_enrollments.append(course_enrollment)
+                    logger.info(
+                        f"Created CourseEnrollment: {order.user.username} → {course.short_name} "
+                        f"(will sync to Moodle)"
                     )
-                    enrollments.append(enrollment)
                 
-                # Sync all enrollments to Moodle
-                self._sync_to_moodle(order.user, courses_to_enroll)
+                # Update enrollment log in order item
+                if 'enrolled_courses' not in item.enrollment_log:
+                    item.enrollment_log['enrolled_courses'] = []
                 
-                # Mark order as enrollment processed
-                order.enrollment_processed = True
-                order.enrollment_processed_at = timezone.now()
-                order.save()
-                
-                # Send confirmation email
-                self._send_enrollment_confirmation(order.user, enrollments, order)
-                
-                logger.info(f"Successfully enrolled {order.user.username} in {len(enrollments)} courses")
-                
-        except Exception as e:
-            logger.error(f"Enrollment failed for order {order.order_number}: {str(e)}", exc_info=True)
-            order.enrollment_error = str(e)
-            order.save()
-            raise
+                item.enrollment_log['enrolled_courses'].append({
+                    'course_id': course.id,
+                    'course_name': course.title,
+                    'enrolled_at': timezone.now().isoformat()
+                })
+                item.save()
         
+        # Trigger immediate Moodle sync for these specific enrollments
+        if course_enrollments:
+            try:
+                # Ensure user has Moodle account first
+                from integration.models import MoodleUserMapping
+                
+                # Check if user is synced to Moodle
+                mapping, created = MoodleUserMapping.objects.get_or_create(
+                    cas_user=order.user,
+                    defaults={
+                        'moodle_username': order.user.username,
+                        'sync_status': 'pending'
+                    }
+                )
+                
+                # If user not synced, sync them first
+                if not mapping.moodle_user_id or mapping.sync_status != 'synced':
+                    service = MoodleIntegrationService()
+                    user_sync = service.sync_users(
+                        initiated_by=order.user,
+                        user_ids=[order.user.id]
+                    )
+                    logger.info(f"User sync for {order.user.username}: {user_sync.status}")
+                
+                # Now sync the enrollments using Moodle client directly
+                service = MoodleIntegrationService()
+                
+                for enrollment in course_enrollments:
+                    try:
+                        # Get fresh mapping
+                        mapping = order.user.moodle_mapping
+                        
+                        if not mapping.moodle_user_id:
+                            logger.error(f"User {order.user.username} has no Moodle ID, skipping enrollment")
+                            continue
+                        
+                        if not enrollment.course.moodle_course_id:
+                            logger.error(f"Course {enrollment.course.short_name} has no Moodle ID, skipping enrollment")
+                            continue
+                        
+                        # Enroll directly via Moodle client
+                        service.client.enrol_user(
+                            mapping.moodle_user_id,
+                            enrollment.course.moodle_course_id
+                        )
+                        
+                        # Mark as synced
+                        enrollment.mark_synced()
+                        
+                        logger.info(
+                            f"✓ Enrolled {order.user.username} in {enrollment.course.short_name} "
+                            f"(Moodle user {mapping.moodle_user_id}, course {enrollment.course.moodle_course_id})"
+                        )
+                    
+                    except Exception as e:
+                        enrollment.mark_failed(str(e))
+                        logger.error(
+                            f"Failed to enroll {order.user.username} in {enrollment.course.short_name}: {str(e)}"
+                        )
+                
+                logger.info(f"Immediate Moodle enrollment completed for order {order.order_number}")
+            
+            except Exception as e:
+                logger.error(f"Failed to sync enrollments to Moodle: {str(e)}")
+
         return enrollments
     
     def _expand_products_to_courses(self, order: Order) -> List[Dict]:
@@ -207,56 +298,6 @@ class EnrollmentService:
         )
         
         return enrollment
-    
-    def _sync_to_moodle(self, user: User, courses_to_enroll: List[Dict]):
-        """
-        Sync enrollments to Moodle
-        Creates Moodle user if needed, then enrolls in all courses
-        """
-        try:
-            # Get primary Moodle instance
-            from integration.models import MoodleInstance
-            
-            moodle_instance = MoodleInstance.objects.filter(
-                is_active=True,
-                is_primary=True
-            ).first()
-            
-            if not moodle_instance:
-                logger.error("No active Moodle instance configured")
-                return
-            
-            service = MoodleIntegrationService(moodle_instance)
-            
-            # Ensure user exists in Moodle
-            if not hasattr(user, 'moodle_mapping') or not user.moodle_mapping.moodle_user_id:
-                logger.info(f"Creating Moodle user for {user.username}")
-                service.create_or_update_user(user)
-            
-            # Enroll in each course
-            for course_data in courses_to_enroll:
-                course = course_data['course']
-                
-                try:
-                    # Get or create enrollment record
-                    enrollment = CourseEnrollment.objects.get(
-                        user=user,
-                        course=course
-                    )
-                    
-                    # Sync to Moodle if not already synced
-                    if enrollment.sync_status != 'synced':
-                        service.sync_single_enrollment(enrollment)
-                        logger.info(f"Synced enrollment: {user.username} → {course.title}")
-                    
-                except Exception as e:
-                    logger.error(f"Failed to sync enrollment for {course.title}: {str(e)}")
-                    # Continue with other enrollments even if one fails
-                    continue
-        
-        except Exception as e:
-            logger.error(f"Moodle sync failed: {str(e)}", exc_info=True)
-            # Don't raise - enrollment records are created, sync can retry later
     
     def _send_enrollment_confirmation(
         self, 

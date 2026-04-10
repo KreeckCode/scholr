@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
 from django.http import JsonResponse, HttpResponse
 from django.db.models import Q, Count
@@ -808,3 +808,127 @@ def preview_bulk_enrollment(request):
     users = users.exclude(id__in=already_enrolled)
     
     return JsonResponse({'count': users.count()})
+
+
+@login_required
+@user_passes_test(lambda u: u.role == User.ADMIN)
+def reconcile_courses(request):
+    """
+    Reconcile course sync status with Moodle
+    Shows what would be fixed and allows user to apply fixes
+    """
+    from .moodle_client import MoodleClient
+    from .models import MoodleInstance, Course
+    
+    # Get Moodle instance
+    moodle_instance = MoodleInstance.objects.filter(
+        is_active=True,
+        is_primary=True
+    ).first()
+    
+    if not moodle_instance:
+        messages.error(request, 'No active Moodle instance configured')
+        return redirect('integration:sync')
+    
+    # Initialize client
+    client = MoodleClient(
+        base_url=moodle_instance.base_url,
+        token=moodle_instance.ws_token
+    )
+    
+    # Get all Moodle courses
+    try:
+        moodle_courses = {c['shortname']: c for c in client.get_courses()}
+    except Exception as e:
+        messages.error(request, f'Failed to fetch Moodle courses: {str(e)}')
+        return redirect('integration:sync')
+    
+    # Check all courses
+    courses = Course.objects.all()
+    issues = []
+    
+    for course in courses:
+        issue = None
+        
+        if course.moodle_course_id:
+            # Verify ID is valid
+            existing = client.get_course_by_id(course.moodle_course_id)
+            
+            if not existing:
+                # ID is stale
+                if course.short_name in moodle_courses:
+                    issue = {
+                        'course': course,
+                        'type': 'stale_id_reconcile',
+                        'message': f'Stale ID {course.moodle_course_id}, but found by shortname',
+                        'new_id': moodle_courses[course.short_name]['id'],
+                        'severity': 'warning'
+                    }
+                else:
+                    issue = {
+                        'course': course,
+                        'type': 'stale_id_missing',
+                        'message': f'Stale ID {course.moodle_course_id}, course not found in Moodle',
+                        'severity': 'error'
+                    }
+        else:
+            # No ID, check if exists
+            if course.short_name in moodle_courses:
+                issue = {
+                    'course': course,
+                    'type': 'unlinked',
+                    'message': 'Course exists in Moodle but not linked',
+                    'new_id': moodle_courses[course.short_name]['id'],
+                    'severity': 'info'
+                }
+            elif course.sync_status == 'synced':
+                # Marked as synced but doesn't exist!
+                issue = {
+                    'course': course,
+                    'type': 'false_sync',
+                    'message': 'Marked as synced but not found in Moodle',
+                    'severity': 'error'
+                }
+        
+        if issue:
+            issues.append(issue)
+    
+    # Handle fix action
+    if request.method == 'POST' and 'fix_all' in request.POST:
+        fixed_count = 0
+        
+        for issue in issues:
+            course = issue['course']
+            
+            if issue['type'] == 'stale_id_reconcile':
+                course.moodle_course_id = issue['new_id']
+                course.sync_status = 'synced'
+                course.last_synced = timezone.now()
+                course.sync_error = ''
+                course.save()
+                fixed_count += 1
+                
+            elif issue['type'] == 'unlinked':
+                course.moodle_course_id = issue['new_id']
+                course.sync_status = 'synced'
+                course.last_synced = timezone.now()
+                course.save()
+                fixed_count += 1
+                
+            elif issue['type'] in ['stale_id_missing', 'false_sync']:
+                course.moodle_course_id = None
+                course.sync_status = 'pending'
+                course.save()
+                fixed_count += 1
+        
+        messages.success(request, f'Fixed {fixed_count} issues')
+        return redirect('integration:sync_dashboard')
+    
+    context = {
+        'issues': issues,
+        'total_courses': courses.count(),
+        'moodle_courses_count': len(moodle_courses),
+    }
+    
+    return render(request, 'integration/reconcile_courses.html', context)
+

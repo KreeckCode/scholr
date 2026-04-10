@@ -1,20 +1,12 @@
 """
 Shop URL Configuration
 
-URL Structure:
-- /shop/ → Catalog
-- /shop/product/<slug>/ → Product detail
-- /shop/cart/ → Cart management
-- /shop/checkout/ → Checkout process
-- /shop/payment/ → Payment processing
-- /shop/orders/ → Order management
-- /shop/courses/ → Student courses
-- /shop/admin/ → Admin tools
-
-Security:
-- CSRF protection on POST endpoints (except webhooks)
-- Login required where appropriate
-- Admin-only endpoints protected
+Simplified structure:
+- /courses/ → Catalog (browse)
+- /courses/cart/ → Shopping cart
+- /courses/checkout/ → Purchase
+- /courses/my-learning/ → Enrolled courses
+- /courses/orders/ → Order history
 """
 
 from django.urls import path
@@ -47,7 +39,7 @@ urlpatterns = [
     path('orders/<str:order_number>/', views.OrderDetailView.as_view(), name='order_detail'),
     path('orders/<str:order_number>/confirmation/', views.order_confirmation, name='order_confirmation'),
     
-    # ==================== STUDENT DASHBOARD ====================
+    # ==================== MY LEARNING ====================
     path('my-courses/', views.MyCoursesView.as_view(), name='my_courses'),
     
     # ==================== ADMIN TOOLS ====================

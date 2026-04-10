@@ -1,0 +1,93 @@
+{% extends 'base/base.html' %}
+{% load shop_tags %}
+
+{% block title %}Browse Courses - African Pastoral Academy{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50">
+    <!-- Hero Section -->
+    <div class="bg-gradient-to-r from-green-600 to-green-700 text-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            <h1 class="text-3xl font-bold">Browse Courses</h1>
+            <p class="mt-2 text-green-100">Quality theological education designed for African church leaders</p>
+        </div>
+    </div>
+    
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-8 pb-12">
+        <!-- Search & Filters Card -->
+        <div class="bg-white rounded-xl shadow-md p-6 mb-8">
+            <form method="get" class="grid grid-cols-1 md:grid-cols-5 gap-4">
+                
+                <!-- Search -->
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Search</label>
+                    {{ search_form.q }}
+                </div>
+                
+                <!-- Grade Filter -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Grade</label>
+                    {{ search_form.grade }}
+                </div>
+                
+                <!-- Subject Filter -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Subject</label>
+                    {{ search_form.subject }}
+                </div>
+                
+                <!-- Price Filter -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Price</label>
+                    {{ search_form.price }}
+                </div>
+                
+                <!-- Sort & Apply Button -->
+                <div class="md:col-span-5 flex items-end space-x-4">
+                    <div class="flex-grow">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Sort By</label>
+                        {{ search_form.sort }}
+                    </div>
+                    <button type="submit" 
+                            class="px-6 py-2.5 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition-colors shadow-sm">
+                        Apply Filters
+                    </button>
+                </div>
+            </form>
+        </div>
+        
+        <!-- Results Count -->
+        <div class="flex items-center justify-between mb-6">
+            <p class="text-sm text-gray-600">
+                <span class="font-semibold text-gray-900">{{ total_products }}</span> course{% if total_products != 1 %}s{% endif %} available
+            </p>
+        </div>
+        
+        <!-- Products Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+            {% for product in products %}
+                {% include 'shop/catalog/_product_card.html' %}
+            {% empty %}
+            <div class="col-span-full">
+                <div class="bg-white rounded-xl shadow-sm p-12 text-center">
+                    <svg class="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-2">No courses found</h3>
+                    <p class="text-sm text-gray-600 mb-6">Try adjusting your search filters</p>
+                    <a href="{% url 'shop:catalog' %}" 
+                       class="inline-flex items-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg transition-colors">
+                        Clear Filters
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <!-- Pagination -->
+        {% if page_obj.has_other_pages %}
+            {% include 'shop/components/_pagination.html' %}
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

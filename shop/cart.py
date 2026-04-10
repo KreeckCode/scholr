@@ -91,14 +91,19 @@ class Cart:
             is_active=True
         )
         
-        cart = self.cart.copy()
+        # Create product lookup dict
+        products_dict = {str(p.id): p for p in products}
         
-        for product in products:
-            item = cart[str(product.id)]
-            item['product'] = product
-            item['price'] = product.price  # From DB, not cart
-            item['total_price'] = product.price * item['quantity']
-            yield item
+        for product_id, cart_item in self.cart.items():
+            product = products_dict.get(product_id)
+            if product:
+                # Build new item dict (don't modify session data)
+                yield {
+                    'product': product,
+                    'quantity': cart_item['quantity'],
+                    'price': product.price,
+                    'total_price': product.price * cart_item['quantity']
+                }
     
     def __len__(self):
         """Count total items"""

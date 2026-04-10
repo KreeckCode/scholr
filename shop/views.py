@@ -385,9 +385,11 @@ def cart_detail(request):
         )
         
         if discount_form.is_valid():
-            discount = discount_form.get_discount()
-            request.session['discount_code'] = discount.code
-            messages.success(request, f'✓ Discount code "{discount.code}" applied!')
+            # Get validated code (string only)
+            discount_code = discount_form.cleaned_data['code']
+            # Store only the code string in session
+            request.session['discount_code'] = discount_code
+            messages.success(request, f'✓ Discount code "{discount_code}" applied!')
             return redirect('shop:cart_detail')
     
     # Check for existing discount in session

@@ -308,8 +308,14 @@ class MoodleIntegrationService:
     
     def sync_courses(self, initiated_by: User = None, course_ids: List[int] = None) -> SyncLog:
         """
-        Sync courses to Moodle
-        Creates new courses, updates modified ones
+        Sync courses to Moodle with smart duplicate handling
+        
+        Flow:
+        1. If course has moodle_course_id → verify it exists
+        2. If not found by ID → search by shortname
+        3. If found → update it and reconcile
+        4. If not found → create new
+        5. Handle duplicates gracefully
         
         Args:
             initiated_by: User who triggered the sync
@@ -342,20 +348,39 @@ class MoodleIntegrationService:
             results = {
                 'created': [],
                 'updated': [],
+                'reconciled': [],
                 'errors': []
             }
             
             for course in courses:
                 try:
                     # Ensure category exists in Moodle
-                    if not course.category.moodle_category_id:
+                    category_id = course.category.moodle_category_id
+
+                    if category_id:
+                        # Verify the category ID is valid
+                        moodle_cat = self.client.get_categories()
+                        valid_ids = [cat['id'] for cat in moodle_cat]
+                        
+                        if category_id not in valid_ids:
+                            # Stale ID, clear it
+                            logger.warning(
+                                f"Category {course.category.name} has stale ID {category_id}, clearing"
+                            )
+                            category_id = None
+                            course.category.moodle_category_id = None
+
+                    if not category_id:
+                        # Create category
                         moodle_cat_id = self.client.create_category(
                             name=course.category.name,
                             description=course.category.description
                         )
                         course.category.moodle_category_id = moodle_cat_id
                         course.category.save(update_fields=['moodle_category_id'])
+                        category_id = moodle_cat_id
                     
+                    # Prepare course data
                     course_data = {
                         'fullname': course.title,
                         'shortname': course.short_name,
@@ -366,20 +391,87 @@ class MoodleIntegrationService:
                         'enddate': int(course.end_date.timestamp()) if course.end_date else 0,
                     }
                     
+                    # SMART SYNC LOGIC
+                    existing_course = None
+                    
+                    # Step 1: Check if we have a moodle_course_id
                     if course.moodle_course_id:
+                        # Verify it actually exists in Moodle
+                        existing_course = self.client.get_course_by_id(course.moodle_course_id)
+                        
+                        if not existing_course:
+                            # ID is stale/wrong, clear it
+                            logger.warning(
+                                f"Course {course.short_name} has moodle_course_id={course.moodle_course_id} "
+                                f"but course doesn't exist in Moodle. Clearing ID."
+                            )
+                            course.moodle_course_id = None
+                    
+                    # Step 2: If no existing course found, search by shortname
+                    if not existing_course:
+                        existing_course = self.client.get_course_by_shortname(course.short_name)
+                        
+                        if existing_course:
+                            # Found existing course! Reconcile it
+                            course.moodle_course_id = existing_course['id']
+                            course.save(update_fields=['moodle_course_id'])
+                            
+                            logger.info(
+                                f"Reconciled course {course.short_name}: "
+                                f"found existing Moodle course ID {existing_course['id']}"
+                            )
+                            results['reconciled'].append(
+                                f"{course.short_name} → ID {existing_course['id']}"
+                            )
+                    
+                    # Step 3: Update or Create
+                    if existing_course:
                         # Update existing course
-                        self.client.update_course(course.moodle_course_id, course_data)
-                        course.mark_synced()
+                        self.client.update_course(existing_course['id'], course_data)
+                        course.mark_synced(existing_course['id'])
                         
                         results['updated'].append(course.short_name)
                         sync_log.successful_items += 1
+                        
+                        logger.info(f"Updated course {course.short_name} (ID: {existing_course['id']})")
+                        
                     else:
                         # Create new course
-                        moodle_id = self.client.create_course(course_data)
-                        course.mark_synced(moodle_id)
-                        
-                        results['created'].append(course.short_name)
-                        sync_log.successful_items += 1
+                        try:
+                            moodle_id = self.client.create_course(course_data)
+                            course.mark_synced(moodle_id)
+                            
+                            results['created'].append(course.short_name)
+                            sync_log.successful_items += 1
+                            
+                            logger.info(f"Created course {course.short_name} (ID: {moodle_id})")
+                            
+                        except MoodleAPIError as e:
+                            # Check if it's a duplicate error
+                            if 'already exists' in str(e).lower() or 'duplicate' in str(e).lower():
+                                # Course was created between our check and now
+                                # Try to find it again
+                                existing_course = self.client.get_course_by_shortname(course.short_name)
+                                
+                                if existing_course:
+                                    course.moodle_course_id = existing_course['id']
+                                    course.mark_synced(existing_course['id'])
+                                    
+                                    results['reconciled'].append(
+                                        f"{course.short_name} → ID {existing_course['id']} (duplicate)"
+                                    )
+                                    sync_log.successful_items += 1
+                                    
+                                    logger.info(
+                                        f"Handled duplicate: reconciled {course.short_name} "
+                                        f"to existing ID {existing_course['id']}"
+                                    )
+                                else:
+                                    # Couldn't find it, mark as failed
+                                    raise
+                            else:
+                                # Some other error, re-raise
+                                raise
                     
                 except Exception as e:
                     error_msg = f"Failed to sync course {course.short_name}: {str(e)}"
@@ -391,7 +483,11 @@ class MoodleIntegrationService:
             sync_log.details = results
             sync_log.mark_completed()
             
-            logger.info(f"Course sync completed: {sync_log.successful_items} successful, {sync_log.failed_items} failed")
+            logger.info(
+                f"Course sync completed: {sync_log.successful_items} successful "
+                f"({len(results['created'])} created, {len(results['updated'])} updated, "
+                f"{len(results['reconciled'])} reconciled), {sync_log.failed_items} failed"
+            )
             return sync_log
             
         except Exception as e:
@@ -399,6 +495,8 @@ class MoodleIntegrationService:
             sync_log.mark_failed(error_msg)
             logger.exception(error_msg)
             return sync_log
+    
+
     
     # ==================== ENROLLMENT SYNC ====================
     
