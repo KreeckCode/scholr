@@ -124,8 +124,9 @@ class ProductAdmin(admin.ModelAdmin):
     def price_display(self, obj):
         """Display price with FREE indicator"""
         if obj.is_free:
-            return format_html('<span style="color: green; font-weight: bold;">FREE</span>')
+            return format_html('<span style="color: {}; font-weight: {};">{}</span>', 'green', 'bold', 'FREE')
         return f"R{obj.price}"
+    
     price_display.short_description = 'Price'
     
     def activate_products(self, request, queryset):

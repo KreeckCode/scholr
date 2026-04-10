@@ -1,147 +1,362 @@
 {% extends 'base/base.html' %}
 
-{% block title %}Moodle Configuration - Judea Harvest CAS{% endblock %}
+{% block title %}Moodle Configuration - Judea Harvest{% endblock %}
 
 {% block content %}
-<div class="max-w-3xl mx-auto">
-    <div class="bg-white shadow rounded-lg">
-        <div class="px-4 py-5 sm:p-6">
-            <div class="mb-6">
-                <h2 class="text-2xl font-bold text-gray-900">Moodle Configuration</h2>
-                <p class="mt-1 text-sm text-gray-600">Configure connection to your Moodle instance</p>
+<div class="min-h-screen bg-gray-50">
+    <!-- Hero Section -->
+    <div class="bg-gradient-to-r from-purple-600 to-indigo-700 text-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            <div class="max-w-3xl">
+                <h1 class="text-3xl font-bold">Moodle Configuration</h1>
+                <p class="mt-2 text-purple-100">Configure connection to your Moodle learning management system</p>
             </div>
-            
-            {% if instance %}
-            <div class="mb-6 bg-blue-50 border border-blue-200 rounded-md p-4">
-                <div class="flex">
-                    <div class="flex-shrink-0">
-                        <svg class="h-5 w-5 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
-                        </svg>
-                    </div>
-                    <div class="ml-3">
-                        <p class="text-sm text-blue-700">
-                            You are updating an existing Moodle instance configuration.
-                        </p>
-                    </div>
+        </div>
+    </div>
+    
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 -mt-8 pb-12">
+        
+        <!-- Info Alert (if editing existing instance) -->
+        {% if instance %}
+        <div class="bg-white rounded-xl shadow-md border-l-4 border-blue-400 p-6 mb-8">
+            <div class="flex">
+                <div class="flex-shrink-0">
+                    <svg class="h-6 w-6 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                    </svg>
+                </div>
+                <div class="ml-4">
+                    <h3 class="text-sm font-medium text-blue-800">Editing Existing Configuration</h3>
+                    <p class="text-sm text-blue-700 mt-1">
+                        You are updating the configuration for <strong>{{ instance.name }}</strong>
+                    </p>
                 </div>
             </div>
-            {% endif %}
+        </div>
+        {% endif %}
+        
+        <!-- Configuration Form Card -->
+        <div class="bg-white rounded-xl shadow-md">
+            <div class="px-6 py-5 border-b border-gray-200">
+                <h3 class="text-lg font-semibold text-gray-900">Connection Settings</h3>
+                <p class="text-sm text-gray-600 mt-1">Enter your Moodle instance details below</p>
+            </div>
             
-            <form method="post" class="space-y-6">
+            <form method="post" class="p-6">
                 {% csrf_token %}
                 
-                <div>
-                    <label for="{{ form.name.id_for_label }}" class="block text-sm font-medium text-gray-700">
-                        Instance Name
-                    </label>
-                    {{ form.name }}
-                    {% if form.name.errors %}
-                        <p class="mt-1 text-sm text-red-600">{{ form.name.errors.0 }}</p>
-                    {% endif %}
-                    <p class="mt-1 text-xs text-gray-500">A friendly name to identify this Moodle instance</p>
-                </div>
-                
-                <div>
-                    <label for="{{ form.base_url.id_for_label }}" class="block text-sm font-medium text-gray-700">
-                        Base URL *
-                    </label>
-                    {{ form.base_url }}
-                    {% if form.base_url.errors %}
-                        <p class="mt-1 text-sm text-red-600">{{ form.base_url.errors.0 }}</p>
-                    {% endif %}
-                    <p class="mt-1 text-xs text-gray-500">{{ form.base_url.help_text }}</p>
-                </div>
-                
-                <div>
-                    <label for="{{ form.ws_token.id_for_label }}" class="block text-sm font-medium text-gray-700">
-                        Web Service Token *
-                    </label>
-                    {{ form.ws_token }}
-                    {% if form.ws_token.errors %}
-                        <p class="mt-1 text-sm text-red-600">{{ form.ws_token.errors.0 }}</p>
-                    {% endif %}
-                    <p class="mt-1 text-xs text-gray-500">{{ form.ws_token.help_text }}</p>
-                </div>
-                
-                <div>
-                    <label for="{{ form.ws_service_name.id_for_label }}" class="block text-sm font-medium text-gray-700">
-                        Service Name
-                    </label>
-                    {{ form.ws_service_name }}
-                    {% if form.ws_service_name.errors %}
-                        <p class="mt-1 text-sm text-red-600">{{ form.ws_service_name.errors.0 }}</p>
-                    {% endif %}
-                    <p class="mt-1 text-xs text-gray-500">{{ form.ws_service_name.help_text }}</p>
-                </div>
-                
-                <div class="border-t border-gray-200 pt-6">
-                    <div class="space-y-4">
-                        <div class="flex items-start">
-                            <div class="flex items-center h-5">
-                                {{ form.is_active }}
+                <div class="space-y-6">
+                    <!-- Instance Name -->
+                    <div>
+                        <label for="{{ form.name.id_for_label }}" class="block text-sm font-semibold text-gray-900 mb-2">
+                            Instance Name
+                        </label>
+                        <input type="text" 
+                               name="{{ form.name.name }}" 
+                               id="{{ form.name.id_for_label }}"
+                               value="{{ form.name.value|default:'' }}"
+                               class="block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+                               placeholder="e.g., Production Moodle">
+                        {% if form.name.errors %}
+                            <p class="mt-2 text-sm text-red-600 flex items-center">
+                                <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                                </svg>
+                                {{ form.name.errors.0 }}
+                            </p>
+                        {% endif %}
+                        <p class="mt-2 text-xs text-gray-500">A friendly name to identify this Moodle instance in your dashboard</p>
+                    </div>
+                    
+                    <!-- Base URL -->
+                    <div>
+                        <label for="{{ form.base_url.id_for_label }}" class="block text-sm font-semibold text-gray-900 mb-2">
+                            Base URL <span class="text-red-500">*</span>
+                        </label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"></path>
+                                </svg>
                             </div>
-                            <div class="ml-3 text-sm">
-                                <label for="{{ form.is_active.id_for_label }}" class="font-medium text-gray-700">
-                                    Active
-                                </label>
-                                <p class="text-gray-500">This instance is active and can be used for sync operations</p>
+                            <input type="url" 
+                                   name="{{ form.base_url.name }}" 
+                                   id="{{ form.base_url.id_for_label }}"
+                                   value="{{ form.base_url.value|default:'' }}"
+                                   class="block w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+                                   placeholder="https://moodle.yourdomain.com">
+                        </div>
+                        {% if form.base_url.errors %}
+                            <p class="mt-2 text-sm text-red-600 flex items-center">
+                                <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                                </svg>
+                                {{ form.base_url.errors.0 }}
+                            </p>
+                        {% endif %}
+                        <p class="mt-2 text-xs text-gray-500">{{ form.base_url.help_text|default:"The complete URL to your Moodle installation (including https://)" }}</p>
+                    </div>
+                    
+                    <!-- Web Service Token -->
+                    <div>
+                        <label for="{{ form.ws_token.id_for_label }}" class="block text-sm font-semibold text-gray-900 mb-2">
+                            Web Service Token <span class="text-red-500">*</span>
+                        </label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"></path>
+                                </svg>
+                            </div>
+                            <input type="password" 
+                                   name="{{ form.ws_token.name }}" 
+                                   id="{{ form.ws_token.id_for_label }}"
+                                   value="{{ form.ws_token.value|default:'' }}"
+                                   class="block w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors font-mono text-sm"
+                                   placeholder="Enter your Moodle web service token">
+                        </div>
+                        {% if form.ws_token.errors %}
+                            <p class="mt-2 text-sm text-red-600 flex items-center">
+                                <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                                </svg>
+                                {{ form.ws_token.errors.0 }}
+                            </p>
+                        {% endif %}
+                        <p class="mt-2 text-xs text-gray-500">{{ form.ws_token.help_text|default:"The authentication token for Moodle web services API" }}</p>
+                    </div>
+                    
+                    <!-- Service Name -->
+                    <div>
+                        <label for="{{ form.ws_service_name.id_for_label }}" class="block text-sm font-semibold text-gray-900 mb-2">
+                            Service Name
+                        </label>
+                        <input type="text" 
+                               name="{{ form.ws_service_name.name }}" 
+                               id="{{ form.ws_service_name.id_for_label }}"
+                               value="{{ form.ws_service_name.value|default:'' }}"
+                               class="block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+                               placeholder="e.g., moodle_mobile_app">
+                        {% if form.ws_service_name.errors %}
+                            <p class="mt-2 text-sm text-red-600 flex items-center">
+                                <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                                </svg>
+                                {{ form.ws_service_name.errors.0 }}
+                            </p>
+                        {% endif %}
+                        <p class="mt-2 text-xs text-gray-500">{{ form.ws_service_name.help_text|default:"The name of the web service configured in Moodle (optional)" }}</p>
+                    </div>
+                    
+                    <!-- Checkboxes Section -->
+                    <div class="border-t border-gray-200 pt-6">
+                        <h4 class="text-sm font-semibold text-gray-900 mb-4">Instance Settings</h4>
+                        <div class="space-y-4">
+                            <!-- Is Active -->
+                            <div class="relative flex items-start p-4 bg-green-50 border border-green-200 rounded-lg">
+                                <div class="flex items-center h-5">
+                                    <input type="checkbox" 
+                                           name="{{ form.is_active.name }}" 
+                                           id="{{ form.is_active.id_for_label }}"
+                                           {% if form.is_active.value %}checked{% endif %}
+                                           class="h-5 w-5 text-green-600 border-gray-300 rounded focus:ring-2 focus:ring-green-500 transition-colors">
+                                </div>
+                                <div class="ml-4">
+                                    <label for="{{ form.is_active.id_for_label }}" class="text-sm font-semibold text-gray-900 cursor-pointer">
+                                        Active Instance
+                                    </label>
+                                    <p class="text-sm text-gray-600 mt-1">
+                                        This instance is active and can be used for sync operations
+                                    </p>
+                                </div>
+                            </div>
+                            
+                            <!-- Is Primary -->
+                            <div class="relative flex items-start p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                                <div class="flex items-center h-5">
+                                    <input type="checkbox" 
+                                           name="{{ form.is_primary.name }}" 
+                                           id="{{ form.is_primary.id_for_label }}"
+                                           {% if form.is_primary.value %}checked{% endif %}
+                                           class="h-5 w-5 text-blue-600 border-gray-300 rounded focus:ring-2 focus:ring-blue-500 transition-colors">
+                                </div>
+                                <div class="ml-4">
+                                    <label for="{{ form.is_primary.id_for_label }}" class="text-sm font-semibold text-gray-900 cursor-pointer">
+                                        Primary Instance
+                                    </label>
+                                    <p class="text-sm text-gray-600 mt-1">
+                                        {{ form.is_primary.help_text|default:"Set as the default Moodle instance for all operations" }}
+                                    </p>
+                                </div>
                             </div>
                         </div>
-                        
-                        <div class="flex items-start">
-                            <div class="flex items-center h-5">
-                                {{ form.is_primary }}
-                            </div>
-                            <div class="ml-3 text-sm">
-                                <label for="{{ form.is_primary.id_for_label }}" class="font-medium text-gray-700">
-                                    Primary Instance
-                                </label>
-                                <p class="text-gray-500">{{ form.is_primary.help_text }}</p>
-                            </div>
+                        {% if form.is_primary.errors %}
+                            <p class="mt-3 text-sm text-red-600 flex items-center">
+                                <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                                </svg>
+                                {{ form.is_primary.errors.0 }}
+                            </p>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <!-- Form-wide errors -->
+                {% if form.non_field_errors %}
+                <div class="mt-6 bg-red-50 border-l-4 border-red-400 rounded-lg p-4">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <svg class="h-5 w-5 text-red-400" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
+                            </svg>
+                        </div>
+                        <div class="ml-3">
+                            {% for error in form.non_field_errors %}
+                            <p class="text-sm text-red-800">{{ error }}</p>
+                            {% endfor %}
                         </div>
                     </div>
-                    {% if form.is_primary.errors %}
-                        <p class="mt-2 text-sm text-red-600">{{ form.is_primary.errors.0 }}</p>
-                    {% endif %}
-                </div>
-                
-                {% if form.non_field_errors %}
-                <div class="bg-red-50 border border-red-200 rounded-md p-3">
-                    {% for error in form.non_field_errors %}
-                    <p class="text-sm text-red-800">{{ error }}</p>
-                    {% endfor %}
                 </div>
                 {% endif %}
                 
-                <div class="flex justify-end space-x-3 pt-6 border-t border-gray-200">
+                <!-- Action Buttons -->
+                <div class="flex justify-end space-x-3 pt-6 mt-6 border-t border-gray-200">
                     <a href="{% url 'integration:dashboard' %}" 
-                       class="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                       class="inline-flex items-center px-6 py-3 border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
                         Cancel
                     </a>
                     <button type="submit" 
-                            class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700">
+                            class="inline-flex items-center px-6 py-3 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition-colors">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
                         Save Configuration
                     </button>
                 </div>
             </form>
-            
-            {% if instance %}
-            <div class="mt-6 pt-6 border-t border-gray-200">
-                <h3 class="text-sm font-medium text-gray-900 mb-3">Setup Instructions</h3>
-                <div class="bg-gray-50 rounded-md p-4">
-                    <ol class="list-decimal list-inside space-y-2 text-sm text-gray-700">
-                        <li>Log in to your Moodle instance as administrator</li>
-                        <li>Navigate to Site administration → Server → Web services</li>
-                        <li>Enable web services and select REST protocol</li>
-                        <li>Create an external service with the necessary functions</li>
-                        <li>Generate a token for the service</li>
-                        <li>Copy the token and paste it in the form above</li>
-                    </ol>
+        </div>
+        
+        <!-- Setup Instructions -->
+        <div class="bg-white rounded-xl shadow-md mt-8">
+            <div class="px-6 py-5 border-b border-gray-200 bg-gradient-to-r from-indigo-50 to-purple-50">
+                <div class="flex items-center">
+                    <div class="bg-indigo-100 rounded-lg p-2 mr-3">
+                        <svg class="h-6 w-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-900">Setup Instructions</h3>
+                        <p class="text-sm text-gray-600 mt-1">Follow these steps to configure Moodle web services</p>
+                    </div>
                 </div>
             </div>
-            {% endif %}
+            <div class="p-6">
+                <div class="space-y-4">
+                    <!-- Step 1 -->
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0">
+                            <div class="flex items-center justify-center w-8 h-8 rounded-full bg-purple-100 text-purple-600 font-bold text-sm">
+                                1
+                            </div>
+                        </div>
+                        <div class="ml-4">
+                            <h4 class="text-sm font-semibold text-gray-900">Log in to Moodle as Administrator</h4>
+                            <p class="text-sm text-gray-600 mt-1">You need administrator privileges to configure web services</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Step 2 -->
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0">
+                            <div class="flex items-center justify-center w-8 h-8 rounded-full bg-purple-100 text-purple-600 font-bold text-sm">
+                                2
+                            </div>
+                        </div>
+                        <div class="ml-4">
+                            <h4 class="text-sm font-semibold text-gray-900">Navigate to Web Services Settings</h4>
+                            <p class="text-sm text-gray-600 mt-1">Go to <span class="font-mono bg-gray-100 px-2 py-0.5 rounded text-xs">Site administration → Server → Web services</span></p>
+                        </div>
+                    </div>
+                    
+                    <!-- Step 3 -->
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0">
+                            <div class="flex items-center justify-center w-8 h-8 rounded-full bg-purple-100 text-purple-600 font-bold text-sm">
+                                3
+                            </div>
+                        </div>
+                        <div class="ml-4">
+                            <h4 class="text-sm font-semibold text-gray-900">Enable Web Services</h4>
+                            <p class="text-sm text-gray-600 mt-1">Enable web services and select <strong>REST protocol</strong></p>
+                        </div>
+                    </div>
+                    
+                    <!-- Step 4 -->
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0">
+                            <div class="flex items-center justify-center w-8 h-8 rounded-full bg-purple-100 text-purple-600 font-bold text-sm">
+                                4
+                            </div>
+                        </div>
+                        <div class="ml-4">
+                            <h4 class="text-sm font-semibold text-gray-900">Create External Service</h4>
+                            <p class="text-sm text-gray-600 mt-1">Create an external service and add the necessary functions for course, user, and enrollment management</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Step 5 -->
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0">
+                            <div class="flex items-center justify-center w-8 h-8 rounded-full bg-purple-100 text-purple-600 font-bold text-sm">
+                                5
+                            </div>
+                        </div>
+                        <div class="ml-4">
+                            <h4 class="text-sm font-semibold text-gray-900">Generate Token</h4>
+                            <p class="text-sm text-gray-600 mt-1">Generate a token for the service and authorized user</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Step 6 -->
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0">
+                            <div class="flex items-center justify-center w-8 h-8 rounded-full bg-green-100 text-green-600 font-bold text-sm">
+                                6
+                            </div>
+                        </div>
+                        <div class="ml-4">
+                            <h4 class="text-sm font-semibold text-gray-900">Copy Token to Form</h4>
+                            <p class="text-sm text-gray-600 mt-1">Copy the generated token and paste it in the <strong>Web Service Token</strong> field above</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Help Link -->
+                <div class="mt-6 pt-6 border-t border-gray-200">
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                        <div class="flex">
+                            <svg class="h-5 w-5 text-blue-400 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+                            </svg>
+                            <div class="ml-3">
+                                <p class="text-sm text-blue-700">
+                                    Need help? Check out the 
+                                    <a href="https://docs.moodle.org/en/Using_web_services" target="_blank" rel="noopener noreferrer" 
+                                       class="font-medium underline hover:text-blue-800">
+                                        official Moodle web services documentation
+                                    </a>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
+        
     </div>
 </div>
 {% endblock %}

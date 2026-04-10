@@ -7,7 +7,16 @@ from django.utils import timezone
 from django.views.decorators.http import require_http_methods
 from django.core.paginator import Paginator
 from django.db import transaction
+from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib import messages
+from django.shortcuts import get_object_or_404, redirect
+from django.views.decorators.http import require_POST
+from integration.models import Course
+from integration.services import MoodleIntegrationService
 
+def is_staff_or_admin(user):
+    """Check if user is staff, admin, or dean"""
+    return user.is_staff or user.role in ['admin', 'dean']
 from accounts.models import User
 from .models import (
     MoodleInstance, Course, CourseCategory, 
@@ -392,35 +401,47 @@ def course_create(request):
     
     return render(request, 'integration/course_form.html', context)
 
-
 @login_required
-@admin_required
 def course_edit(request, course_id):
-    """Edit an existing course"""
-    course = get_object_or_404(Course, id=course_id)
+    """Edit course and sync changes to Moodle"""
+    course = get_object_or_404(Course, pk=course_id)
     
     if request.method == 'POST':
         form = CourseForm(request.POST, instance=course)
-        
         if form.is_valid():
-            form.save()
+            course = form.save()
             
-            messages.success(
-                request,
-                f'Course "{course.title}" updated. Changes will sync to Moodle on next sync.'
-            )
-            return redirect('integration:course_detail', course_id=course.id)
+            # Sync to Moodle if course has been synced before
+            if course.moodle_course_id:  # FIXED - was moodle_id
+                try:
+                    service = MoodleIntegrationService()
+                    service.update_course(course)
+                    messages.success(
+                        request, 
+                        f'Course "{course.title}" updated in both Django and Moodle.'
+                    )
+                except Exception as e:
+                    course.sync_status = 'modified'
+                    course.save(update_fields=['sync_status'])
+                    messages.warning(
+                        request,
+                        f'PLEASE SYNC!!!!Course updated in Django but Moodle sync failed: {str(e)}'
+                    )
+            else:
+                messages.success(
+                    request, 
+                    f'Course "{course.title}" updated successfully.'
+                )
+            
+            return redirect('integration:course_detail', course_id=course.pk)
     else:
         form = CourseForm(instance=course)
     
-    context = {
+    return render(request, 'integration/course_form.html', {
         'form': form,
         'course': course,
-        'action': 'Edit',
-    }
-    
-    return render(request, 'integration/course_form.html', context)
-
+        'is_edit': True
+    })
 
 @login_required
 @admin_required
@@ -452,23 +473,45 @@ def course_detail(request, course_id):
 
 
 @login_required
-@admin_required
-@require_http_methods(['POST'])
-def course_delete(request, course_id):
-    """Delete a course"""
-    course = get_object_or_404(Course, id=course_id)
+@user_passes_test(is_staff_or_admin)
+@require_POST
+def course_delete(request, course_id):  # Changed from pk to course_id
+    """
+    Delete course from both Django and Moodle
     
-    # Check if synced to Moodle
-    if course.moodle_course_id:
-        messages.warning(
-            request,
-            f'Course "{course.title}" is synced to Moodle. Delete from Moodle first or it will be recreated on next sync.'
+    Process:
+    1. Fetch course from Django
+    2. Delete from Moodle via API
+    3. Delete from Django database
+    4. Redirect with success/error message
+    """
+    course = get_object_or_404(Course, pk=course_id)  # Changed to use course_id
+    course_title = course.title
+    moodle_id = course.moodle_course_id  # Changed from moodle_id to moodle_course_id
+    
+    try:
+        # Delete from Moodle first if course has been synced
+        if moodle_id:
+            service = MoodleIntegrationService()
+            service.delete_course(moodle_id)
+            messages.success(
+                request, 
+                f'Course "{course_title}" deleted from Moodle successfully.'
+            )
+        
+        # Delete from Django
+        course.delete()
+        messages.success(
+            request, 
+            f'Course "{course_title}" deleted from system successfully.'
+        )
+        
+    except Exception as e:
+        messages.error(
+            request, 
+            f'Error deleting course: {str(e)}'
         )
     
-    course_title = course.title
-    course.delete()
-    
-    messages.success(request, f'Course "{course_title}" deleted.')
     return redirect('integration:course_list')
 
 
@@ -931,4 +974,8 @@ def reconcile_courses(request):
     }
     
     return render(request, 'integration/reconcile_courses.html', context)
+
+
+
+
 

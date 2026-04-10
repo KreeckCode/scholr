@@ -117,6 +117,17 @@
                            {% endif %}">
                             Sync
                         </a>
+                        <a href="{% url 'integration:dashboard' %}"
+                           class="rounded-full px-4 py-2 text-sm font-medium transition-all duration-200
+                           {% if 'sync' in request.path %}
+                               bg-blue-50 text-blue-700 ring-1 ring-blue-600/10
+                           {% else %}
+                               text-slate-600 hover:bg-slate-100 hover:text-slate-900
+                           {% endif %}">
+                            Integration
+                        </a>
+
+                        
                         <a href="{% url 'shop:catalog' %}"
                            class="rounded-full px-4 py-2 text-sm font-medium transition-all duration-200
                            {% if 'shop' in request.path %}

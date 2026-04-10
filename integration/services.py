@@ -3,6 +3,7 @@ from typing import List, Dict, Optional
 from django.db import transaction
 from django.utils import timezone
 from django.contrib.auth import get_user_model
+import requests
 
 from .models import (
     MoodleInstance, Course, CourseCategory, MoodleUserMapping,
@@ -380,15 +381,28 @@ class MoodleIntegrationService:
                         course.category.save(update_fields=['moodle_category_id'])
                         category_id = moodle_cat_id
                     
-                    # Prepare course data
+                   # Create new course in Moodle
+                    import datetime
+
+                    # Convert date to timestamp if needed
+                    start_timestamp = 0
+                    if course.start_date:
+                        start_dt = datetime.datetime.combine(course.start_date, datetime.time.min)
+                        start_timestamp = int(start_dt.timestamp())
+
+                    end_timestamp = 0
+                    if course.end_date:
+                        end_dt = datetime.datetime.combine(course.end_date, datetime.time.min)
+                        end_timestamp = int(end_dt.timestamp())
+
                     course_data = {
                         'fullname': course.title,
                         'shortname': course.short_name,
-                        'categoryid': course.category.moodle_category_id,
-                        'summary': course.summary,
-                        'visible': course.visible,
-                        'startdate': int(course.start_date.timestamp()) if course.start_date else 0,
-                        'enddate': int(course.end_date.timestamp()) if course.end_date else 0,
+                        'categoryid': category_id,
+                        'summary': course.summary or '',
+                        'visible': 1 if course.visible else 0,
+                        'startdate': start_timestamp,
+                        'enddate': end_timestamp,
                     }
                     
                     # SMART SYNC LOGIC
@@ -715,6 +729,97 @@ class MoodleIntegrationService:
         
         logger.info(f"Generated SSO URL for {user.username}")
         return login_url
+    
+
+    def delete_course(self, moodle_course_id):
+        """
+        Delete course from Moodle
+        
+        Args:
+            moodle_course_id: Moodle course ID to delete
+            
+        Returns:
+            bool: True if deleted successfully
+            
+        Raises:
+            Exception: If deletion fails
+        """
+        if not self.moodle_instance:
+            raise ValueError("No active Moodle instance configured")
+        
+        url = f"{self.moodle_instance.base_url}/webservice/rest/server.php"
+        
+        params = {
+            'wstoken': self.moodle_instance.ws_token,
+            'wsfunction': 'core_course_delete_courses',
+            'moodlewsrestformat': 'json',
+            'courseids[0]': moodle_course_id
+        }
+        
+        response = requests.post(url, data=params)
+        response.raise_for_status()
+        
+        data = response.json()
+        
+        # Check for Moodle errors
+        if isinstance(data, dict) and 'exception' in data:
+            raise Exception(f"Moodle error: {data.get('message', 'Unknown error')}")
+        
+        return True
+
+
+    def update_course(self, course):
+        """Update course in Moodle"""
+        if not course.moodle_course_id:  # FIXED - was checking wrong field
+            raise ValueError("Course has no Moodle ID - cannot update")
+        
+        if not self.moodle_instance:
+            raise ValueError("No active Moodle instance configured")
+        
+        import datetime
+        
+        # Convert dates to timestamps
+        start_timestamp = 0
+        if course.start_date:
+            start_dt = datetime.datetime.combine(course.start_date, datetime.time.min)
+            start_timestamp = int(start_dt.timestamp())
+        
+        end_timestamp = 0
+        if course.end_date:
+            end_dt = datetime.datetime.combine(course.end_date, datetime.time.min)
+            end_timestamp = int(end_dt.timestamp())
+        
+        url = f"{self.moodle_instance.base_url}/webservice/rest/server.php"
+        
+        params = {
+            'wstoken': self.moodle_instance.ws_token,
+            'wsfunction': 'core_course_update_courses',
+            'moodlewsrestformat': 'json',
+            'courses[0][id]': course.moodle_course_id,
+            'courses[0][fullname]': course.title,
+            'courses[0][shortname]': course.short_name,
+            'courses[0][categoryid]': course.category.moodle_category_id if course.category else 1,
+            'courses[0][summary]': course.description or course.summary or '',
+            'courses[0][summaryformat]': 1,
+            'courses[0][visible]': 1 if course.visible else 0,
+            'courses[0][startdate]': start_timestamp,  # ADDED
+            'courses[0][enddate]': end_timestamp,      # ADDED
+        }
+        
+        response = requests.post(url, data=params)
+        response.raise_for_status()
+        
+        data = response.json()
+        
+        if isinstance(data, dict) and 'exception' in data:
+            raise Exception(f"Moodle error: {data.get('message', 'Unknown error')}")
+        
+        # Update sync status
+        course.sync_status = 'synced'
+        course.last_synced_at = timezone.now()
+        course.save(update_fields=['sync_status', 'last_synced_at'])
+        
+        return data
     
     # ==================== HELPER METHODS ====================
     

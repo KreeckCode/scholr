@@ -1,156 +1,379 @@
 {% extends 'base/base.html' %}
 
-{% block title %}Bulk Enroll Students - Judea Harvest CAS{% endblock %}
+{% block title %}Bulk Enroll Students - African Pastoral Academy{% endblock %}
 
 {% block content %}
-<div class="max-w-4xl mx-auto">
-    <div class="bg-white shadow rounded-lg">
-        <div class="px-4 py-5 sm:p-6">
-            <div class="mb-6">
-                <h2 class="text-2xl font-bold text-gray-900">Bulk Enroll Students</h2>
-                <p class="mt-1 text-sm text-gray-600">
-                    Enroll multiple students in a course at once based on filter criteria
-                </p>
+<div class="min-h-screen bg-gray-50">
+    <!-- Hero Section -->
+    <div class="bg-gradient-to-r from-green-600 to-emerald-700 text-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            <div class="max-w-4xl">
+                <h1 class="text-3xl font-bold">Bulk Enroll Students</h1>
+                <p class="mt-2 text-green-100">Enroll multiple students in a course at once based on filter criteria</p>
             </div>
-            
-            <div class="mb-6 bg-blue-50 border border-blue-200 rounded-md p-4">
-                <div class="flex">
-                    <div class="flex-shrink-0">
-                        <svg class="h-5 w-5 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
-                        </svg>
-                    </div>
-                    <div class="ml-3">
-                        <p class="text-sm text-blue-700">
-                            Students will be enrolled in the Django system. Remember to sync enrollments to push changes to Moodle.
-                        </p>
-                    </div>
+        </div>
+    </div>
+    
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 -mt-8 pb-12">
+        
+        <!-- Info Alert -->
+        <div class="bg-white rounded-xl shadow-md border-l-4 border-blue-400 p-6 mb-8">
+            <div class="flex">
+                <div class="flex-shrink-0">
+                    <svg class="h-6 w-6 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                    </svg>
+                </div>
+                <div class="ml-4">
+                    <h3 class="text-sm font-medium text-blue-800">Enrollment Process</h3>
+                    <p class="text-sm text-blue-700 mt-1">
+                        Students will be enrolled in the Django system first. Remember to sync enrollments to push changes to Moodle LMS.
+                    </p>
                 </div>
             </div>
+        </div>
+        
+        <!-- Main Form Card -->
+        <div class="bg-white rounded-xl shadow-md">
+            <div class="px-6 py-5 border-b border-gray-200">
+                <h3 class="text-lg font-semibold text-gray-900">Enrollment Settings</h3>
+                <p class="text-sm text-gray-600 mt-1">Configure course and student filter criteria</p>
+            </div>
             
-            <form method="post" class="space-y-6" id="bulkEnrollForm">
+            <form method="post" class="p-6" id="bulkEnrollForm">
                 {% csrf_token %}
                 
-                <div>
-                    <label for="{{ form.course.id_for_label }}" class="block text-sm font-medium text-gray-700">
-                        Select Course *
-                    </label>
-                    {{ form.course }}
-                    {% if form.course.errors %}
-                        <p class="mt-1 text-sm text-red-600">{{ form.course.errors.0 }}</p>
-                    {% endif %}
-                    <p class="mt-1 text-xs text-gray-500">{{ form.course.help_text }}</p>
-                </div>
-                
-                <div class="border-t border-gray-200 pt-6">
-                    <h3 class="text-lg font-medium text-gray-900 mb-4">Filter Students</h3>
-                    
+                <div class="space-y-6">
+                    <!-- Course Selection -->
                     <div>
-                        <label for="{{ form.filter_type.id_for_label }}" class="block text-sm font-medium text-gray-700">
-                            Filter By *
+                        <label for="{{ form.course.id_for_label }}" class="block text-sm font-semibold text-gray-900 mb-2">
+                            Select Course <span class="text-red-500">*</span>
                         </label>
-                        {{ form.filter_type }}
-                        {% if form.filter_type.errors %}
-                            <p class="mt-1 text-sm text-red-600">{{ form.filter_type.errors.0 }}</p>
-                        {% endif %}
-                        <p class="mt-1 text-xs text-gray-500">Choose how to filter which students to enroll</p>
-                    </div>
-                </div>
-                
-                <!-- Region Filter (hidden by default) -->
-                <div id="regionFilter" class="hidden">
-                    <label for="{{ form.region.id_for_label }}" class="block text-sm font-medium text-gray-700">
-                        Region *
-                    </label>
-                    {{ form.region }}
-                    {% if form.region.errors %}
-                        <p class="mt-1 text-sm text-red-600">{{ form.region.errors.0 }}</p>
-                    {% endif %}
-                    <p class="mt-1 text-xs text-gray-500">{{ form.region.help_text }}</p>
-                    <p class="mt-1 text-xs text-gray-400">Examples: Limpopo, Gauteng, Western Cape, etc.</p>
-                </div>
-                
-                <!-- Education Level Filter (hidden by default) -->
-                <div id="educationFilter" class="hidden">
-                    <label for="{{ form.education_level.id_for_label }}" class="block text-sm font-medium text-gray-700">
-                        Education Level *
-                    </label>
-                    {{ form.education_level }}
-                    {% if form.education_level.errors %}
-                        <p class="mt-1 text-sm text-red-600">{{ form.education_level.errors.0 }}</p>
-                    {% endif %}
-                    <p class="mt-1 text-xs text-gray-500">{{ form.education_level.help_text }}</p>
-                </div>
-                
-                <!-- Church Size Filter (hidden by default) -->
-                <div id="churchSizeFilter" class="hidden">
-                    <label for="{{ form.church_size.id_for_label }}" class="block text-sm font-medium text-gray-700">
-                        Church Size *
-                    </label>
-                    {{ form.church_size }}
-                    {% if form.church_size.errors %}
-                        <p class="mt-1 text-sm text-red-600">{{ form.church_size.errors.0 }}</p>
-                    {% endif %}
-                    <p class="mt-1 text-xs text-gray-500">{{ form.church_size.help_text }}</p>
-                </div>
-                
-                <!-- Preview Section -->
-                <div id="previewSection" class="border-t border-gray-200 pt-6">
-                    <div class="bg-gray-50 rounded-md p-4">
-                        <h4 class="text-sm font-medium text-gray-700 mb-2">Preview</h4>
-                        <p class="text-sm text-gray-600" id="previewText">
-                            Select a course and filter criteria to see how many students will be enrolled.
-                        </p>
-                        <div id="previewCount" class="mt-2 hidden">
-                            <p class="text-lg font-semibold text-blue-600">
-                                <span id="studentCount">0</span> students will be enrolled
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+                                </svg>
+                            </div>
+                            <select name="{{ form.course.name }}" 
+                                    id="{{ form.course.id_for_label }}"
+                                    class="block w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors">
+                                <option value="">-- Select a course --</option>
+                                {% for value, label in form.course.field.choices %}
+                                    {% if value %}
+                                    <option value="{{ value }}" {% if form.course.value == value|stringformat:"s" %}selected{% endif %}>{{ label }}</option>
+                                    {% endif %}
+                                {% endfor %}
+                            </select>
+                        </div>
+                        {% if form.course.errors %}
+                            <p class="mt-2 text-sm text-red-600 flex items-center">
+                                <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                                </svg>
+                                {{ form.course.errors.0 }}
                             </p>
+                        {% endif %}
+                        <p class="mt-2 text-xs text-gray-500">{{ form.course.help_text|default:"Choose the course for bulk enrollment" }}</p>
+                    </div>
+                    
+                    <!-- Filter Section -->
+                    <div class="border-t border-gray-200 pt-6">
+                        <div class="flex items-center mb-4">
+                            <div class="bg-green-100 rounded-lg p-2 mr-3">
+                                <svg class="h-5 w-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path>
+                                </svg>
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-semibold text-gray-900">Filter Students</h3>
+                                <p class="text-sm text-gray-600">Choose criteria to select which students to enroll</p>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label for="{{ form.filter_type.id_for_label }}" class="block text-sm font-semibold text-gray-900 mb-2">
+                                Filter By <span class="text-red-500">*</span>
+                            </label>
+                            <select name="{{ form.filter_type.name }}" 
+                                    id="{{ form.filter_type.id_for_label }}"
+                                    class="block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors">
+                                {% for value, label in form.filter_type.field.choices %}
+                                <option value="{{ value }}" {% if form.filter_type.value == value %}selected{% endif %}>{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                            {% if form.filter_type.errors %}
+                                <p class="mt-2 text-sm text-red-600 flex items-center">
+                                    <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                                    </svg>
+                                    {{ form.filter_type.errors.0 }}
+                                </p>
+                            {% endif %}
+                            <p class="mt-2 text-xs text-gray-500">Choose how to filter which students to enroll</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Region Filter (conditionally shown) -->
+                    <div id="regionFilter" class="hidden bg-blue-50 border border-blue-200 rounded-lg p-5">
+                        <label for="{{ form.region.id_for_label }}" class="block text-sm font-semibold text-gray-900 mb-2">
+                            <svg class="inline-block w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            </svg>
+                            Region <span class="text-red-500">*</span>
+                        </label>
+                        <input type="text" 
+                               name="{{ form.region.name }}" 
+                               id="{{ form.region.id_for_label }}"
+                               value="{{ form.region.value|default:'' }}"
+                               class="block w-full px-4 py-3 border border-blue-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                               placeholder="e.g., Limpopo, Gauteng, Western Cape">
+                        {% if form.region.errors %}
+                            <p class="mt-2 text-sm text-red-600 flex items-center">
+                                <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                                </svg>
+                                {{ form.region.errors.0 }}
+                            </p>
+                        {% endif %}
+                        <p class="mt-2 text-xs text-gray-600">{{ form.region.help_text|default:"Enter the region to filter students" }}</p>
+                    </div>
+                    
+                    <!-- Education Level Filter (conditionally shown) -->
+                    <div id="educationFilter" class="hidden bg-purple-50 border border-purple-200 rounded-lg p-5">
+                        <label for="{{ form.education_level.id_for_label }}" class="block text-sm font-semibold text-gray-900 mb-2">
+                            <svg class="inline-block w-5 h-5 mr-2 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path d="M12 14l9-5-9-5-9 5 9 5z"></path>
+                                <path d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5zm0 0l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14zm-4 6v-7.5l4-2.222"></path>
+                            </svg>
+                            Education Level <span class="text-red-500">*</span>
+                        </label>
+                        <select name="{{ form.education_level.name }}" 
+                                id="{{ form.education_level.id_for_label }}"
+                                class="block w-full px-4 py-3 border border-purple-300 rounded-lg shadow-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors">
+                            <option value="">-- Select education level --</option>
+                            {% for value, label in form.education_level.field.choices %}
+                                {% if value %}
+                                <option value="{{ value }}" {% if form.education_level.value == value %}selected{% endif %}>{{ label }}</option>
+                                {% endif %}
+                            {% endfor %}
+                        </select>
+                        {% if form.education_level.errors %}
+                            <p class="mt-2 text-sm text-red-600 flex items-center">
+                                <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                                </svg>
+                                {{ form.education_level.errors.0 }}
+                            </p>
+                        {% endif %}
+                        <p class="mt-2 text-xs text-gray-600">{{ form.education_level.help_text|default:"Select the education level to filter students" }}</p>
+                    </div>
+                    
+                    <!-- Church Size Filter (conditionally shown) -->
+                    <div id="churchSizeFilter" class="hidden bg-orange-50 border border-orange-200 rounded-lg p-5">
+                        <label for="{{ form.church_size.id_for_label }}" class="block text-sm font-semibold text-gray-900 mb-2">
+                            <svg class="inline-block w-5 h-5 mr-2 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                            </svg>
+                            Church Size <span class="text-red-500">*</span>
+                        </label>
+                        <select name="{{ form.church_size.name }}" 
+                                id="{{ form.church_size.id_for_label }}"
+                                class="block w-full px-4 py-3 border border-orange-300 rounded-lg shadow-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-colors">
+                            <option value="">-- Select church size --</option>
+                            {% for value, label in form.church_size.field.choices %}
+                                {% if value %}
+                                <option value="{{ value }}" {% if form.church_size.value == value %}selected{% endif %}>{{ label }}</option>
+                                {% endif %}
+                            {% endfor %}
+                        </select>
+                        {% if form.church_size.errors %}
+                            <p class="mt-2 text-sm text-red-600 flex items-center">
+                                <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                                </svg>
+                                {{ form.church_size.errors.0 }}
+                            </p>
+                        {% endif %}
+                        <p class="mt-2 text-xs text-gray-600">{{ form.church_size.help_text|default:"Select the church size to filter students" }}</p>
+                    </div>
+                    
+                    <!-- Preview Section -->
+                    <div id="previewSection" class="border-t border-gray-200 pt-6">
+                        <div class="bg-gradient-to-br from-gray-50 to-gray-100 border-2 border-dashed border-gray-300 rounded-xl p-6">
+                            <div class="flex items-center mb-3">
+                                <svg class="h-6 w-6 text-gray-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                </svg>
+                                <h4 class="text-sm font-semibold text-gray-700">Enrollment Preview</h4>
+                            </div>
+                            <p class="text-sm text-gray-600" id="previewText">
+                                Select a course and filter criteria to see how many students will be enrolled.
+                            </p>
+                            <div id="previewCount" class="mt-4 hidden">
+                                <div class="bg-white border-2 border-green-300 rounded-lg p-4 inline-flex items-center">
+                                    <svg class="h-8 w-8 text-green-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                                    </svg>
+                                    <div>
+                                        <p class="text-3xl font-bold text-green-600">
+                                            <span id="studentCount">0</span>
+                                        </p>
+                                        <p class="text-sm text-gray-600">students will be enrolled</p>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
                 
+                <!-- Form-wide errors -->
                 {% if form.non_field_errors %}
-                <div class="bg-red-50 border border-red-200 rounded-md p-3">
-                    {% for error in form.non_field_errors %}
-                    <p class="text-sm text-red-800">{{ error }}</p>
-                    {% endfor %}
+                <div class="mt-6 bg-red-50 border-l-4 border-red-400 rounded-lg p-4">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <svg class="h-5 w-5 text-red-400" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
+                            </svg>
+                        </div>
+                        <div class="ml-3">
+                            {% for error in form.non_field_errors %}
+                            <p class="text-sm text-red-800">{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    </div>
                 </div>
                 {% endif %}
                 
-                <div class="flex justify-end space-x-3 pt-6 border-t border-gray-200">
+                <!-- Action Buttons -->
+                <div class="flex justify-end space-x-3 pt-6 mt-6 border-t border-gray-200">
                     <a href="{% url 'integration:course_list' %}" 
-                       class="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                       class="inline-flex items-center px-6 py-3 border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
                         Cancel
                     </a>
                     <button type="submit" 
-                            class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                            class="inline-flex items-center px-6 py-3 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path>
+                        </svg>
                         Enroll Students
                     </button>
                 </div>
             </form>
         </div>
-    </div>
-    
-    <!-- Help Section -->
-    <div class="mt-6 bg-white shadow rounded-lg">
-        <div class="px-4 py-5 sm:p-6">
-            <h3 class="text-lg font-medium text-gray-900 mb-3">How Bulk Enrollment Works</h3>
-            <div class="prose prose-sm text-gray-600">
-                <ol class="list-decimal list-inside space-y-2">
-                    <li><strong>Select a course</strong> - Choose which course to enroll students in</li>
-                    <li><strong>Choose filter criteria</strong> - Filter students by region, education level, church size, or enroll all verified students</li>
-                    <li><strong>Review preview</strong> - See how many students match your criteria</li>
-                    <li><strong>Enroll</strong> - Students are enrolled in the Django system with pending sync status</li>
-                    <li><strong>Sync to Moodle</strong> - Go to sync dashboard and click "Enrollments" to push changes to Moodle</li>
-                </ol>
+        
+        <!-- Help Section -->
+        <div class="bg-white rounded-xl shadow-md mt-8">
+            <div class="px-6 py-5 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50">
+                <div class="flex items-center">
+                    <div class="bg-blue-100 rounded-lg p-2 mr-3">
+                        <svg class="h-6 w-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-900">How Bulk Enrollment Works</h3>
+                        <p class="text-sm text-gray-600 mt-1">Follow these steps for successful enrollment</p>
+                    </div>
+                </div>
+            </div>
+            <div class="p-6">
+                <div class="space-y-4">
+                    <!-- Step 1 -->
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0">
+                            <div class="flex items-center justify-center w-8 h-8 rounded-full bg-green-100 text-green-600 font-bold text-sm">
+                                1
+                            </div>
+                        </div>
+                        <div class="ml-4">
+                            <h4 class="text-sm font-semibold text-gray-900">Select a Course</h4>
+                            <p class="text-sm text-gray-600 mt-1">Choose which course to enroll students into</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Step 2 -->
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0">
+                            <div class="flex items-center justify-center w-8 h-8 rounded-full bg-green-100 text-green-600 font-bold text-sm">
+                                2
+                            </div>
+                        </div>
+                        <div class="ml-4">
+                            <h4 class="text-sm font-semibold text-gray-900">Choose Filter Criteria</h4>
+                            <p class="text-sm text-gray-600 mt-1">Filter students by region, education level, church size, or enroll all verified students</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Step 3 -->
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0">
+                            <div class="flex items-center justify-center w-8 h-8 rounded-full bg-green-100 text-green-600 font-bold text-sm">
+                                3
+                            </div>
+                        </div>
+                        <div class="ml-4">
+                            <h4 class="text-sm font-semibold text-gray-900">Review Preview</h4>
+                            <p class="text-sm text-gray-600 mt-1">See how many students match your criteria before proceeding</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Step 4 -->
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0">
+                            <div class="flex items-center justify-center w-8 h-8 rounded-full bg-green-100 text-green-600 font-bold text-sm">
+                                4
+                            </div>
+                        </div>
+                        <div class="ml-4">
+                            <h4 class="text-sm font-semibold text-gray-900">Submit Enrollment</h4>
+                            <p class="text-sm text-gray-600 mt-1">Students are enrolled in the Django system with pending sync status</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Step 5 -->
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0">
+                            <div class="flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 text-blue-600 font-bold text-sm">
+                                5
+                            </div>
+                        </div>
+                        <div class="ml-4">
+                            <h4 class="text-sm font-semibold text-gray-900">Sync to Moodle</h4>
+                            <p class="text-sm text-gray-600 mt-1">
+                                Go to <a href="{% url 'integration:sync_dashboard' %}" class="text-blue-600 hover:text-blue-700 font-medium underline">Sync Dashboard</a> and click "Enrollments" to push changes to Moodle
+                            </p>
+                        </div>
+                    </div>
+                </div>
                 
-                <div class="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded">
-                    <p class="text-sm text-yellow-800">
-                        <strong>Note:</strong> Only verified and active students will be enrolled. Students already enrolled in the course will be skipped.
-                    </p>
+                <!-- Important Note -->
+                <div class="mt-6 pt-6 border-t border-gray-200">
+                    <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                        <div class="flex">
+                            <svg class="h-5 w-5 text-yellow-400 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                            </svg>
+                            <div class="ml-3">
+                                <h4 class="text-sm font-medium text-yellow-800">Important Notes</h4>
+                                <div class="text-sm text-yellow-700 mt-2 space-y-1">
+                                    <p>• Only <strong>verified and active</strong> students will be enrolled</p>
+                                    <p>• Students already enrolled in the course will be <strong>skipped automatically</strong></p>
+                                    <p>• Enrollments are created with <strong>pending sync status</strong> until pushed to Moodle</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
+        
     </div>
 </div>
 
@@ -182,7 +405,7 @@ document.addEventListener('DOMContentLoaded', function() {
             churchSizeFilter.classList.remove('hidden');
             previewText.textContent = 'Select a church size to see how many students will be enrolled.';
         } else if (selectedFilter === 'all') {
-            previewText.textContent = 'All verified students will be enrolled.';
+            previewText.textContent = 'All verified and active students will be enrolled.';
         }
     }
     
@@ -192,7 +415,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize on page load
     updateFilterVisibility();
     
-    // Optional: Add client-side validation
+    // Client-side validation
     const form = document.getElementById('bulkEnrollForm');
     form.addEventListener('submit', function(e) {
         const selectedFilter = filterTypeSelect.value;

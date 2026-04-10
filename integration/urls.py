@@ -46,4 +46,5 @@ urlpatterns = [
     # ==================== AJAX ENDPOINTS ====================
     path('api/sync-status/', views.get_sync_status, name='get_sync_status'),
     path('api/check-course-name/', views.check_course_name, name='check_course_name'),
+    path('courses/<int:pk>/delete/', views.course_delete, name='course_delete'),
 ]
