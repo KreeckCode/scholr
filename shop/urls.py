@@ -25,6 +25,7 @@ urlpatterns = [
     path('cart/remove/<int:product_id>/', views.cart_remove, name='cart_remove'),
     path('cart/update/<int:product_id>/', views.cart_update, name='cart_update'),
     path('cart/discount/remove/', views.remove_discount, name='remove_discount'),
+    path('my-courses/refresh-progress/', views.refresh_progress, name='refresh_progress'),
     
     # ==================== CHECKOUT ====================
     path('checkout/', views.checkout, name='checkout'),
@@ -51,5 +52,6 @@ urlpatterns = [
     path('bundles/<int:bundle_id>/', views.BundleDetailView.as_view(), name='bundle_detail'),
     path('bundles/<int:bundle_id>/edit/', views.BundleEditView.as_view(), name='bundle_edit'),
     path('bundles/<int:bundle_id>/delete/', views.bundle_delete, name='bundle_delete'),
+    path('debug/moodle-progress/', views.debug_moodle_progress, name='debug_moodle_progress'),
 
 ]

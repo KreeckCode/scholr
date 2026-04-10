@@ -10,7 +10,7 @@ from django.utils import timezone
 from django.views import View
 from django.views.generic import CreateView, UpdateView, DetailView, ListView
 from django.http import JsonResponse
-
+from accounts.models import StudentEnrollment
 from .models import User, UserProfile, LoginAttempt
 from .forms import (
     PastorRegistrationForm, 
@@ -240,14 +240,35 @@ def student_dashboard_view(request):
     # Check if profile is complete
     profile_complete = profile.is_profile_complete()
     
+    # Get enrolled courses (StudentEnrollments)
+    from accounts.models import StudentEnrollment
+    
+    enrolled_courses = StudentEnrollment.objects.filter(
+        user=user,
+        is_active=True
+    ).select_related('product').prefetch_related(
+        'product__bundle_items__course__category'
+    ).order_by('-created_at')
+    
+    # Get certificates (placeholder - implement later)
+    certificates = []  # TODO: Implement certificate model
+    
+    # Build recent activity from enrollments
+    recent_activity = []
+    for enrollment in enrolled_courses[:5]:
+        if enrollment.created_at:
+            recent_activity.append(
+                f"Enrolled in {enrollment.product.name} on "
+                f"{enrollment.created_at.strftime('%B %d, %Y')}"
+            )
+    
     context = {
         'user': user,
         'profile': profile,
         'profile_complete': profile_complete,
-        # These will be populated when LMS is built
-        'enrolled_courses': [],
-        'recent_activity': [],
-        'certificates': [],
+        'enrolled_courses': enrolled_courses,
+        'certificates': certificates,
+        'recent_activity': recent_activity,
     }
     
     # Show profile completion prompt if needed

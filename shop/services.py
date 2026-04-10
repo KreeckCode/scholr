@@ -1,14 +1,4 @@
-"""
-Business logic layer for shop operations
-Handles order processing, enrollment, and payment verification
-
-Security:
-- All operations are transactional (database rollback on error)
-- Payment verification before enrollment
-- Audit logging for all critical operations
-- Input validation and sanitization
-"""
-
+from integration.models import CourseEnrollment, Course
 import logging
 import hashlib
 import hmac
@@ -19,14 +9,15 @@ from django.db import transaction
 from django.conf import settings
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
-
+import requests
 from accounts.models import (
     User, StudentEnrollment, Order, OrderItem, 
     Product, ProductBundle, DiscountCode
 )
 from integration.models import Course, CourseEnrollment, MoodleInstance
 from integration.services import MoodleIntegrationService
-
+from integration.moodle_client import MoodleClient
+from integration.models import MoodleInstance, MoodleUserMapping
 logger = logging.getLogger(__name__)
 
 
@@ -457,6 +448,122 @@ class EnrollmentService:
         except Exception as e:
             logger.error(f"Moodle sync failed: {str(e)}")
 
+    
+
+    def _create_course_enrollments_for_bundle(self, user, product, order):
+        """
+        When user enrolls in bundle, create CourseEnrollment for each course
+        
+        Critical: This ensures Moodle knows about the enrollment
+        """
+        if product.product_type != Product.BUNDLE:
+            return []
+        
+        # Get all courses in this bundle
+        bundle_items = ProductBundle.objects.filter(
+            product=product
+        ).select_related('course')
+        
+        created_enrollments = []
+        
+        for item in bundle_items:
+            course = item.course
+            
+            # Check if enrollment already exists
+            enrollment, created = CourseEnrollment.objects.get_or_create(
+                user=user,
+                course=course,
+                defaults={
+                    'enrolled_by': None,  # System enrollment
+                    'is_active': True,
+                    'sync_status': 'pending'
+                }
+            )
+            
+            if created:
+                logger.info(f"Created CourseEnrollment: {user.username} → {course.short_name}")
+                created_enrollments.append(enrollment)
+            else:
+                # Reactivate if was inactive
+                if not enrollment.is_active:
+                    enrollment.is_active = True
+                    enrollment.sync_status = 'pending'
+                    enrollment.save()
+                    created_enrollments.append(enrollment)
+        
+        # Trigger Moodle sync for all course enrollments
+        if created_enrollments:
+            from integration.services import MoodleIntegrationService
+            
+            try:
+                moodle_service = MoodleIntegrationService()
+                
+                for enrollment in created_enrollments:
+                    try:
+                        moodle_service.sync_user_enrollment(enrollment)
+                    except Exception as e:
+                        logger.error(f"Moodle sync failed for {enrollment}: {str(e)}")
+                        enrollment.mark_failed(str(e))
+            
+            except Exception as e:
+                logger.error(f"Moodle service error: {str(e)}")
+        
+        return created_enrollments
+
+
+    # Update the process_order_enrollment method - find it and add this call
+
+    def process_order_enrollment(self, order):
+        """
+        Process enrollments for a completed order
+        Creates StudentEnrollment for product access AND CourseEnrollment for Moodle
+        """
+        if order.enrollment_processed:
+            logger.warning(f"Order {order.order_number} already processed")
+            return []
+        
+        enrollments = []
+        
+        for item in order.items.all():
+            product = item.product
+            user = order.user
+            
+            # Create StudentEnrollment (product access)
+            enrollment, created = StudentEnrollment.objects.get_or_create(
+                user=user,
+                product=product,
+                defaults={
+                    'order': order,
+                    'is_free': order.is_free_order(),
+                    'enrolled_by': None,
+                    'starts_at': timezone.now(),
+                    'expires_at': timezone.now() + timedelta(days=product.duration_months * 30)
+                }
+            )
+            
+            if created or not enrollment.is_active:
+                if not created:
+                    enrollment.is_active = True
+                    enrollment.save()
+                
+                enrollments.append(enrollment)
+                logger.info(f"Enrollment created: {user.username} → {product.name}")
+                
+                # NEW: Create course enrollments for bundles
+                if product.product_type == Product.BUNDLE:
+                    course_enrollments = self._create_course_enrollments_for_bundle(
+                        user, product, order
+                    )
+                    logger.info(f"Created {len(course_enrollments)} course enrollments for bundle")
+        
+        # Mark order as processed
+        order.enrollment_processed = True
+        order.enrollment_processed_at = timezone.now()
+        order.save()
+        
+        return enrollments
+
+
 
     
     def _send_enrollment_confirmation(self, user, enrollments, order):
@@ -606,3 +713,248 @@ class PaymentService:
         logger.info(f"Payment confirmed: {order_number} - R{order.total_amount}")
         
         return order
+    
+
+
+
+class MoodleProgressService:
+    """
+    Service for syncing progress from Moodle
+    
+    Fetches course completion and grade data from Moodle
+    Updates StudentEnrollment and CourseEnrollment progress
+    """
+    
+    def __init__(self):
+        """Initialize with active Moodle instance"""
+        self.instance = MoodleInstance.objects.filter(
+            is_active=True,
+            is_primary=True
+        ).first()
+        
+        if not self.instance:
+            raise ValueError("No active Moodle instance configured")
+        
+        self.client = MoodleClient(
+            base_url=self.instance.base_url,
+            token=self.instance.ws_token
+        )
+    
+    def sync_user_progress(self, user):
+        """
+        Sync all course progress for a user from Moodle
+        
+        Returns: dict with success status and details
+        """
+        result = {
+            'success': False,
+            'courses_synced': 0,
+            'bundles_updated': 0,
+            'errors': []
+        }
+        
+        try:
+            # Get user's Moodle mapping
+            try:
+                mapping = MoodleUserMapping.objects.get(cas_user=user)
+            except MoodleUserMapping.DoesNotExist:
+                result['errors'].append('User not synced to Moodle yet')
+                return result
+            
+            if not mapping.moodle_user_id:
+                result['errors'].append('Moodle user ID not set')
+                return result
+            
+            # Get user's course enrollments
+            course_enrollments = CourseEnrollment.objects.filter(
+                user=user,
+                is_active=True
+            ).select_related('course')
+            
+            if not course_enrollments.exists():
+                result['success'] = True
+                result['errors'].append('No course enrollments found')
+                return result
+            
+            # Fetch progress for each course from Moodle
+            for enrollment in course_enrollments:
+                try:
+                    progress = self._fetch_course_progress(
+                        mapping.moodle_user_id,
+                        enrollment.course.moodle_course_id
+                    )
+                    
+                    if progress is not None:
+                        # Update CourseEnrollment (not used in display but good to track)
+                        enrollment.sync_status = 'synced'
+                        enrollment.last_synced = timezone.now()
+                        enrollment.save()
+                        
+                        result['courses_synced'] += 1
+                        logger.info(
+                            f"Synced progress for {user.username} in "
+                            f"{enrollment.course.short_name}: {progress}%"
+                        )
+                    
+                except Exception as e:
+                    error_msg = f"Error syncing {enrollment.course.short_name}: {str(e)}"
+                    result['errors'].append(error_msg)
+                    logger.error(error_msg)
+            
+            # Update bundle progress (aggregate from courses)
+            bundles_updated = self._update_bundle_progress(user)
+            result['bundles_updated'] = bundles_updated
+            
+            result['success'] = True
+            
+        except Exception as e:
+            result['errors'].append(f"Sync failed: {str(e)}")
+            logger.error(f"Progress sync error for {user.username}: {str(e)}")
+        
+        return result
+    
+    def _fetch_course_progress(self, moodle_user_id, moodle_course_id):
+        """
+        Fetch course completion percentage from Moodle
+        
+        Uses Moodle's grade API to get completion percentage
+        Returns: float (0-100) or None if unavailable
+        """
+        if not moodle_course_id:
+            return None
+        
+        try:
+            # Use the correct method name from MoodleClient
+            # Try to get grades first (most reliable for quiz-based courses)
+            try:
+                grade_data = self.client._make_request(
+                    'core_grades_get_grades',
+                    {
+                        'courseid': int(moodle_course_id),
+                        'userid': int(moodle_user_id)
+                    }
+                )
+                
+                # Parse grade data
+                if grade_data and 'items' in grade_data:
+                    for item in grade_data['items']:
+                        if item.get('itemname') == 'Course total':
+                            grade_raw = float(item.get('graderaw', 0))
+                            grade_max = float(item.get('grademax', 100))
+                            
+                            if grade_max > 0:
+                                percentage = (grade_raw / grade_max) * 100
+                                logger.info(
+                                    f"Grade data: {grade_raw}/{grade_max} = {percentage}% "
+                                    f"for user {moodle_user_id} in course {moodle_course_id}"
+                                )
+                                return round(percentage, 2)
+            
+            except Exception as e:
+                logger.error(f"Error fetching grades: {str(e)}")
+            
+            # Fallback: Try completion status
+            try:
+                completion_data = self.client._make_request(
+                    'core_completion_get_course_completion_status',
+                    {
+                        'courseid': int(moodle_course_id),
+                        'userid': int(moodle_user_id)
+                    }
+                )
+                
+                # Check if course is marked as completed
+                if isinstance(completion_data, dict):
+                    completionstatus = completion_data.get('completionstatus', {})
+                    if isinstance(completionstatus, dict) and completionstatus.get('completed'):
+                        logger.info(f"Course {moodle_course_id} marked as completed for user {moodle_user_id}")
+                        return 100.0
+            
+            except Exception as e:
+                logger.error(f"Error fetching completion: {str(e)}")
+            
+            # No data found - return 0%
+            logger.info(f"No progress data found for user {moodle_user_id} in course {moodle_course_id}")
+            return 0.0
+            
+        except Exception as e:
+            logger.error(
+                f"Error fetching Moodle progress for course {moodle_course_id}, "
+                f"user {moodle_user_id}: {str(e)}"
+            )
+            return None
+    
+    
+
+
+
+
+
+    def _update_bundle_progress(self, user):
+        """
+        Update bundle progress based on constituent courses
+        
+        Bundle progress = average of all courses in bundle
+        """
+        bundles_updated = 0
+        
+        # Get user's bundle enrollments
+        bundle_enrollments = StudentEnrollment.objects.filter(
+            user=user,
+            product__product_type=Product.BUNDLE,
+            is_active=True
+        ).select_related('product')
+        
+        for enrollment in bundle_enrollments:
+            # Get all courses in this bundle
+            bundle_courses = ProductBundle.objects.filter(
+                product=enrollment.product
+            ).select_related('course')
+            
+            if not bundle_courses.exists():
+                continue
+            
+            # Get CourseEnrollments for these courses
+            course_ids = [item.course_id for item in bundle_courses]
+            user_course_enrollments = CourseEnrollment.objects.filter(
+                user=user,
+                course_id__in=course_ids,
+                is_active=True
+            ).select_related('course')
+            
+            # Calculate average progress
+            total_courses = len(course_ids)
+            completed_count = 0
+            total_progress = Decimal('0.00')
+            
+            for course_enrollment in user_course_enrollments:
+                # Fetch fresh progress from Moodle
+                try:
+                    mapping = MoodleUserMapping.objects.get(cas_user=user)
+                    progress = self._fetch_course_progress(
+                        mapping.moodle_user_id,
+                        course_enrollment.course.moodle_course_id
+                    )
+                    
+                    if progress is not None:
+                        total_progress += Decimal(str(progress))
+                        if progress >= 100:
+                            completed_count += 1
+                
+                except Exception as e:
+                    logger.error(f"Error calculating bundle progress: {str(e)}")
+            
+            # Update bundle enrollment
+            if total_courses > 0:
+                avg_progress = total_progress / total_courses
+                enrollment.progress_percentage = avg_progress
+                enrollment.last_accessed = timezone.now()
+                
+                # Mark as completed if all courses done
+                if completed_count == total_courses:
+                    enrollment.mark_completed()
+                
+                enrollment.save()
+                bundles_updated += 1
+        
+        return bundles_updated

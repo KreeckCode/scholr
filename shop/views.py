@@ -1,6 +1,6 @@
 import logging
 from decimal import Decimal
-
+from .services import MoodleProgressService
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
@@ -1115,3 +1115,177 @@ class BundleDetailView(AdminRequiredMixin, DetailView):
         ).count()
         
         return context
+        
+
+
+@login_required
+def refresh_progress(request):
+    """
+    Refresh course progress from Moodle
+    
+    Fetches latest completion data and updates display
+    Returns JSON for AJAX or redirects for regular requests
+    """
+    try:
+        service = MoodleProgressService()
+        result = service.sync_user_progress(request.user)
+        
+        if result['success']:
+            message = f"✓ Progress updated! Synced {result['courses_synced']} courses"
+            if result['bundles_updated']:
+                message += f" and {result['bundles_updated']} bundles"
+            
+            messages.success(request, message)
+            
+            # Show any non-critical errors as warnings
+            for error in result['errors']:
+                if 'No course enrollments' not in error:
+                    messages.warning(request, error)
+        else:
+            error_msg = '; '.join(result['errors']) if result['errors'] else 'Unknown error'
+            messages.error(request, f'Failed to sync progress: {error_msg}')
+        
+        # AJAX response
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({
+                'success': result['success'],
+                'message': message if result['success'] else error_msg,
+                'courses_synced': result['courses_synced'],
+                'bundles_updated': result['bundles_updated'],
+                'errors': result['errors']
+            })
+        
+    except Exception as e:
+        logger.error(f"Progress refresh error: {str(e)}")
+        messages.error(request, f'Error refreshing progress: {str(e)}')
+        
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({
+                'success': False,
+                'message': str(e)
+            }, status=500)
+    
+    # Redirect back to my courses
+    return redirect('shop:my_courses')
+
+@login_required
+def debug_moodle_progress(request):
+    """
+    Debug view to see raw Moodle progress data
+    Shows enrollment status and grade data
+    """
+    if not request.user.is_staff:
+        raise PermissionDenied
+    
+    from integration.models import MoodleUserMapping, MoodleInstance
+    from integration.moodle_client import MoodleClient
+    from integration.models import CourseEnrollment
+    
+    try:
+        # Get Moodle instance
+        instance = MoodleInstance.objects.filter(is_active=True, is_primary=True).first()
+        
+        if not instance:
+            return JsonResponse({'error': 'No active Moodle instance'}, status=500)
+        
+        try:
+            mapping = MoodleUserMapping.objects.get(cas_user=request.user)
+        except MoodleUserMapping.DoesNotExist:
+            return JsonResponse({'error': 'User not mapped to Moodle'}, status=404)
+        
+        if not mapping.moodle_user_id:
+            return JsonResponse({'error': 'No Moodle user ID set'}, status=404)
+        
+        # Get user's courses
+        enrollments = CourseEnrollment.objects.filter(
+            user=request.user,
+            is_active=True
+        ).select_related('course')
+        
+        client = MoodleClient(instance.base_url, instance.ws_token)
+        
+        debug_data = {
+            'moodle_url': instance.base_url,
+            'moodle_user_id': mapping.moodle_user_id,
+            'django_username': request.user.username,
+            'courses': []
+        }
+        
+        # First, check what courses user is enrolled in Moodle
+        try:
+            moodle_courses = client._make_request(
+                'core_enrol_get_users_courses',
+                {'userid': mapping.moodle_user_id}
+            )
+            debug_data['moodle_enrolled_courses'] = [
+                {
+                    'id': c.get('id'),
+                    'shortname': c.get('shortname'),
+                    'fullname': c.get('fullname')
+                }
+                for c in moodle_courses
+            ] if moodle_courses else []
+        except Exception as e:
+            debug_data['moodle_enrolled_courses'] = f"Error: {str(e)}"
+        
+        # Check each Django enrollment
+        for enrollment in enrollments:
+            course_id = enrollment.course.moodle_course_id
+            user_id = mapping.moodle_user_id
+            
+            course_debug = {
+                'django_course': enrollment.course.title,
+                'django_course_id': enrollment.course.id,
+                'moodle_course_id': course_id,
+                'shortname': enrollment.course.short_name,
+            }
+            
+            # Check if enrolled in Moodle
+            try:
+                enrolled_users = client._make_request(
+                    'core_enrol_get_enrolled_users',
+                    {'courseid': int(course_id)}
+                )
+                
+                is_enrolled = any(
+                    u.get('id') == user_id 
+                    for u in (enrolled_users or [])
+                )
+                course_debug['enrolled_in_moodle'] = is_enrolled
+                
+                if not is_enrolled:
+                    course_debug['error'] = 'User not enrolled in this course in Moodle'
+                
+            except Exception as e:
+                course_debug['enrollment_check_error'] = str(e)
+            
+            # Try to get grades
+            try:
+                grades = client._make_request(
+                    'core_grades_get_grades',
+                    {'courseid': int(course_id), 'userid': int(user_id)}
+                )
+                course_debug['grade_data'] = grades
+            except Exception as e:
+                course_debug['grade_error'] = str(e)
+            
+            # Try to get completion
+            try:
+                completion = client._make_request(
+                    'core_completion_get_course_completion_status',
+                    {'courseid': int(course_id), 'userid': int(user_id)}
+                )
+                course_debug['completion_data'] = completion
+            except Exception as e:
+                course_debug['completion_error'] = str(e)
+            
+            debug_data['courses'].append(course_debug)
+        
+        return JsonResponse(debug_data, json_dumps_params={'indent': 2})
+        
+    except Exception as e:
+        import traceback
+        return JsonResponse({
+            'error': str(e),
+            'traceback': traceback.format_exc()
+        }, status=500)

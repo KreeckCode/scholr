@@ -1,5 +1,5 @@
 {% extends 'base/base.html' %}
-{% load shop_tags %}
+{% load static %}
 
 {% block title %}My Learning - African Pastoral Academy{% endblock %}
 
@@ -8,8 +8,20 @@
     <!-- Hero Section -->
     <div class="bg-gradient-to-r from-purple-600 to-purple-700 text-white">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-            <h1 class="text-3xl font-bold">My Learning</h1>
-            <p class="mt-2 text-purple-100">Your enrolled courses and progress</p>
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold">My Learning</h1>
+                    <p class="mt-2 text-purple-100">Your enrolled courses and progress</p>
+                </div>
+                <button onclick="refreshProgress()" 
+                        id="refreshBtn"
+                        class="inline-flex items-center px-4 py-2 bg-white text-purple-600 rounded-lg hover:bg-purple-50 transition-colors font-medium shadow-lg">
+                    <svg id="refreshIcon" class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                    </svg>
+                    <span id="refreshText">Refresh Progress</span>
+                </button>
+            </div>
         </div>
     </div>
     
@@ -57,16 +69,202 @@
         </div>
         
         {% if enrollments %}
-        <!-- Courses Grid -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+        <!-- Courses List -->
+        <div class="space-y-6">
             {% for enrollment in enrollments %}
-                {% include 'shop/student/_course_card.html' %}
+                {% if enrollment.product.product_type == 'bundle' %}
+                    <!-- Bundle Card with Expandable Courses -->
+                    <div class="bg-white rounded-xl shadow-md overflow-hidden">
+                        <!-- Bundle Header -->
+                        <div class="p-6 border-b border-gray-200">
+                            <div class="flex items-start justify-between">
+                                <div class="flex-1">
+                                    <div class="flex items-center space-x-2 mb-2">
+                                        <span class="px-3 py-1 bg-purple-100 text-purple-800 text-xs font-semibold rounded-full">
+                                            BUNDLE
+                                        </span>
+                                        {% if enrollment.is_free %}
+                                            <span class="px-3 py-1 bg-green-100 text-green-800 text-xs font-semibold rounded-full">
+                                                FREE
+                                            </span>
+                                        {% endif %}
+                                    </div>
+                                    <h3 class="text-xl font-bold text-gray-900 mb-2">
+                                        {{ enrollment.product.name }}
+                                    </h3>
+                                    <p class="text-gray-600 text-sm mb-4">
+                                        {{ enrollment.product.short_description }}
+                                    </p>
+                                    
+                                    <!-- Bundle Progress -->
+                                    <div class="mb-4">
+                                        <div class="flex items-center justify-between mb-2">
+                                            <span class="text-sm font-medium text-gray-700">Overall Progress</span>
+                                            <span class="text-sm font-bold text-gray-900">{{ enrollment.progress_percentage }}%</span>
+                                        </div>
+                                        <div class="w-full bg-gray-200 rounded-full h-3">
+                                            <div class="bg-gradient-to-r from-purple-600 to-purple-500 h-3 rounded-full transition-all duration-300"
+                                                 style="width: {{ enrollment.progress_percentage }}%"></div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Access Info -->
+                                    <div class="flex items-center space-x-4 text-sm text-gray-500">
+                                        <span class="flex items-center">
+                                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                            </svg>
+                                            Enrolled: {{ enrollment.created_at|date:"M d, Y" }}
+                                        </span>
+                                        <span class="flex items-center">
+                                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                            </svg>
+                                            {% if enrollment.is_expired %}
+                                                <span class="text-red-600 font-medium">Expired</span>
+                                            {% else %}
+                                                {{ enrollment.days_remaining }} days left
+                                            {% endif %}
+                                        </span>
+                                    </div>
+                                </div>
+                                
+                                <!-- Expand/Collapse Button -->
+                                <button onclick="toggleBundle('bundle-{{ enrollment.id }}')"
+                                        class="ml-4 p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                                    <svg id="bundle-{{ enrollment.id }}-icon" class="w-6 h-6 text-gray-400 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Bundle Courses (Expandable) -->
+                        <div id="bundle-{{ enrollment.id }}-courses" class="hidden bg-gray-50">
+                            <div class="p-6">
+                                <h4 class="text-sm font-semibold text-gray-700 mb-4 uppercase tracking-wide">
+                                    Included Courses ({{ enrollment.product.bundle_items.count }})
+                                </h4>
+                                
+                                <div class="space-y-3">
+                                    {% for bundle_item in enrollment.product.bundle_items.all %}
+                                        {% with course=bundle_item.course %}
+                                            <!-- Individual Course in Bundle -->
+                                            <div class="bg-white rounded-lg p-4 border border-gray-200 hover:border-purple-300 transition-colors">
+                                                <div class="flex items-start justify-between">
+                                                    <div class="flex-1">
+                                                        <h5 class="font-semibold text-gray-900 mb-1">
+                                                            {{ course.title }}
+                                                        </h5>
+                                                        <p class="text-sm text-gray-600 mb-2">
+                                                            {{ course.short_name }} • {{ course.category.name }}
+                                                        </p>
+                                                        
+                                                        <!-- Course Progress -->
+                                                        {% with course_enrollment=user.course_enrollments.all|first %}
+                                                            <div class="mb-3">
+                                                                <div class="flex items-center justify-between mb-1">
+                                                                    <span class="text-xs font-medium text-gray-600">Course Progress</span>
+                                                                    <span class="text-xs font-bold text-gray-900">
+                                                                        <!-- TODO: Fetch from Moodle -->
+                                                                        0%
+                                                                    </span>
+                                                                </div>
+                                                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                                                    <div class="bg-blue-500 h-2 rounded-full" style="width: 0%"></div>
+                                                                </div>
+                                                            </div>
+                                                        {% endwith %}
+                                                    </div>
+                                                    
+                                                    <!-- Access Course Button -->
+                                                    {% if user.is_verified and course.moodle_course_id %}
+                                                        <a href="{% url 'integration:access_lms' %}?course={{ course.moodle_course_id }}"
+                                                        class="ml-4 inline-flex items-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium">
+                                                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+                                                            </svg>
+                                                            Access
+                                                        </a>
+                                                    {% else %}
+                                                        <span class="ml-4 px-4 py-2 bg-gray-200 text-gray-500 rounded-lg text-sm font-medium">
+                                                            Not Available
+                                                        </span>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        {% endwith %}
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                
+                {% else %}
+                    <!-- Single Course Card -->
+                    <div class="bg-white rounded-xl shadow-md p-6">
+                        <div class="flex items-start justify-between">
+                            <div class="flex-1">
+                                <div class="flex items-center space-x-2 mb-2">
+                                    <span class="px-3 py-1 bg-blue-100 text-blue-800 text-xs font-semibold rounded-full">
+                                        COURSE
+                                    </span>
+                                    {% if enrollment.is_free %}
+                                        <span class="px-3 py-1 bg-green-100 text-green-800 text-xs font-semibold rounded-full">
+                                            FREE
+                                        </span>
+                                    {% endif %}
+                                </div>
+                                <h3 class="text-xl font-bold text-gray-900 mb-2">
+                                    {{ enrollment.product.name }}
+                                </h3>
+                                
+                                <!-- Progress -->
+                                <div class="mb-4">
+                                    <div class="flex items-center justify-between mb-2">
+                                        <span class="text-sm font-medium text-gray-700">Progress</span>
+                                        <span class="text-sm font-bold text-gray-900">{{ enrollment.progress_percentage }}%</span>
+                                    </div>
+                                    <div class="w-full bg-gray-200 rounded-full h-3">
+                                        <div class="bg-gradient-to-r from-blue-600 to-blue-500 h-3 rounded-full"
+                                             style="width: {{ enrollment.progress_percentage }}%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            {% if enrollment.product.moodle_course and user.is_verified %}
+                                <a href="{% url 'integration:access_lms' %}?course={{ enrollment.product.moodle_course.moodle_course_id }}"
+                                class="ml-4 inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium">
+                                    Access Course
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endif %}
             {% endfor %}
         </div>
         
         <!-- Pagination -->
         {% if page_obj.has_other_pages %}
-            {% include 'shop/components/_pagination.html' %}
+            <div class="mt-8 flex items-center justify-between">
+                <div class="text-sm text-gray-700">
+                    Showing {{ page_obj.start_index }} to {{ page_obj.end_index }} of {{ page_obj.paginator.count }}
+                </div>
+                <div class="flex space-x-2">
+                    {% if page_obj.has_previous %}
+                        <a href="?page={{ page_obj.previous_page_number }}" 
+                           class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                            Previous
+                        </a>
+                    {% endif %}
+                    {% if page_obj.has_next %}
+                        <a href="?page={{ page_obj.next_page_number }}" 
+                           class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors">
+                            Next
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
         {% endif %}
         
         {% else %}
@@ -92,4 +290,58 @@
         {% endif %}
     </div>
 </div>
+
+<script>
+function toggleBundle(bundleId) {
+    const coursesDiv = document.getElementById(bundleId + '-courses');
+    const icon = document.getElementById(bundleId + '-icon');
+    
+    if (coursesDiv.classList.contains('hidden')) {
+        coursesDiv.classList.remove('hidden');
+        icon.classList.add('rotate-180');
+    } else {
+        coursesDiv.classList.add('hidden');
+        icon.classList.remove('rotate-180');
+    }
+}
+
+async function refreshProgress() {
+    const btn = document.getElementById('refreshBtn');
+    const icon = document.getElementById('refreshIcon');
+    const text = document.getElementById('refreshText');
+    
+    // Disable button and show loading
+    btn.disabled = true;
+    btn.classList.add('opacity-50', 'cursor-not-allowed');
+    icon.classList.add('animate-spin');
+    text.textContent = 'Syncing...';
+    
+    try {
+        const response = await fetch('{% url "shop:refresh_progress" %}', {
+            method: 'GET',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            // Reload page to show updated progress
+            window.location.reload();
+        } else {
+            alert('Error: ' + data.message);
+        }
+    } catch (error) {
+        console.error('Refresh error:', error);
+        alert('Failed to refresh progress. Please try again.');
+    } finally {
+        // Re-enable button
+        btn.disabled = false;
+        btn.classList.remove('opacity-50', 'cursor-not-allowed');
+        icon.classList.remove('animate-spin');
+        text.textContent = 'Refresh Progress';
+    }
+}
+</script>
 {% endblock %}
