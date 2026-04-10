@@ -44,4 +44,12 @@ urlpatterns = [
     
     # ==================== ADMIN TOOLS ====================
     path('admin/bulk-enrollment/', views.BulkEnrollmentView.as_view(), name='bulk_enrollment'),
+
+    # Bundle Management URLs
+    path('bundles/', views.BundleListView.as_view(), name='bundle_list'),
+    path('bundles/create/', views.BundleCreateView.as_view(), name='bundle_create'),
+    path('bundles/<int:bundle_id>/', views.BundleDetailView.as_view(), name='bundle_detail'),
+    path('bundles/<int:bundle_id>/edit/', views.BundleEditView.as_view(), name='bundle_edit'),
+    path('bundles/<int:bundle_id>/delete/', views.bundle_delete, name='bundle_delete'),
+
 ]

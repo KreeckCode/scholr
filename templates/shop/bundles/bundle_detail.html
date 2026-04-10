@@ -1,0 +1,155 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}{{ bundle.name }} - African Pastoral Academy{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50">
+    <!-- Hero Section -->
+    <div class="bg-gradient-to-r from-green-600 to-emerald-600 text-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            <div class="flex items-center space-x-4">
+                <a href="{% url 'shop:bundle_list' %}" 
+                   class="text-white hover:text-green-100 transition-colors">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                    </svg>
+                </a>
+                <div>
+                    <h1 class="text-4xl font-bold mb-2">{{ bundle.name }}</h1>
+                    <p class="text-green-100 text-lg">Bundle details and statistics</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Content -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 -mt-8">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            
+            <!-- Main Content -->
+            <div class="lg:col-span-2 space-y-6">
+                
+                <!-- Bundle Info Card -->
+                <div class="bg-white rounded-xl shadow-md p-6">
+                    <div class="flex items-start justify-between mb-6">
+                        <div>
+                            <h2 class="text-2xl font-bold text-gray-900">{{ bundle.name }}</h2>
+                            <p class="text-gray-600 mt-1">{{ bundle.short_description }}</p>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            {% if bundle.is_featured %}
+                                <svg class="w-6 h-6 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                                </svg>
+                            {% endif %}
+                            {% if bundle.is_active %}
+                                <span class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">Active</span>
+                            {% else %}
+                                <span class="px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-sm font-medium">Inactive</span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="prose max-w-none">
+                        <p class="text-gray-700">{{ bundle.description }}</p>
+                    </div>
+                </div>
+
+                <!-- Included Courses Card -->
+                <div class="bg-white rounded-xl shadow-md p-6">
+                    <h3 class="text-xl font-semibold text-gray-900 mb-4 flex items-center">
+                        <svg class="w-6 h-6 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                        </svg>
+                        Included Courses ({{ bundle_courses.count }})
+                    </h3>
+
+                    <div class="space-y-3">
+                        {% for item in bundle_courses %}
+                            <div class="flex items-start p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                                <div class="flex-shrink-0 w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center text-blue-600 font-bold">
+                                    {{ forloop.counter }}
+                                </div>
+                                <div class="ml-4 flex-1">
+                                    <h4 class="font-medium text-gray-900">{{ item.course.title }}</h4>
+                                    <p class="text-sm text-gray-500">{{ item.course.short_name }} • {{ item.course.category.name }}</p>
+                                    {% if item.course.summary %}
+                                        <p class="text-sm text-gray-600 mt-1">{{ item.course.summary }}</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="lg:col-span-1 space-y-6">
+                
+                <!-- Quick Stats Card -->
+                <div class="bg-white rounded-xl shadow-md p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Quick Stats</h3>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <div class="text-sm text-gray-500">Price</div>
+                            <div class="text-2xl font-bold text-gray-900 mt-1">
+                                {% if bundle.is_free %}
+                                    <span class="text-green-600">FREE</span>
+                                {% else %}
+                                    R{{ bundle.price }}
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="border-t pt-4">
+                            <div class="text-sm text-gray-500">Total Courses</div>
+                            <div class="text-2xl font-bold text-blue-600 mt-1">{{ bundle_courses.count }}</div>
+                        </div>
+
+                        <div class="border-t pt-4">
+                            <div class="text-sm text-gray-500">Access Duration</div>
+                            <div class="text-2xl font-bold text-purple-600 mt-1">{{ bundle.duration_months }} months</div>
+                        </div>
+
+                        <div class="border-t pt-4">
+                            <div class="text-sm text-gray-500">Total Enrollments</div>
+                            <div class="text-2xl font-bold text-green-600 mt-1">{{ total_enrollments }}</div>
+                        </div>
+
+                        <div class="border-t pt-4">
+                            <div class="text-sm text-gray-500">Active Enrollments</div>
+                            <div class="text-2xl font-bold text-orange-600 mt-1">{{ active_enrollments }}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Actions Card -->
+                <div class="bg-white rounded-xl shadow-md p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Actions</h3>
+                    
+                    <div class="space-y-3">
+                        <a href="{% url 'shop:bundle_edit' bundle.id %}" 
+                           class="flex items-center justify-center w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                            </svg>
+                            Edit Bundle
+                        </a>
+
+                        <a href="{% url 'shop:product_detail' bundle.slug %}" 
+                           class="flex items-center justify-center w-full px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                            </svg>
+                            View in Catalog
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

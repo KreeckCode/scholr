@@ -1,17 +1,9 @@
-"""
-Shop forms with comprehensive validation and security
-
-Security features:
-- CSRF protection (Django default)
-- Input sanitization
-- Server-side validation
-- Rate limiting considerations
-"""
-
 from django import forms
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
-
+from django import forms
+from accounts.models import Product, ProductBundle
+from integration.models import Course
 from accounts.models import DiscountCode, User, UserProfile
 
 
@@ -446,3 +438,125 @@ class BulkEnrollmentForm(forms.Form):
     def get_users(self):
         """Return list of validated User instances"""
         return getattr(self, 'cleaned_users', [])
+    
+
+
+
+class BundleForm(forms.ModelForm):
+    """
+    Form for creating/editing course bundles
+    
+    Features:
+    - Multi-select course picker
+    - Price validation
+    - Auto-slug generation
+    - Rich text description
+    """
+    
+    courses = forms.ModelMultipleChoiceField(
+        queryset=Course.objects.filter(visible=True).select_related('category'),
+        widget=forms.CheckboxSelectMultiple,
+        required=True,
+        help_text="Select courses to include in this bundle"
+    )
+    
+    class Meta:
+        model = Product
+        fields = [
+            'name', 'slug', 'description', 'short_description',
+            'price', 'image', 'duration_months',
+            'is_active', 'is_featured'
+        ]
+        widgets = {
+            'name': forms.TextInput(attrs={
+                'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent',
+                'placeholder': 'e.g., Leadership Bundle'
+            }),
+            'slug': forms.TextInput(attrs={
+                'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent',
+                'placeholder': 'e.g., leadership-bundle (auto-generated if empty)'
+            }),
+            'description': forms.Textarea(attrs={
+                'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent',
+                'rows': 6,
+                'placeholder': 'Full description of what students will learn...'
+            }),
+            'short_description': forms.TextInput(attrs={
+                'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent',
+                'placeholder': 'Brief one-line description for catalog'
+            }),
+            'price': forms.NumberInput(attrs={
+                'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent',
+                'placeholder': '0.00',
+                'step': '0.01',
+                'min': '0'
+            }),
+            'duration_months': forms.NumberInput(attrs={
+                'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent',
+                'placeholder': '12',
+                'min': '1'
+            }),
+            'image': forms.FileInput(attrs={
+                'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent',
+                'accept': 'image/*'
+            }),
+        }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        
+        # Set product_type to BUNDLE
+        if self.instance and self.instance.pk:
+            # Editing existing bundle - load current courses
+            self.fields['courses'].initial = Course.objects.filter(
+                included_in_bundles__product=self.instance
+            )
+        
+        # Make slug optional for auto-generation
+        self.fields['slug'].required = False
+    
+    def clean(self):
+        """Validate bundle data"""
+        cleaned_data = super().clean()
+        
+        # Auto-generate slug if empty
+        if not cleaned_data.get('slug') and cleaned_data.get('name'):
+            from django.utils.text import slugify
+            cleaned_data['slug'] = slugify(cleaned_data['name'])
+        
+        # Validate at least one course selected
+        courses = cleaned_data.get('courses')
+        if not courses or courses.count() == 0:
+            raise forms.ValidationError('Please select at least one course for the bundle')
+        
+        # Validate price
+        price = cleaned_data.get('price')
+        if price and price < 0:
+            raise forms.ValidationError('Price cannot be negative')
+        
+        return cleaned_data
+    
+    def save(self, commit=True):
+        """Save bundle and link courses"""
+        # Set product_type to BUNDLE
+        self.instance.product_type = Product.BUNDLE
+        
+        # Save the product
+        bundle = super().save(commit=commit)
+        
+        if commit:
+            # Get selected courses
+            courses = self.cleaned_data['courses']
+            
+            # Clear existing bundle items
+            ProductBundle.objects.filter(product=bundle).delete()
+            
+            # Create new bundle items
+            for idx, course in enumerate(courses, start=1):
+                ProductBundle.objects.create(
+                    product=bundle,
+                    course=course,
+                    sort_order=idx
+                )
+        
+        return bundle

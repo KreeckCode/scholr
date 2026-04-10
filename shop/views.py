@@ -1,19 +1,3 @@
-"""
-Shop views - E-commerce functionality
-
-Architecture:
-- Class-based views for CRUD operations
-- Function-based views for simple actions
-- Mixins for reusable functionality
-
-Security:
-- CSRF protection on all POST requests
-- Authentication where required
-- Authorization checks
-- SQL injection prevention (ORM usage)
-- XSS prevention (Django templates auto-escape)
-"""
-
 import logging
 from decimal import Decimal
 
@@ -35,7 +19,8 @@ from accounts.models import (
     User, Product, ProductBundle, Order, OrderItem,
     StudentEnrollment, DiscountCode, GradeLevel, Subject
 )
-
+from django.db import transaction
+from .forms import BundleForm
 from .cart import Cart
 from .forms import (
     CheckoutForm, DiscountCodeForm, ProductSearchForm,
@@ -900,3 +885,233 @@ class BulkEnrollmentView(AdminRequiredMixin, View):
             return redirect('shop:bulk_enrollment')
         
         return render(request, self.template_name, {'form': form})
+
+
+
+# ==================== BUNDLE MANAGEMENT VIEWS ====================
+
+class BundleListView(AdminRequiredMixin, ListView):
+    """
+    Admin: List all course bundles
+    
+    Features:
+    - View all bundles
+    - Quick stats (courses, price, status)
+    - Edit/delete actions
+    - Create new bundle button
+    """
+    
+    model = Product
+    template_name = 'shop/bundles/bundle_list.html'
+    context_object_name = 'bundles'
+    paginate_by = 20
+    
+    def get_queryset(self):
+        """Get only bundle products with course counts"""
+        return Product.objects.filter(
+            product_type=Product.BUNDLE
+        ).prefetch_related(
+            'bundle_items__course'
+        ).order_by('-is_featured', '-created_at')
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        
+        # Stats
+        bundles = self.get_queryset()
+        context['total_bundles'] = bundles.count()
+        context['active_bundles'] = bundles.filter(is_active=True).count()
+        context['free_bundles'] = bundles.filter(is_free=True).count()
+        context['paid_bundles'] = bundles.filter(is_free=False).count()
+        
+        return context
+
+
+class BundleCreateView(AdminRequiredMixin, View):
+    """
+    Admin: Create new course bundle
+    
+    Features:
+    - Multi-step form
+    - Course selection with preview
+    - Auto-slug generation
+    - Validation
+    """
+    
+    template_name = 'shop/bundles/bundle_form.html'
+    
+    def get(self, request):
+        """Show bundle creation form"""
+        form = BundleForm()
+        
+        context = {
+            'form': form,
+            'action': 'Create',
+            'title': 'Create New Bundle'
+        }
+        
+        return render(request, self.template_name, context)
+    
+    @transaction.atomic
+    def post(self, request):
+        """Handle bundle creation"""
+        form = BundleForm(request.POST, request.FILES)
+        
+        if form.is_valid():
+            bundle = form.save()
+            
+            messages.success(
+                request,
+                f'✓ Bundle "{bundle.name}" created successfully with '
+                f'{bundle.bundle_items.count()} courses!'
+            )
+            
+            return redirect('shop:bundle_list')
+        
+        context = {
+            'form': form,
+            'action': 'Create',
+            'title': 'Create New Bundle'
+        }
+        
+        return render(request, self.template_name, context)
+
+
+class BundleEditView(AdminRequiredMixin, View):
+    """
+    Admin: Edit existing bundle
+    
+    Features:
+    - Pre-populated form
+    - Update courses
+    - Maintain bundle items
+    """
+    
+    template_name = 'shop/bundles/bundle_form.html'
+    
+    def get(self, request, bundle_id):
+        """Show bundle edit form"""
+        bundle = get_object_or_404(Product, id=bundle_id, product_type=Product.BUNDLE)
+        form = BundleForm(instance=bundle)
+        
+        context = {
+            'form': form,
+            'bundle': bundle,
+            'action': 'Edit',
+            'title': f'Edit Bundle: {bundle.name}'
+        }
+        
+        return render(request, self.template_name, context)
+    
+    @transaction.atomic
+    def post(self, request, bundle_id):
+        """Handle bundle update"""
+        bundle = get_object_or_404(Product, id=bundle_id, product_type=Product.BUNDLE)
+        form = BundleForm(request.POST, request.FILES, instance=bundle)
+        
+        if form.is_valid():
+            bundle = form.save()
+            
+            messages.success(
+                request,
+                f'✓ Bundle "{bundle.name}" updated successfully!'
+            )
+            
+            return redirect('shop:bundle_list')
+        
+        context = {
+            'form': form,
+            'bundle': bundle,
+            'action': 'Edit',
+            'title': f'Edit Bundle: {bundle.name}'
+        }
+        
+        return render(request, self.template_name, context)
+
+
+@require_POST
+def bundle_delete(request, bundle_id):
+    """
+    Admin: Delete bundle
+    
+    Security:
+    - Admin only
+    - POST required
+    - Confirmation handled by frontend
+    """
+    if not request.user.is_authenticated or request.user.role != User.ADMIN:
+        messages.error(request, 'Only administrators can delete bundles')
+        return redirect('accounts:dashboard')
+    
+    bundle = get_object_or_404(Product, id=bundle_id, product_type=Product.BUNDLE)
+    bundle_name = bundle.name
+    
+    try:
+        # Check if bundle has active enrollments
+        enrollment_count = StudentEnrollment.objects.filter(
+            product=bundle,
+            is_active=True
+        ).count()
+        
+        if enrollment_count > 0:
+            messages.warning(
+                request,
+                f'Cannot delete "{bundle_name}" - {enrollment_count} active enrollments exist. '
+                f'Deactivate the bundle instead.'
+            )
+            return redirect('shop:bundle_list')
+        
+        # Safe to delete
+        bundle.delete()
+        
+        messages.success(request, f'✓ Bundle "{bundle_name}" deleted successfully')
+        
+    except Exception as e:
+        logger.error(f"Error deleting bundle {bundle_id}: {str(e)}")
+        messages.error(request, 'Error deleting bundle. Please try again.')
+    
+    return redirect('shop:bundle_list')
+
+
+class BundleDetailView(AdminRequiredMixin, DetailView):
+    """
+    Admin: View bundle details
+    
+    Shows:
+    - All bundle information
+    - Included courses
+    - Enrollment stats
+    - Quick edit link
+    """
+    
+    model = Product
+    template_name = 'shop/bundles/bundle_detail.html'
+    context_object_name = 'bundle'
+    pk_url_kwarg = 'bundle_id'
+    
+    def get_queryset(self):
+        """Only bundle products"""
+        return Product.objects.filter(
+            product_type=Product.BUNDLE
+        ).prefetch_related('bundle_items__course__category')
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        bundle = self.object
+        
+        # Get bundle courses
+        context['bundle_courses'] = ProductBundle.objects.filter(
+            product=bundle
+        ).select_related('course__category').order_by('sort_order')
+        
+        # Stats
+        context['total_enrollments'] = StudentEnrollment.objects.filter(
+            product=bundle
+        ).count()
+        
+        context['active_enrollments'] = StudentEnrollment.objects.filter(
+            product=bundle,
+            is_active=True
+        ).count()
+        
+        return context
