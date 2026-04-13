@@ -156,25 +156,9 @@
                                                         <h5 class="font-semibold text-gray-900 mb-1">
                                                             {{ course.title }}
                                                         </h5>
-                                                        <p class="text-sm text-gray-600 mb-2">
+                                                        <p class="text-sm text-gray-600 mb-3">
                                                             {{ course.short_name }} • {{ course.category.name }}
                                                         </p>
-                                                        
-                                                        <!-- Course Progress -->
-                                                        {% with course_enrollment=user.course_enrollments.all|first %}
-                                                            <div class="mb-3">
-                                                                <div class="flex items-center justify-between mb-1">
-                                                                    <span class="text-xs font-medium text-gray-600">Course Progress</span>
-                                                                    <span class="text-xs font-bold text-gray-900">
-                                                                        <!-- TODO: Fetch from Moodle -->
-                                                                        0%
-                                                                    </span>
-                                                                </div>
-                                                                <div class="w-full bg-gray-200 rounded-full h-2">
-                                                                    <div class="bg-blue-500 h-2 rounded-full" style="width: 0%"></div>
-                                                                </div>
-                                                            </div>
-                                                        {% endwith %}
                                                     </div>
                                                     
                                                     <!-- Access Course Button -->

@@ -747,6 +747,7 @@ class MoodleProgressService:
     def sync_user_progress(self, user):
         """
         Sync all course progress for a user from Moodle
+        Updates StudentEnrollment progress percentages
         
         Returns: dict with success status and details
         """
@@ -780,6 +781,9 @@ class MoodleProgressService:
                 result['errors'].append('No course enrollments found')
                 return result
             
+            # Dictionary to track course progress for bundle calculations
+            course_progress_map = {}  # {course_id: progress_percentage}
+            
             # Fetch progress for each course from Moodle
             for enrollment in course_enrollments:
                 try:
@@ -789,25 +793,86 @@ class MoodleProgressService:
                     )
                     
                     if progress is not None:
-                        # Update CourseEnrollment (not used in display but good to track)
+                        # Store progress for bundle calculations
+                        course_progress_map[enrollment.course.id] = progress
+                        
+                        # Update CourseEnrollment
                         enrollment.sync_status = 'synced'
                         enrollment.last_synced = timezone.now()
                         enrollment.save()
                         
                         result['courses_synced'] += 1
+                        
                         logger.info(
                             f"Synced progress for {user.username} in "
                             f"{enrollment.course.short_name}: {progress}%"
                         )
-                    
+                
                 except Exception as e:
                     error_msg = f"Error syncing {enrollment.course.short_name}: {str(e)}"
                     result['errors'].append(error_msg)
                     logger.error(error_msg)
             
-            # Update bundle progress (aggregate from courses)
-            bundles_updated = self._update_bundle_progress(user)
-            result['bundles_updated'] = bundles_updated
+            # Now update StudentEnrollment progress
+            # For single courses: direct progress
+            # For bundles: average of all courses in bundle
+            
+            student_enrollments = StudentEnrollment.objects.filter(
+                user=user,
+                is_active=True
+            ).select_related('product').prefetch_related('product__bundle_items__course')
+            
+            for enrollment in student_enrollments:
+                product = enrollment.product
+                
+                if product.product_type == Product.BUNDLE:
+                    # Calculate average progress for bundle
+                    bundle_courses = product.bundle_items.all()
+                    
+                    if bundle_courses.exists():
+                        total_progress = Decimal('0.00')
+                        course_count = 0
+                        
+                        for bundle_item in bundle_courses:
+                            course_id = bundle_item.course.id
+                            if course_id in course_progress_map:
+                                total_progress += Decimal(str(course_progress_map[course_id]))
+                                course_count += 1
+                        
+                        if course_count > 0:
+                            avg_progress = total_progress / course_count
+                            enrollment.progress_percentage = avg_progress
+                            enrollment.last_accessed = timezone.now()
+                            
+                            # Mark as completed if all courses done
+                            if avg_progress >= 100:
+                                enrollment.mark_completed()
+                            
+                            enrollment.save()
+                            result['bundles_updated'] += 1
+                            
+                            logger.info(
+                                f"Updated bundle progress: {product.name} = {avg_progress:.1f}%"
+                            )
+                
+                elif product.moodle_course:
+                    # Single course product
+                    course_id = product.moodle_course.id
+                    
+                    if course_id in course_progress_map:
+                        progress = Decimal(str(course_progress_map[course_id]))
+                        enrollment.progress_percentage = progress
+                        enrollment.last_accessed = timezone.now()
+                        
+                        # Mark as completed if done
+                        if progress >= 100:
+                            enrollment.mark_completed()
+                        
+                        enrollment.save()
+                        
+                        logger.info(
+                            f"Updated course progress: {product.name} = {progress}%"
+                        )
             
             result['success'] = True
             
@@ -816,69 +881,124 @@ class MoodleProgressService:
             logger.error(f"Progress sync error for {user.username}: {str(e)}")
         
         return result
+
+
     
     def _fetch_course_progress(self, moodle_user_id, moodle_course_id):
         """
         Fetch course completion percentage from Moodle
         
-        Uses Moodle's grade API to get completion percentage
+        Uses activity completion data to calculate progress
         Returns: float (0-100) or None if unavailable
         """
         if not moodle_course_id:
             return None
         
         try:
-            # Use the correct method name from MoodleClient
-            # Try to get grades first (most reliable for quiz-based courses)
+            # Method 1: Try to get activity completion status
+            # This is more reliable than course-level completion
             try:
-                grade_data = self.client._make_request(
-                    'core_grades_get_grades',
+                activities_completion = self.client._make_request(
+                    'core_completion_get_activities_completion_status',
                     {
                         'courseid': int(moodle_course_id),
                         'userid': int(moodle_user_id)
                     }
                 )
                 
-                # Parse grade data
-                if grade_data and 'items' in grade_data:
-                    for item in grade_data['items']:
-                        if item.get('itemname') == 'Course total':
-                            grade_raw = float(item.get('graderaw', 0))
-                            grade_max = float(item.get('grademax', 100))
-                            
-                            if grade_max > 0:
-                                percentage = (grade_raw / grade_max) * 100
+                if activities_completion and 'statuses' in activities_completion:
+                    statuses = activities_completion['statuses']
+                    
+                    if len(statuses) > 0:
+                        # Calculate percentage based on completed activities
+                        total_activities = len(statuses)
+                        completed_activities = sum(
+                            1 for activity in statuses 
+                            if activity.get('state', 0) == 1  # 1 = completed
+                        )
+                        
+                        percentage = (completed_activities / total_activities) * 100
+                        
+                        logger.info(
+                            f"Activity completion: {completed_activities}/{total_activities} = "
+                            f"{percentage:.1f}% for user {moodle_user_id} in course {moodle_course_id}"
+                        )
+                        
+                        return round(percentage, 2)
+            
+            except Exception as e:
+                error_msg = str(e)
+                
+                # Log specific errors
+                if 'nocriteriaset' in error_msg.lower():
+                    logger.info(
+                        f"Course {moodle_course_id} has no completion criteria configured"
+                    )
+                elif 'cannotviewreport' in error_msg.lower():
+                    logger.warning(
+                        f"Permission denied viewing completion for course {moodle_course_id}. "
+                        f"Check web service user capabilities."
+                    )
+                else:
+                    logger.error(f"Error fetching activity completion: {error_msg}")
+            
+            # Method 2: Try to get from user's enrolled courses
+            # This gives us Moodle's progress tracking if enabled
+            try:
+                user_courses = self.client._make_request(
+                    'core_enrol_get_users_courses',
+                    {'userid': int(moodle_user_id)}
+                )
+                
+                if user_courses:
+                    for course in user_courses:
+                        if course.get('id') == int(moodle_course_id):
+                            # Check if course has progress data
+                            if 'progress' in course:
+                                progress = float(course['progress'])
                                 logger.info(
-                                    f"Grade data: {grade_raw}/{grade_max} = {percentage}% "
+                                    f"Course progress from enrollment: {progress}% "
                                     f"for user {moodle_user_id} in course {moodle_course_id}"
                                 )
-                                return round(percentage, 2)
+                                return round(progress, 2)
+                            
+                            # Check if course is completed
+                            if course.get('completed', False):
+                                logger.info(
+                                    f"Course {moodle_course_id} marked as completed "
+                                    f"for user {moodle_user_id}"
+                                )
+                                return 100.0
             
             except Exception as e:
-                logger.error(f"Error fetching grades: {str(e)}")
+                logger.error(f"Error fetching user courses: {str(e)}")
             
-            # Fallback: Try completion status
+            # Method 3: Try gradereport_user_get_grades_table
+            # This requires gradereport/user:view capability
             try:
-                completion_data = self.client._make_request(
-                    'core_completion_get_course_completion_status',
+                grades_table = self.client._make_request(
+                    'gradereport_user_get_grades_table',
                     {
                         'courseid': int(moodle_course_id),
                         'userid': int(moodle_user_id)
                     }
                 )
                 
-                # Check if course is marked as completed
-                if isinstance(completion_data, dict):
-                    completionstatus = completion_data.get('completionstatus', {})
-                    if isinstance(completionstatus, dict) and completionstatus.get('completed'):
-                        logger.info(f"Course {moodle_course_id} marked as completed for user {moodle_user_id}")
-                        return 100.0
+                if grades_table and 'tables' in grades_table:
+                    # Parse the grades table for completion info
+                    # This is complex HTML/data, but contains completion percentage
+                    logger.info(f"Got grades table for course {moodle_course_id}")
+                    # We can't easily parse this, so skip for now
             
             except Exception as e:
-                logger.error(f"Error fetching completion: {str(e)}")
+                # This is expected if user doesn't have gradereport/user:view
+                pass
             
-            # No data found - return 0%
-            logger.info(f"No progress data found for user {moodle_user_id} in course {moodle_course_id}")
+            # No progress data found - return 0% instead of None
+            logger.info(
+                f"No progress data available for user {moodle_user_id} "
+                f"in course {moodle_course_id} - defaulting to 0%"
+            )
             return 0.0
             
         except Exception as e:
@@ -886,9 +1006,8 @@ class MoodleProgressService:
                 f"Error fetching Moodle progress for course {moodle_course_id}, "
                 f"user {moodle_user_id}: {str(e)}"
             )
-            return None
-    
-    
+            return 0.0  # Default to 0 instead of None on error
+        
 
 
 

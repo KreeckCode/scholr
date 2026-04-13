@@ -1169,123 +1169,52 @@ def refresh_progress(request):
     return redirect('shop:my_courses')
 
 @login_required
-def debug_moodle_progress(request):
+def debug_moodle_apis(request):
     """
-    Debug view to see raw Moodle progress data
-    Shows enrollment status and grade data
+    Test what Moodle APIs return for current user
+    Admin only
     """
-    if not request.user.is_staff:
+    if not request.user.role == User.ADMIN:
         raise PermissionDenied
     
-    from integration.models import MoodleUserMapping, MoodleInstance
+    from integration.models import MoodleInstance, MoodleUserMapping
     from integration.moodle_client import MoodleClient
-    from integration.models import CourseEnrollment
+    
+    instance = MoodleInstance.objects.filter(is_active=True).first()
+    if not instance:
+        return JsonResponse({'error': 'No Moodle instance'})
     
     try:
-        # Get Moodle instance
-        instance = MoodleInstance.objects.filter(is_active=True, is_primary=True).first()
-        
-        if not instance:
-            return JsonResponse({'error': 'No active Moodle instance'}, status=500)
-        
-        try:
-            mapping = MoodleUserMapping.objects.get(cas_user=request.user)
-        except MoodleUserMapping.DoesNotExist:
-            return JsonResponse({'error': 'User not mapped to Moodle'}, status=404)
-        
-        if not mapping.moodle_user_id:
-            return JsonResponse({'error': 'No Moodle user ID set'}, status=404)
-        
-        # Get user's courses
-        enrollments = CourseEnrollment.objects.filter(
-            user=request.user,
-            is_active=True
-        ).select_related('course')
-        
-        client = MoodleClient(instance.base_url, instance.ws_token)
-        
-        debug_data = {
-            'moodle_url': instance.base_url,
-            'moodle_user_id': mapping.moodle_user_id,
-            'django_username': request.user.username,
-            'courses': []
-        }
-        
-        # First, check what courses user is enrolled in Moodle
-        try:
-            moodle_courses = client._make_request(
-                'core_enrol_get_users_courses',
-                {'userid': mapping.moodle_user_id}
-            )
-            debug_data['moodle_enrolled_courses'] = [
-                {
-                    'id': c.get('id'),
-                    'shortname': c.get('shortname'),
-                    'fullname': c.get('fullname')
-                }
-                for c in moodle_courses
-            ] if moodle_courses else []
-        except Exception as e:
-            debug_data['moodle_enrolled_courses'] = f"Error: {str(e)}"
-        
-        # Check each Django enrollment
-        for enrollment in enrollments:
-            course_id = enrollment.course.moodle_course_id
-            user_id = mapping.moodle_user_id
-            
-            course_debug = {
-                'django_course': enrollment.course.title,
-                'django_course_id': enrollment.course.id,
-                'moodle_course_id': course_id,
-                'shortname': enrollment.course.short_name,
-            }
-            
-            # Check if enrolled in Moodle
-            try:
-                enrolled_users = client._make_request(
-                    'core_enrol_get_enrolled_users',
-                    {'courseid': int(course_id)}
-                )
-                
-                is_enrolled = any(
-                    u.get('id') == user_id 
-                    for u in (enrolled_users or [])
-                )
-                course_debug['enrolled_in_moodle'] = is_enrolled
-                
-                if not is_enrolled:
-                    course_debug['error'] = 'User not enrolled in this course in Moodle'
-                
-            except Exception as e:
-                course_debug['enrollment_check_error'] = str(e)
-            
-            # Try to get grades
-            try:
-                grades = client._make_request(
-                    'core_grades_get_grades',
-                    {'courseid': int(course_id), 'userid': int(user_id)}
-                )
-                course_debug['grade_data'] = grades
-            except Exception as e:
-                course_debug['grade_error'] = str(e)
-            
-            # Try to get completion
-            try:
-                completion = client._make_request(
-                    'core_completion_get_course_completion_status',
-                    {'courseid': int(course_id), 'userid': int(user_id)}
-                )
-                course_debug['completion_data'] = completion
-            except Exception as e:
-                course_debug['completion_error'] = str(e)
-            
-            debug_data['courses'].append(course_debug)
-        
-        return JsonResponse(debug_data, json_dumps_params={'indent': 2})
-        
+        mapping = request.user.moodle_mapping
+    except:
+        return JsonResponse({'error': 'User not mapped'})
+    
+    client = MoodleClient(instance.base_url, instance.ws_token)
+    
+    results = {}
+    
+    # Test 1: Get user's courses
+    try:
+        results['user_courses'] = client._make_request(
+            'core_enrol_get_users_courses',
+            {'userid': mapping.moodle_user_id}
+        )
     except Exception as e:
-        import traceback
-        return JsonResponse({
-            'error': str(e),
-            'traceback': traceback.format_exc()
-        }, status=500)
+        results['user_courses_error'] = str(e)
+    
+    # Test 2: Get activities completion for first course
+    if results.get('user_courses'):
+        first_course_id = results['user_courses'][0]['id']
+        
+        try:
+            results['activities_completion'] = client._make_request(
+                'core_completion_get_activities_completion_status',
+                {
+                    'courseid': first_course_id,
+                    'userid': mapping.moodle_user_id
+                }
+            )
+        except Exception as e:
+            results['activities_completion_error'] = str(e)
+    
+    return JsonResponse(results, json_dumps_params={'indent': 2})

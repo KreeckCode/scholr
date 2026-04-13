@@ -379,83 +379,120 @@ class StudentEnrollmentAdmin(admin.ModelAdmin):
     deactivate_and_unenroll.short_description = "Deactivate and unenroll from Moodle"
     
     def force_sync_to_moodle(self, request, queryset):
-        """Force immediate sync to Moodle"""
-        from integration.models import MoodleInstance, CourseEnrollment, ProductBundle
-        from integration.services import MoodleIntegrationService
+        """
+        Force immediate sync of selected enrollments to Moodle
+        Bypasses the queue and syncs directly
+        """
+        from integration.models import MoodleInstance, CourseEnrollment
+        from accounts.models import ProductBundle  # FIX: Import from correct module
+        from integration.moodle_client import MoodleClient
         
-        try:
-            instance = MoodleInstance.objects.filter(is_active=True, is_primary=True).first()
-            if not instance:
-                self.message_user(request, "No Moodle instance configured", level='error')
-                return
-            
-            service = MoodleIntegrationService(instance)
-            synced = 0
-            errors = 0
-            
-            for student_enrollment in queryset:
-                # Get related course enrollments
-                course_enrollments = []
-                
-                if student_enrollment.product.product_type == 'bundle':
-                    bundle_items = ProductBundle.objects.filter(
-                        product=student_enrollment.product
-                    ).select_related('course')
-                    
-                    for item in bundle_items:
-                        try:
-                            ce = CourseEnrollment.objects.get(
-                                user=student_enrollment.user,
-                                course=item.course
-                            )
-                            course_enrollments.append(ce)
-                        except CourseEnrollment.DoesNotExist:
-                            pass
-                
-                elif student_enrollment.product.moodle_course:
-                    try:
-                        ce = CourseEnrollment.objects.get(
-                            user=student_enrollment.user,
-                            course=student_enrollment.product.moodle_course
-                        )
-                        course_enrollments.append(ce)
-                    except CourseEnrollment.DoesNotExist:
-                        pass
-                
-                # Sync each enrollment
-                for ce in course_enrollments:
-                    try:
-                        mapping = student_enrollment.user.moodle_mapping
-                        
-                        if ce.is_active:
-                            # Enroll
-                            service.client.enrol_user(
-                                mapping.moodle_user_id,
-                                ce.course.moodle_course_id
-                            )
-                        else:
-                            # Unenroll
-                            service.client.unenrol_user(
-                                mapping.moodle_user_id,
-                                ce.course.moodle_course_id
-                            )
-                        
-                        ce.mark_synced()
-                        synced += 1
-                    
-                    except Exception as e:
-                        ce.mark_failed(str(e))
-                        errors += 1
-            
+        # Get active Moodle instance
+        instance = MoodleInstance.objects.filter(
+            is_active=True,
+            is_primary=True
+        ).first()
+        
+        if not instance:
             self.message_user(
                 request,
-                f"Synced {synced} enrollments to Moodle. {errors} errors."
+                "No active Moodle instance configured",
+                level='ERROR'
+            )
+            return
+        
+        client = MoodleClient(instance.base_url, instance.ws_token)
+        
+        success_count = 0
+        error_count = 0
+        
+        for enrollment in queryset:
+            user = enrollment.user
+            product = enrollment.product
+            
+            # Get user's Moodle mapping
+            try:
+                mapping = user.moodle_mapping
+            except:
+                error_count += 1
+                continue
+            
+            if not mapping.moodle_user_id:
+                error_count += 1
+                continue
+            
+            # Determine courses to sync based on product type
+            courses_to_sync = []
+            
+            if product.product_type == Product.BUNDLE:
+                # Get all courses in bundle
+                bundle_items = ProductBundle.objects.filter(
+                    product=product
+                ).select_related('course')
+                
+                courses_to_sync = [item.course for item in bundle_items]
+            
+            elif product.moodle_course:
+                # Single course
+                courses_to_sync = [product.moodle_course]
+            
+            # Sync each course
+            for course in courses_to_sync:
+                if not course.moodle_course_id:
+                    continue
+                
+                try:
+                    # Get or create CourseEnrollment
+                    course_enrollment, created = CourseEnrollment.objects.get_or_create(
+                        user=user,
+                        course=course,
+                        defaults={
+                            'is_active': enrollment.is_active,
+                            'sync_status': 'pending'
+                        }
+                    )
+                    
+                    # Sync to Moodle based on active status
+                    if enrollment.is_active:
+                        # Enroll
+                        client.enrol_user(
+                            mapping.moodle_user_id,
+                            course.moodle_course_id
+                        )
+                        course_enrollment.mark_synced()
+                    else:
+                        # Unenroll
+                        client.unenrol_user(
+                            mapping.moodle_user_id,
+                            course.moodle_course_id
+                        )
+                        course_enrollment.is_active = False
+                        course_enrollment.sync_status = 'synced'
+                        course_enrollment.save()
+                    
+                    success_count += 1
+                    
+                except Exception as e:
+                    course_enrollment.mark_failed(str(e))
+                    error_count += 1
+        
+        # Show results
+        if success_count > 0:
+            self.message_user(
+                request,
+                f"Successfully synced {success_count} course enrollments to Moodle",
+                level='SUCCESS'
             )
         
-        except Exception as e:
-            self.message_user(request, f"Sync failed: {str(e)}", level='error')
-    
+        if error_count > 0:
+            self.message_user(
+                request,
+                f"Failed to sync {error_count} course enrollments - check logs",
+                level='WARNING'
+            )
+
     force_sync_to_moodle.short_description = "Force sync to Moodle now"
+    
     
     fieldsets = (
         ('Enrollment', {

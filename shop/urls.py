@@ -1,14 +1,3 @@
-"""
-Shop URL Configuration
-
-Simplified structure:
-- /courses/ → Catalog (browse)
-- /courses/cart/ → Shopping cart
-- /courses/checkout/ → Purchase
-- /courses/my-learning/ → Enrolled courses
-- /courses/orders/ → Order history
-"""
-
 from django.urls import path
 from . import views
 
@@ -52,6 +41,6 @@ urlpatterns = [
     path('bundles/<int:bundle_id>/', views.BundleDetailView.as_view(), name='bundle_detail'),
     path('bundles/<int:bundle_id>/edit/', views.BundleEditView.as_view(), name='bundle_edit'),
     path('bundles/<int:bundle_id>/delete/', views.bundle_delete, name='bundle_delete'),
-    path('debug/moodle-progress/', views.debug_moodle_progress, name='debug_moodle_progress'),
+    path('debug/moodle-apis/', views.debug_moodle_apis, name='debug_moodle_apis'),
 
 ]
