@@ -1,6 +1,15 @@
 {% extends 'base/base.html' %}
 {% load shop_tags %}
+{% load cache %}
 
+<!-- Cache product cards for 15 minutes -->
+{% for product in products %}
+    {% cache 900 product_card product.id %}
+        <div class="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition-shadow">
+            <!-- product card content -->
+        </div>
+    {% endcache %}
+{% endfor %}
 {% block title %}Browse Courses - African Pastoral Academy{% endblock %}
 
 {% block content %}

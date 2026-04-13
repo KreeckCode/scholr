@@ -18,6 +18,8 @@ from integration.models import Course, CourseEnrollment, MoodleInstance
 from integration.services import MoodleIntegrationService
 from integration.moodle_client import MoodleClient
 from integration.models import MoodleInstance, MoodleUserMapping
+from django.core.cache import cache
+
 logger = logging.getLogger(__name__)
 
 
@@ -51,21 +53,18 @@ class OrderService:
         Returns:
             Order instance
         """
-        # Create order
         order = Order.objects.create(
             user=user,
             status=Order.PENDING,
             customer_notes=customer_notes
         )
         
-        # Add items - CRITICAL: Use DB prices, not cart prices (security)
         subtotal = Decimal('0.00')
         
         for item in cart:
             product = item['product']
             quantity = item['quantity']
             
-            # Security: Always fetch fresh price from database
             db_product = Product.objects.get(id=product.id)
             unit_price = db_product.price
             
@@ -78,21 +77,17 @@ class OrderService:
             
             subtotal += unit_price * quantity
         
-        # Apply discount
         order.subtotal = subtotal
         discount_amount = Decimal('0.00')
         
         if discount_code and discount_code.is_valid():
             discount_amount = discount_code.calculate_discount(subtotal)
-            
-            # Record discount usage
             discount_code.times_used += 1
             discount_code.save()
         
         order.discount_amount = discount_amount
         order.total_amount = subtotal - discount_amount
         
-        # Auto-complete free orders
         if order.total_amount == Decimal('0.00'):
             order.status = Order.FREE
             order.payment_method = 'free'
@@ -105,32 +100,17 @@ class OrderService:
         return order
     
     def verify_order_ownership(self, order, user):
-        """
-        Security: Verify user owns this order
-        
-        Raises:
-            PermissionError if user doesn't own order
-        """
+        """Security: Verify user owns this order"""
         if order.user != user and not user.role == User.ADMIN:
             logger.warning(f"Unauthorized order access attempt: {user.username} → {order.order_number}")
             raise PermissionError("You don't have permission to access this order")
     
     def cancel_order(self, order, user):
-        """
-        Cancel pending order
-        
-        Security:
-        - Only owner or admin can cancel
-        - Only pending orders can be cancelled
-        - Refund discount code if used
-        """
+        """Cancel pending order"""
         self.verify_order_ownership(order, user)
         
         if order.status != Order.PENDING:
             raise ValueError("Only pending orders can be cancelled")
-        
-        # Refund discount code usage
-        # TODO: Track which discount was used
         
         order.status = Order.FAILED
         order.save()
@@ -149,12 +129,6 @@ class EnrollmentService:
     """
     Handles product enrollment in courses
     Processes both FREE and PAID orders
-    
-    Security:
-    - Only processes paid/free orders
-    - Verifies Moodle sync
-    - Atomic operations
-    - Audit logging
     """
     
     def __init__(self):
@@ -175,22 +149,10 @@ class EnrollmentService:
     
     @transaction.atomic
     def process_order_enrollment(self, order):
-        """
-        Main enrollment processor
-        
-        Security:
-        - Verifies order is paid
-        - Prevents duplicate processing
-        - Atomic transaction
-        
-        Returns:
-            list: Created StudentEnrollment instances
-        """
-        # Security: Only process paid/free orders
+        """Main enrollment processor"""
         if not order.is_paid():
             raise ValueError(f"Order {order.order_number} is not paid")
         
-        # Prevent duplicate processing
         if order.enrollment_processed:
             logger.warning(f"Order {order.order_number} already processed")
             return []
@@ -198,26 +160,18 @@ class EnrollmentService:
         logger.info(f"Processing enrollment for order {order.order_number}")
         
         try:
-            # 1. Expand products to courses
             courses_to_enroll = self._expand_products_to_courses(order)
-            
-            # 2. Create enrollment records
-            enrollments = self._create_enrollment_records(
-                order.user, 
-                courses_to_enroll, 
-                order
-            )
-            
-            # 3. Sync to Moodle
+            enrollments = self._create_enrollment_records(order.user, courses_to_enroll, order)
             self._sync_to_moodle(order.user, courses_to_enroll)
-            
-            # 4. Send confirmation
             self._send_enrollment_confirmation(order.user, enrollments, order)
             
-            # 5. Mark as processed
             order.enrollment_processed = True
             order.enrollment_processed_at = timezone.now()
             order.save()
+            
+            # Clear user cache
+            cache.delete(f'user_enrollments:{order.user.id}')
+            cache.delete(f'user_courses:{order.user.id}')
             
             logger.info(f"Enrollment complete: {order.order_number} - {len(enrollments)} products")
             
@@ -230,33 +184,13 @@ class EnrollmentService:
             raise
     
     def _expand_products_to_courses(self, order):
-        """
-        Convert products to course list
-        
-        Handles:
-        - Single courses
-        - Bundles (expands to multiple courses)
-        - Term-specific access
-        
-        Returns:
-            list of dicts: [
-                {
-                    'course': Course,
-                    'terms': [1,2,3,4],
-                    'duration_months': 12,
-                    'product': Product,
-                    'order_item': OrderItem
-                },
-                ...
-            ]
-        """
+        """Convert products to course list"""
         courses = []
         
         for item in order.items.select_related('product').prefetch_related('product__bundle_items__course'):
             product = item.product
             
             if product.product_type == Product.COURSE:
-                # Single course
                 if product.moodle_course:
                     courses.append({
                         'course': product.moodle_course,
@@ -267,7 +201,6 @@ class EnrollmentService:
                     })
             
             elif product.product_type == Product.BUNDLE:
-                # Expand bundle
                 for bundle_item in product.bundle_items.all():
                     courses.append({
                         'course': bundle_item.course,
@@ -278,7 +211,6 @@ class EnrollmentService:
                     })
             
             elif product.product_type == Product.TERM:
-                # Term-specific
                 if product.moodle_course:
                     courses.append({
                         'course': product.moodle_course,
@@ -291,22 +223,17 @@ class EnrollmentService:
         return self._deduplicate_courses(courses)
     
     def _deduplicate_courses(self, courses):
-        """
-        Merge duplicate courses
-        If user buys Math Term 1 + Math Term 2, combine to [1,2]
-        """
+        """Merge duplicate courses"""
         course_map = {}
         
         for course_data in courses:
             course_id = course_data['course'].id
             
             if course_id in course_map:
-                # Merge terms
                 existing_terms = set(course_map[course_id]['terms'])
                 new_terms = set(course_data['terms'])
                 course_map[course_id]['terms'] = sorted(existing_terms | new_terms)
                 
-                # Use longest duration
                 course_map[course_id]['duration_months'] = max(
                     course_map[course_id]['duration_months'],
                     course_data['duration_months']
@@ -320,7 +247,6 @@ class EnrollmentService:
         """Create StudentEnrollment records"""
         enrollments = []
         
-        # Group by product
         products = {}
         for course_data in courses_to_enroll:
             product = course_data['product']
@@ -332,7 +258,6 @@ class EnrollmentService:
                 }
             products[product.id]['courses'].append(course_data)
         
-        # Create enrollments
         for product_data in products.values():
             product = product_data['product']
             
@@ -351,7 +276,6 @@ class EnrollmentService:
             )
             
             if not created:
-                # Extend existing
                 enrollment.extend_access(product_data['duration_months'])
             
             enrollments.append(enrollment)
@@ -359,10 +283,7 @@ class EnrollmentService:
         return enrollments
     
     def _sync_to_moodle(self, user, courses_to_enroll):
-        """
-        Sync enrollments to Moodle with immediate enrollment
-        Also reactivates suspended accounts
-        """
+        """Sync enrollments to Moodle with immediate enrollment and account reactivation"""
         moodle_service = self._get_moodle_service()
         
         if not moodle_service:
@@ -370,10 +291,8 @@ class EnrollmentService:
             return
         
         try:
-            # Ensure user has Moodle account first
             from integration.models import MoodleUserMapping
             
-            # Check if user is synced to Moodle
             mapping, created = MoodleUserMapping.objects.get_or_create(
                 cas_user=user,
                 defaults={
@@ -382,7 +301,6 @@ class EnrollmentService:
                 }
             )
             
-            # If user not synced, sync them first
             if not mapping.moodle_user_id or mapping.sync_status != 'synced':
                 user_sync = moodle_service.sync_users(
                     initiated_by=user,
@@ -390,7 +308,7 @@ class EnrollmentService:
                 )
                 logger.info(f"User sync for {user.username}: {user_sync.status}")
             
-            # IMPORTANT: Reactivate account if suspended
+            # Reactivate account if suspended
             if mapping.moodle_user_id:
                 try:
                     moodle_service.client.update_user(
@@ -401,11 +319,9 @@ class EnrollmentService:
                 except Exception as e:
                     logger.warning(f"Could not reactivate account for {user.username}: {str(e)}")
             
-            # Now sync each course enrollment
             for course_data in courses_to_enroll:
                 course = course_data['course']
                 
-                # Create CourseEnrollment record
                 enrollment, created = CourseEnrollment.objects.get_or_create(
                     user=user,
                     course=course,
@@ -416,7 +332,6 @@ class EnrollmentService:
                     }
                 )
                 
-                # Update enrollment log
                 course_data['order_item'].enrollment_log[str(course.id)] = {
                     'course_name': course.title,
                     'enrolled_at': timezone.now().isoformat(),
@@ -424,9 +339,7 @@ class EnrollmentService:
                 }
                 course_data['order_item'].save()
                 
-                # Sync to Moodle immediately
                 try:
-                    # Get fresh mapping
                     mapping = user.moodle_mapping
                     
                     if not mapping.moodle_user_id:
@@ -437,13 +350,11 @@ class EnrollmentService:
                         logger.error(f"Course {course.short_name} has no Moodle ID, skipping enrollment")
                         continue
                     
-                    # Enroll directly via Moodle client
                     moodle_service.client.enrol_user(
                         mapping.moodle_user_id,
                         course.moodle_course_id
                     )
                     
-                    # Mark as synced
                     enrollment.mark_synced()
                     
                     logger.info(
@@ -453,162 +364,25 @@ class EnrollmentService:
                 
                 except Exception as e:
                     enrollment.mark_failed(str(e))
-                    logger.error(
-                        f"Failed to enroll {user.username} in {course.short_name}: {str(e)}"
-                    )
+                    logger.error(f"Failed to enroll {user.username} in {course.short_name}: {str(e)}")
         
         except Exception as e:
             logger.error(f"Moodle sync failed: {str(e)}")
-
-
-
-    
-
-    def _create_course_enrollments_for_bundle(self, user, product, order):
-        """
-        When user enrolls in bundle, create CourseEnrollment for each course
-        Critical: This ensures Moodle knows about the enrollment
-        """
-        if product.product_type != Product.BUNDLE:
-            return []
-        
-        # Get all courses in this bundle
-        bundle_items = ProductBundle.objects.filter(
-            product=product
-        ).select_related('course')
-        
-        created_enrollments = []
-        
-        for item in bundle_items:
-            course = item.course
-            
-            # Check if enrollment already exists
-            enrollment, created = CourseEnrollment.objects.get_or_create(
-                user=user,
-                course=course,
-                defaults={
-                    'enrolled_by': None,
-                    'is_active': True,
-                    'sync_status': 'pending',
-                    'enrolled_at': timezone.now()
-                }
-            )
-            
-            if created:
-                logger.info(f"Created CourseEnrollment: {user.username} → {course.short_name}")
-                created_enrollments.append(enrollment)
-            else:
-                # Reactivate if was inactive
-                if not enrollment.is_active:
-                    enrollment.is_active = True
-                    enrollment.sync_status = 'pending'
-                    enrollment.save()
-                    created_enrollments.append(enrollment)
-        
-        # Sync to Moodle
-        if created_enrollments:
-            moodle_service = self._get_moodle_service()
-            
-            if not moodle_service:
-                logger.warning("Moodle service unavailable for bundle enrollment sync")
-                return created_enrollments
-            
-            try:
-                # Get user's Moodle mapping
-                mapping = MoodleUserMapping.objects.filter(cas_user=user).first()
-                
-                if not mapping or not mapping.moodle_user_id:
-                    logger.error(f"User {user.username} has no Moodle mapping, skipping sync")
-                    return created_enrollments
-                
-                # Enroll in each course via Moodle client
-                for enrollment in created_enrollments:
-                    try:
-                        if not enrollment.course.moodle_course_id:
-                            logger.error(
-                                f"Course {enrollment.course.short_name} has no Moodle ID"
-                            )
-                            enrollment.sync_status = 'failed'
-                            enrollment.sync_error = 'No Moodle course ID'
-                            enrollment.save()
-                            continue
-                        
-                        # Direct enrollment via client
-                        moodle_service.client.enrol_user(
-                            user_id=mapping.moodle_user_id,
-                            course_id=enrollment.course.moodle_course_id,
-                            role_id=5
-                        )
-                        
-                        # Mark as synced
-                        enrollment.sync_status = 'synced'
-                        enrollment.last_synced = timezone.now()
-                        enrollment.save()
-                        
-                        logger.info(
-                            f"✓ Enrolled {user.username} in {enrollment.course.short_name} "
-                            f"(Moodle user {mapping.moodle_user_id}, "
-                            f"course {enrollment.course.moodle_course_id})"
-                        )
-                    
-                    except Exception as e:
-                        enrollment.sync_status = 'failed'
-                        enrollment.sync_error = str(e)
-                        enrollment.save()
-                        logger.error(
-                            f"Failed to enroll {user.username} in "
-                            f"{enrollment.course.short_name}: {str(e)}"
-                        )
-            
-            except Exception as e:
-                logger.error(f"Moodle bundle enrollment error: {str(e)}")
-        
-        return created_enrollments
-
-
-
-
-
     
     def _send_enrollment_confirmation(self, user, enrollments, order):
-        """Send confirmation email"""
+        """Queue confirmation email as background task"""
         if not user.email:
             return
+        
         from shop.tasks import send_enrollment_email_task
-
         send_enrollment_email_task.delay(user.id, order.id)
         logger.info(f"Queued enrollment confirmation email for {user.email}")
-        
-        context = {
-            'user': user,
-            'order': order,
-            'enrollments': enrollments,
-            'is_free': order.is_free_order(),
-        }
-        
-        subject = "Welcome to African Pastoral Academy!" if order.is_free_order() else "Your Purchase Confirmation"
-        message = render_to_string('shop/emails/enrollment_confirmation.txt', context)
-        
-        try:
-            send_mail(
-                subject,
-                message,
-                settings.DEFAULT_FROM_EMAIL,
-                [user.email],
-                fail_silently=False,
-            )
-        except Exception as e:
-            logger.error(f"Email failed: {str(e)}")
     
     def enroll_free_product(self, user, product):
-        """
-        Direct free enrollment without order
-        Used for promotional giveaways or admin comps
-        """
+        """Direct free enrollment without order"""
         if not product.is_free:
             raise ValueError("Product must be free")
         
-        # Create free order
         order = Order.objects.create(
             user=user,
             status=Order.FREE,
@@ -631,34 +405,12 @@ class EnrollmentService:
 
 
 class PaymentService:
-    """
-    Payment gateway integration
-    
-    Security:
-    - Webhook signature verification
-    - Idempotency checks
-    - Amount verification
-    - Audit logging
-    """
+    """Payment gateway integration"""
     
     def verify_paystack_webhook(self, request):
-        """
-        Verify Paystack webhook signature
-        
-        Security:
-        - HMAC signature verification
-        - Prevents replay attacks
-        - Validates payload integrity
-        
-        Returns:
-            dict: Parsed webhook data if valid
-            
-        Raises:
-            ValueError: If signature invalid
-        """
+        """Verify Paystack webhook signature"""
         signature = request.headers.get('X-Paystack-Signature', '')
         
-        # Security: Verify HMAC signature
         secret = settings.PAYSTACK_SECRET_KEY.encode('utf-8')
         computed_sig = hmac.new(
             secret,
@@ -675,19 +427,7 @@ class PaymentService:
     
     @transaction.atomic
     def process_payment_confirmation(self, payment_reference, amount, metadata):
-        """
-        Process confirmed payment
-        
-        Security:
-        - Verifies amount matches order
-        - Prevents duplicate processing
-        - Atomic transaction
-        
-        Args:
-            payment_reference: Gateway reference
-            amount: Amount paid (in kobo for Paystack)
-            metadata: Payment metadata (should contain order_number)
-        """
+        """Process confirmed payment"""
         order_number = metadata.get('order_number')
         
         if not order_number:
@@ -700,38 +440,27 @@ class PaymentService:
             logger.error(f"Order not found: {order_number}")
             raise
         
-        # Security: Verify amount matches (convert kobo to naira/rand)
         expected_amount = int(order.total_amount * 100)
-        if abs(amount - expected_amount) > 1:  # Allow 1 kobo variance
+        if abs(amount - expected_amount) > 1:
             logger.error(f"Amount mismatch: expected {expected_amount}, got {amount}")
             raise ValueError("Payment amount mismatch")
         
-        # Prevent duplicate processing
         if order.status == Order.COMPLETED:
             logger.warning(f"Order {order_number} already completed")
             return order
         
-        # Mark as paid
         order.mark_paid(payment_reference=payment_reference, payment_method='paystack')
         
-        # Process enrollment
         enrollment_service = EnrollmentService()
         enrollment_service.process_order_enrollment(order)
         
         logger.info(f"Payment confirmed: {order_number} - R{order.total_amount}")
         
         return order
-    
-
 
 
 class MoodleProgressService:
-    """
-    Service for syncing progress from Moodle
-    
-    Fetches course completion and grade data from Moodle
-    Updates StudentEnrollment and CourseEnrollment progress
-    """
+    """Service for syncing progress from Moodle"""
     
     def __init__(self):
         """Initialize with active Moodle instance"""
@@ -749,12 +478,7 @@ class MoodleProgressService:
         )
     
     def sync_user_progress(self, user):
-        """
-        Sync all course progress for a user from Moodle
-        Updates StudentEnrollment progress percentages
-        
-        Returns: dict with success status and details
-        """
+        """Sync all course progress for a user from Moodle"""
         result = {
             'success': False,
             'courses_synced': 0,
@@ -763,7 +487,6 @@ class MoodleProgressService:
         }
         
         try:
-            # Get user's Moodle mapping
             try:
                 mapping = MoodleUserMapping.objects.get(cas_user=user)
             except MoodleUserMapping.DoesNotExist:
@@ -774,7 +497,6 @@ class MoodleProgressService:
                 result['errors'].append('Moodle user ID not set')
                 return result
             
-            # Get user's course enrollments
             course_enrollments = CourseEnrollment.objects.filter(
                 user=user,
                 is_active=True
@@ -785,10 +507,8 @@ class MoodleProgressService:
                 result['errors'].append('No course enrollments found')
                 return result
             
-            # Dictionary to track course progress for bundle calculations
-            course_progress_map = {}  # {course_id: progress_percentage}
+            course_progress_map = {}
             
-            # Fetch progress for each course from Moodle
             for enrollment in course_enrollments:
                 try:
                     progress = self._fetch_course_progress(
@@ -797,10 +517,8 @@ class MoodleProgressService:
                     )
                     
                     if progress is not None:
-                        # Store progress for bundle calculations
                         course_progress_map[enrollment.course.id] = progress
                         
-                        # Update CourseEnrollment
                         enrollment.sync_status = 'synced'
                         enrollment.last_synced = timezone.now()
                         enrollment.save()
@@ -817,10 +535,6 @@ class MoodleProgressService:
                     result['errors'].append(error_msg)
                     logger.error(error_msg)
             
-            # Now update StudentEnrollment progress
-            # For single courses: direct progress
-            # For bundles: average of all courses in bundle
-            
             student_enrollments = StudentEnrollment.objects.filter(
                 user=user,
                 is_active=True
@@ -830,7 +544,6 @@ class MoodleProgressService:
                 product = enrollment.product
                 
                 if product.product_type == Product.BUNDLE:
-                    # Calculate average progress for bundle
                     bundle_courses = product.bundle_items.all()
                     
                     if bundle_courses.exists():
@@ -848,19 +561,15 @@ class MoodleProgressService:
                             enrollment.progress_percentage = avg_progress
                             enrollment.last_accessed = timezone.now()
                             
-                            # Mark as completed if all courses done
                             if avg_progress >= 100:
                                 enrollment.mark_completed()
                             
                             enrollment.save()
                             result['bundles_updated'] += 1
                             
-                            logger.info(
-                                f"Updated bundle progress: {product.name} = {avg_progress:.1f}%"
-                            )
+                            logger.info(f"Updated bundle progress: {product.name} = {avg_progress:.1f}%")
                 
                 elif product.moodle_course:
-                    # Single course product
                     course_id = product.moodle_course.id
                     
                     if course_id in course_progress_map:
@@ -868,15 +577,16 @@ class MoodleProgressService:
                         enrollment.progress_percentage = progress
                         enrollment.last_accessed = timezone.now()
                         
-                        # Mark as completed if done
                         if progress >= 100:
                             enrollment.mark_completed()
                         
                         enrollment.save()
                         
-                        logger.info(
-                            f"Updated course progress: {product.name} = {progress}%"
-                        )
+                        logger.info(f"Updated course progress: {product.name} = {progress}%")
+            
+            # Clear cache
+            cache.delete(f'user_progress:{user.id}')
+            cache.delete(f'user_enrollments:{user.id}')
             
             result['success'] = True
             
@@ -885,22 +595,34 @@ class MoodleProgressService:
             logger.error(f"Progress sync error for {user.username}: {str(e)}")
         
         return result
-
-
     
     def _fetch_course_progress(self, moodle_user_id, moodle_course_id):
-        """
-        Fetch course completion percentage from Moodle
+        """Fetch course completion percentage from Moodle with caching"""
+        if not moodle_course_id:
+            return None
         
-        Uses activity completion data to calculate progress
-        Returns: float (0-100) or None if unavailable
-        """
+        # Try cache first
+        cache_key = f'moodle_progress:{moodle_user_id}:{moodle_course_id}'
+        cached_progress = cache.get(cache_key)
+        
+        if cached_progress is not None:
+            logger.info(f"Cache hit for progress: user {moodle_user_id}, course {moodle_course_id}")
+            return cached_progress
+        
+        progress = self._fetch_from_moodle(moodle_user_id, moodle_course_id)
+        
+        # Cache for 10 minutes
+        cache.set(cache_key, progress, 600)
+        
+        return progress
+    
+    def _fetch_from_moodle(self, moodle_user_id, moodle_course_id):
+        """Actual Moodle API calls"""
         if not moodle_course_id:
             return None
         
         try:
-            # Method 1: Try to get activity completion status
-            # This is more reliable than course-level completion
+            # Try activity completion
             try:
                 activities_completion = self.client._make_request(
                     'core_completion_get_activities_completion_status',
@@ -914,11 +636,10 @@ class MoodleProgressService:
                     statuses = activities_completion['statuses']
                     
                     if len(statuses) > 0:
-                        # Calculate percentage based on completed activities
                         total_activities = len(statuses)
                         completed_activities = sum(
                             1 for activity in statuses 
-                            if activity.get('state', 0) == 1  # 1 = completed
+                            if activity.get('state', 0) == 1
                         )
                         
                         percentage = (completed_activities / total_activities) * 100
@@ -933,11 +654,8 @@ class MoodleProgressService:
             except Exception as e:
                 error_msg = str(e)
                 
-                # Log specific errors
                 if 'nocriteriaset' in error_msg.lower():
-                    logger.info(
-                        f"Course {moodle_course_id} has no completion criteria configured"
-                    )
+                    logger.info(f"Course {moodle_course_id} has no completion criteria configured")
                 elif 'cannotviewreport' in error_msg.lower():
                     logger.warning(
                         f"Permission denied viewing completion for course {moodle_course_id}. "
@@ -946,8 +664,7 @@ class MoodleProgressService:
                 else:
                     logger.error(f"Error fetching activity completion: {error_msg}")
             
-            # Method 2: Try to get from user's enrolled courses
-            # This gives us Moodle's progress tracking if enabled
+            # Try user courses
             try:
                 user_courses = self.client._make_request(
                     'core_enrol_get_users_courses',
@@ -957,7 +674,6 @@ class MoodleProgressService:
                 if user_courses:
                     for course in user_courses:
                         if course.get('id') == int(moodle_course_id):
-                            # Check if course has progress data
                             if 'progress' in course:
                                 progress = float(course['progress'])
                                 logger.info(
@@ -966,7 +682,6 @@ class MoodleProgressService:
                                 )
                                 return round(progress, 2)
                             
-                            # Check if course is completed
                             if course.get('completed', False):
                                 logger.info(
                                     f"Course {moodle_course_id} marked as completed "
@@ -977,28 +692,6 @@ class MoodleProgressService:
             except Exception as e:
                 logger.error(f"Error fetching user courses: {str(e)}")
             
-            # Method 3: Try gradereport_user_get_grades_table
-            # This requires gradereport/user:view capability
-            try:
-                grades_table = self.client._make_request(
-                    'gradereport_user_get_grades_table',
-                    {
-                        'courseid': int(moodle_course_id),
-                        'userid': int(moodle_user_id)
-                    }
-                )
-                
-                if grades_table and 'tables' in grades_table:
-                    # Parse the grades table for completion info
-                    # This is complex HTML/data, but contains completion percentage
-                    logger.info(f"Got grades table for course {moodle_course_id}")
-                    # We can't easily parse this, so skip for now
-            
-            except Exception as e:
-                # This is expected if user doesn't have gradereport/user:view
-                pass
-            
-            # No progress data found - return 0% instead of None
             logger.info(
                 f"No progress data available for user {moodle_user_id} "
                 f"in course {moodle_course_id} - defaulting to 0%"
@@ -1010,90 +703,11 @@ class MoodleProgressService:
                 f"Error fetching Moodle progress for course {moodle_course_id}, "
                 f"user {moodle_user_id}: {str(e)}"
             )
-            return 0.0  # Default to 0 instead of None on error
-        
-
-
-
-
-
-    def _update_bundle_progress(self, user):
-        """
-        Update bundle progress based on constituent courses
-        
-        Bundle progress = average of all courses in bundle
-        """
-        bundles_updated = 0
-        
-        # Get user's bundle enrollments
-        bundle_enrollments = StudentEnrollment.objects.filter(
-            user=user,
-            product__product_type=Product.BUNDLE,
-            is_active=True
-        ).select_related('product')
-        
-        for enrollment in bundle_enrollments:
-            # Get all courses in this bundle
-            bundle_courses = ProductBundle.objects.filter(
-                product=enrollment.product
-            ).select_related('course')
-            
-            if not bundle_courses.exists():
-                continue
-            
-            # Get CourseEnrollments for these courses
-            course_ids = [item.course_id for item in bundle_courses]
-            user_course_enrollments = CourseEnrollment.objects.filter(
-                user=user,
-                course_id__in=course_ids,
-                is_active=True
-            ).select_related('course')
-            
-            # Calculate average progress
-            total_courses = len(course_ids)
-            completed_count = 0
-            total_progress = Decimal('0.00')
-            
-            for course_enrollment in user_course_enrollments:
-                # Fetch fresh progress from Moodle
-                try:
-                    mapping = MoodleUserMapping.objects.get(cas_user=user)
-                    progress = self._fetch_course_progress(
-                        mapping.moodle_user_id,
-                        course_enrollment.course.moodle_course_id
-                    )
-                    
-                    if progress is not None:
-                        total_progress += Decimal(str(progress))
-                        if progress >= 100:
-                            completed_count += 1
-                
-                except Exception as e:
-                    logger.error(f"Error calculating bundle progress: {str(e)}")
-            
-            # Update bundle enrollment
-            if total_courses > 0:
-                avg_progress = total_progress / total_courses
-                enrollment.progress_percentage = avg_progress
-                enrollment.last_accessed = timezone.now()
-                
-                # Mark as completed if all courses done
-                if completed_count == total_courses:
-                    enrollment.mark_completed()
-                
-                enrollment.save()
-                bundles_updated += 1
-        
-        return bundles_updated
-    
-
+            return 0.0
 
 
 class EnrollmentReconciliationService:
-    """
-    Reconciles enrollment state between Django and Moodle
-    Cleans up stale enrollments and manages account status
-    """
+    """Reconciles enrollment state between Django and Moodle"""
     
     def __init__(self):
         """Initialize with Moodle service"""
@@ -1109,20 +723,7 @@ class EnrollmentReconciliationService:
         self.client = self.moodle_service.client
     
     def reconcile_all_enrollments(self, initiated_by=None):
-        """
-        Full reconciliation of all user enrollments
-        
-        Process:
-        1. Get all users with Moodle accounts
-        2. Check what they should have access to (active StudentEnrollments)
-        3. Check what they actually have in Moodle
-        4. Unenroll from courses they shouldn't have
-        5. Enroll in courses they should have
-        6. Deactivate accounts with no active enrollments
-        
-        Returns:
-            dict with reconciliation results
-        """
+        """Full reconciliation of all user enrollments"""
         logger.info("Starting full enrollment reconciliation")
         
         results = {
@@ -1134,7 +735,6 @@ class EnrollmentReconciliationService:
             'errors': []
         }
         
-        # Get all users with Moodle mappings
         users_with_moodle = User.objects.filter(
             role=User.STUDENT,
             moodle_mapping__isnull=False,
@@ -1159,6 +759,10 @@ class EnrollmentReconciliationService:
                 results['errors'].append(error_msg)
                 logger.error(error_msg)
         
+        # Clear all user caches
+        cache.delete_pattern('user_courses:*')
+        cache.delete_pattern('user_enrollments:*')
+        
         logger.info(
             f"Reconciliation complete: {results['users_processed']} users, "
             f"{results['enrollments_added']} added, "
@@ -1169,13 +773,7 @@ class EnrollmentReconciliationService:
         return results
     
     def _reconcile_user_enrollments(self, user):
-        """
-        Reconcile enrollments for a single user
-        Also cleans up CourseEnrollment records in Django
-        
-        Returns:
-            dict with counts: added, removed, deactivated, reactivated
-        """
+        """Reconcile enrollments for a single user"""
         result = {
             'added': 0,
             'removed': 0,
@@ -1186,11 +784,9 @@ class EnrollmentReconciliationService:
         mapping = user.moodle_mapping
         moodle_user_id = mapping.moodle_user_id
         
-        # Get what user SHOULD be enrolled in (from Django)
         should_have_access = self._get_courses_user_should_access(user)
         should_have_course_ids = set(should_have_access.keys())
         
-        # Get what user ACTUALLY has in Moodle
         try:
             moodle_courses = self.client.get_user_courses(moodle_user_id)
             has_course_ids = {c['id'] for c in moodle_courses}
@@ -1198,7 +794,6 @@ class EnrollmentReconciliationService:
             logger.error(f"Failed to get Moodle courses for {user.username}: {str(e)}")
             has_course_ids = set()
         
-        # Courses to add (missing in Moodle)
         to_enroll = should_have_course_ids - has_course_ids
         for course_id in to_enroll:
             try:
@@ -1208,16 +803,13 @@ class EnrollmentReconciliationService:
             except Exception as e:
                 logger.error(f"Failed to enroll {user.username} in {course_id}: {str(e)}")
         
-        # Courses to remove (in Moodle but shouldn't be)
         to_unenroll = has_course_ids - should_have_course_ids
         for course_id in to_unenroll:
             try:
-                # Remove from Moodle
                 self.client.unenrol_user(moodle_user_id, course_id)
                 result['removed'] += 1
                 logger.info(f"✓ Unenrolled {user.username} from course {course_id}")
                 
-                # IMPORTANT: Also deactivate Django CourseEnrollment record
                 try:
                     course = Course.objects.get(moodle_course_id=course_id)
                     course_enrollment = CourseEnrollment.objects.filter(
@@ -1239,28 +831,19 @@ class EnrollmentReconciliationService:
             except Exception as e:
                 logger.error(f"Failed to unenroll {user.username} from {course_id}: {str(e)}")
         
-        # Manage account status
         if len(should_have_course_ids) == 0:
-            # No active enrollments - deactivate account
             if self._deactivate_moodle_account(user, moodle_user_id):
                 result['deactivated'] = True
         else:
-            # Has enrollments - ensure account is active
             if self._reactivate_moodle_account(user, moodle_user_id):
                 result['reactivated'] = True
         
         return result
     
     def _get_courses_user_should_access(self, user):
-        """
-        Get all courses user should have access to based on active StudentEnrollments
-        
-        Returns:
-            dict: {moodle_course_id: course_object}
-        """
+        """Get all courses user should have access to based on active StudentEnrollments"""
         courses = {}
         
-        # Get active student enrollments
         active_enrollments = StudentEnrollment.objects.filter(
             user=user,
             is_active=True
@@ -1270,26 +853,18 @@ class EnrollmentReconciliationService:
             product = enrollment.product
             
             if product.product_type == Product.BUNDLE:
-                # Get all courses in bundle
                 for bundle_item in product.bundle_items.all():
                     if bundle_item.course.moodle_course_id:
                         courses[bundle_item.course.moodle_course_id] = bundle_item.course
             
             elif product.moodle_course and product.moodle_course.moodle_course_id:
-                # Single course product
                 courses[product.moodle_course.moodle_course_id] = product.moodle_course
         
         return courses
     
     def _deactivate_moodle_account(self, user, moodle_user_id):
-        """
-        Deactivate Moodle user account (suspend, don't delete)
-        
-        Returns:
-            bool: True if deactivated, False if already inactive or error
-        """
+        """Deactivate Moodle user account (suspend, don't delete)"""
         try:
-            # Update user to suspended status
             self.client.update_user(
                 user_id=moodle_user_id,
                 user_data={'suspended': 1}
@@ -1303,14 +878,8 @@ class EnrollmentReconciliationService:
             return False
     
     def _reactivate_moodle_account(self, user, moodle_user_id):
-        """
-        Reactivate Moodle user account if suspended
-        
-        Returns:
-            bool: True if reactivated, False if already active or error
-        """
+        """Reactivate Moodle user account if suspended"""
         try:
-            # Check if account is suspended
             moodle_user = self.client._make_request(
                 'core_user_get_users_by_field',
                 {
@@ -1323,7 +892,6 @@ class EnrollmentReconciliationService:
                 user_data = moodle_user[0]
                 
                 if user_data.get('suspended', 0) == 1:
-                    # Reactivate
                     self.client.update_user(
                         user_id=moodle_user_id,
                         user_data={'suspended': 0}
@@ -1337,4 +905,3 @@ class EnrollmentReconciliationService:
         except Exception as e:
             logger.error(f"Failed to check/reactivate Moodle account for {user.username}: {str(e)}")
             return False
-        

@@ -1,0 +1,17 @@
+[Unit]
+Description=Celery Beat Service
+After=network.target redis.service
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+WorkingDirectory=/var/www/judeaharvest
+Environment="PATH=/var/www/judeaharvest/venv/bin"
+ExecStart=/var/www/judeaharvest/venv/bin/celery -A judeaharvest beat \
+    --loglevel=INFO \
+    --pidfile=/var/run/celery/beat.pid \
+    --schedule=/var/run/celery/celerybeat-schedule
+
+[Install]
+WantedBy=multi-user.target

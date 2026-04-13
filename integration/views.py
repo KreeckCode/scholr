@@ -1005,6 +1005,8 @@ def reconcile_enrollments(request):
     """
     Queue enrollment reconciliation as background task
     """
+    from shop.tasks import reconcile_enrollments_task
+    
     # Queue the task
     task = reconcile_enrollments_task.delay(initiated_by_id=request.user.id)
     
@@ -1015,4 +1017,3 @@ def reconcile_enrollments(request):
     )
     
     return redirect('integration:sync_dashboard')
-

@@ -1104,6 +1104,8 @@ def refresh_progress(request):
     Queue progress refresh as background task
     Returns immediately with confirmation
     """
+    from shop.tasks import sync_user_progress_task
+    
     # Queue the task
     task = sync_user_progress_task.delay(request.user.id)
     

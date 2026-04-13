@@ -317,13 +317,6 @@ class MoodleIntegrationService:
         3. If found → update it and reconcile
         4. If not found → create new
         5. Handle duplicates gracefully
-        
-        Args:
-            initiated_by: User who triggered the sync
-            course_ids: Specific course IDs to sync (syncs all if None)
-            
-        Returns:
-            SyncLog instance with results
         """
         sync_log = SyncLog.objects.create(
             sync_type='courses',
@@ -334,7 +327,6 @@ class MoodleIntegrationService:
         try:
             sync_log.mark_running()
             
-            # Get courses to sync
             courses_query = Course.objects.filter(
                 sync_status__in=['pending', 'modified', 'failed']
             ).select_related('category')
@@ -355,16 +347,14 @@ class MoodleIntegrationService:
             
             for course in courses:
                 try:
-                    # Ensure category exists in Moodle
+                    # Ensure category exists
                     category_id = course.category.moodle_category_id
 
                     if category_id:
-                        # Verify the category ID is valid
                         moodle_cat = self.client.get_categories()
                         valid_ids = [cat['id'] for cat in moodle_cat]
                         
                         if category_id not in valid_ids:
-                            # Stale ID, clear it
                             logger.warning(
                                 f"Category {course.category.name} has stale ID {category_id}, clearing"
                             )
@@ -372,7 +362,6 @@ class MoodleIntegrationService:
                             course.category.moodle_category_id = None
 
                     if not category_id:
-                        # Create category
                         moodle_cat_id = self.client.create_category(
                             name=course.category.name,
                             description=course.category.description
@@ -381,10 +370,8 @@ class MoodleIntegrationService:
                         course.category.save(update_fields=['moodle_category_id'])
                         category_id = moodle_cat_id
                     
-                   # Create new course in Moodle
                     import datetime
 
-                    # Convert date to timestamp if needed
                     start_timestamp = 0
                     if course.start_date:
                         start_dt = datetime.datetime.combine(course.start_date, datetime.time.min)
@@ -408,25 +395,20 @@ class MoodleIntegrationService:
                     # SMART SYNC LOGIC
                     existing_course = None
                     
-                    # Step 1: Check if we have a moodle_course_id
                     if course.moodle_course_id:
-                        # Verify it actually exists in Moodle
                         existing_course = self.client.get_course_by_id(course.moodle_course_id)
                         
                         if not existing_course:
-                            # ID is stale/wrong, clear it
                             logger.warning(
                                 f"Course {course.short_name} has moodle_course_id={course.moodle_course_id} "
                                 f"but course doesn't exist in Moodle. Clearing ID."
                             )
                             course.moodle_course_id = None
                     
-                    # Step 2: If no existing course found, search by shortname
                     if not existing_course:
                         existing_course = self.client.get_course_by_shortname(course.short_name)
                         
                         if existing_course:
-                            # Found existing course! Reconcile it
                             course.moodle_course_id = existing_course['id']
                             course.save(update_fields=['moodle_course_id'])
                             
@@ -438,9 +420,7 @@ class MoodleIntegrationService:
                                 f"{course.short_name} → ID {existing_course['id']}"
                             )
                     
-                    # Step 3: Update or Create
                     if existing_course:
-                        # Update existing course
                         self.client.update_course(existing_course['id'], course_data)
                         course.mark_synced(existing_course['id'])
                         
@@ -450,7 +430,6 @@ class MoodleIntegrationService:
                         logger.info(f"Updated course {course.short_name} (ID: {existing_course['id']})")
                         
                     else:
-                        # Create new course
                         try:
                             moodle_id = self.client.create_course(course_data)
                             course.mark_synced(moodle_id)
@@ -461,10 +440,7 @@ class MoodleIntegrationService:
                             logger.info(f"Created course {course.short_name} (ID: {moodle_id})")
                             
                         except MoodleAPIError as e:
-                            # Check if it's a duplicate error
                             if 'already exists' in str(e).lower() or 'duplicate' in str(e).lower():
-                                # Course was created between our check and now
-                                # Try to find it again
                                 existing_course = self.client.get_course_by_shortname(course.short_name)
                                 
                                 if existing_course:
@@ -481,10 +457,8 @@ class MoodleIntegrationService:
                                         f"to existing ID {existing_course['id']}"
                                     )
                                 else:
-                                    # Couldn't find it, mark as failed
                                     raise
                             else:
-                                # Some other error, re-raise
                                 raise
                     
                 except Exception as e:

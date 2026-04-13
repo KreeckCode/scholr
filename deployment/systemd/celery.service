@@ -1,0 +1,25 @@
+[Unit]
+Description=Celery Service
+After=network.target redis.service postgresql.service
+
+[Service]
+Type=forking
+User=www-data
+Group=www-data
+WorkingDirectory=/var/www/judeaharvest
+Environment="PATH=/var/www/judeaharvest/venv/bin"
+ExecStart=/var/www/judeaharvest/venv/bin/celery -A judeaharvest multi start worker \
+    --pidfile=/var/run/celery/%n.pid \
+    --logfile=/var/log/celery/%n%I.log \
+    --loglevel=INFO \
+    --concurrency=4 \
+    --max-tasks-per-child=100
+ExecStop=/var/www/judeaharvest/venv/bin/celery -A judeaharvest multi stopwait worker \
+    --pidfile=/var/run/celery/%n.pid
+ExecReload=/var/www/judeaharvest/venv/bin/celery -A judeaharvest multi restart worker \
+    --pidfile=/var/run/celery/%n.pid \
+    --logfile=/var/log/celery/%n%I.log \
+    --loglevel=INFO
+
+[Install]
+WantedBy=multi-user.target

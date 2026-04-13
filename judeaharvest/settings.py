@@ -315,8 +315,7 @@ FILE_UPLOAD_MAX_MEMORY_SIZE = 5242880  # 5MB
 DATA_UPLOAD_MAX_MEMORY_SIZE = 5242880  # 5MB
 FILE_UPLOAD_PERMISSIONS = 0o644
 
-
-# CACHING CONFIGURATION
+# REDIS & CACHING CONFIGURATION
 CACHES = {
     'default': {
         'BACKEND': 'django_redis.cache.RedisCache',
@@ -359,8 +358,6 @@ CACHES = {
 SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
 SESSION_CACHE_ALIAS = 'sessions'
 
-
-
 # CELERY CONFIGURATION
 CELERY_BROKER_URL = 'redis://127.0.0.1:6379/0'
 CELERY_RESULT_BACKEND = 'redis://127.0.0.1:6379/0'
@@ -387,4 +384,3 @@ CELERY_TASK_ANNOTATIONS = {
     'shop.tasks.sync_user_progress_task': {'rate_limit': '10/m'},
     'shop.tasks.sync_moodle_courses': {'rate_limit': '5/m'},
 }
-
