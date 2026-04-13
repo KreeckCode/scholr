@@ -66,48 +66,31 @@ class StudentRequiredMixin(UserPassesTestMixin):
 # ==================== CATALOG VIEWS ====================
 
 class ProductCatalogView(ListView):
-    """
-    Main product catalog with search, filter, and pagination
-    
-    Features:
-    - Search by name/description
-    - Filter by grade, subject, price
-    - Sort options
-    - Pagination
-    - SEO-friendly URLs
-    
-    Performance:
-    - select_related for foreign keys
-    - prefetch_related for reverse relations
-    - Database query optimization
-    """
-    
     model = Product
     template_name = 'shop/catalog.html'
     context_object_name = 'products'
     paginate_by = 12
     
     def get_queryset(self):
-        """
-        Build filtered and sorted queryset
-        
-        Optimization: Uses select_related to reduce queries
-        """
         queryset = Product.objects.filter(
             is_active=True
         ).select_related(
             'grade_level',
             'subject',
-            'moodle_course'
+            'moodle_course',
+            'moodle_course__category'
         ).prefetch_related(
-            'bundle_items__course'
+            'bundle_items__course__category'
+        ).only(
+            'id', 'name', 'slug', 'short_description', 'price', 
+            'is_free', 'is_featured', 'product_type', 'image',
+            'grade_level__name', 'subject__name', 
+            'moodle_course__title', 'moodle_course__short_name'
         )
         
-        # Get form data
         form = ProductSearchForm(self.request.GET)
         
         if form.is_valid():
-            # Search query
             q = form.cleaned_data.get('q')
             if q:
                 queryset = queryset.filter(
@@ -116,17 +99,14 @@ class ProductCatalogView(ListView):
                     Q(short_description__icontains=q)
                 )
             
-            # Grade filter
             grade = form.cleaned_data.get('grade')
             if grade:
                 queryset = queryset.filter(grade_level_id=grade)
             
-            # Subject filter
             subject = form.cleaned_data.get('subject')
             if subject:
                 queryset = queryset.filter(subject_id=subject)
             
-            # Price filter
             price = form.cleaned_data.get('price')
             if price == 'free':
                 queryset = queryset.filter(is_free=True)
@@ -139,7 +119,6 @@ class ProductCatalogView(ListView):
             elif price == '1000+':
                 queryset = queryset.filter(price__gt=1000)
             
-            # Sorting
             sort = form.cleaned_data.get('sort', 'featured')
             if sort == 'price_asc':
                 queryset = queryset.order_by('price')
@@ -149,43 +128,16 @@ class ProductCatalogView(ListView):
                 queryset = queryset.order_by('name')
             elif sort == 'newest':
                 queryset = queryset.order_by('-created_at')
-            else:  # featured
+            else:
                 queryset = queryset.order_by('-is_featured', 'sort_order', '-created_at')
         else:
-            # Default sort
             queryset = queryset.order_by('-is_featured', 'sort_order', '-created_at')
         
         return queryset
     
-    def get_context_data(self, **kwargs):
-        """Add search form and stats to context"""
-        context = super().get_context_data(**kwargs)
-        context['search_form'] = ProductSearchForm(self.request.GET)
-        context['total_products'] = self.get_queryset().count()
-        
-        # Cart count
-        cart = Cart(self.request)
-        context['cart_count'] = len(cart)
-        
-        return context
 
 
 class ProductDetailView(DetailView):
-    """
-    Product detail page
-    
-    Features:
-    - Full product information
-    - Bundle contents (if applicable)
-    - Reviews/ratings (future)
-    - Related products
-    - Add to cart button
-    
-    SEO:
-    - Meta tags
-    - Structured data
-    """
-    
     model = Product
     template_name = 'shop/product_detail.html'
     context_object_name = 'product'
@@ -193,23 +145,21 @@ class ProductDetailView(DetailView):
     slug_url_kwarg = 'slug'
     
     def get_queryset(self):
-        """Only show active products"""
         return Product.objects.filter(
             is_active=True
         ).select_related(
             'grade_level',
             'subject',
-            'moodle_course'
+            'moodle_course',
+            'moodle_course__category'
         ).prefetch_related(
-            'bundle_items__course'
+            'bundle_items__course__category'
         )
     
     def get_context_data(self, **kwargs):
-        """Add related products and enrollment status"""
         context = super().get_context_data(**kwargs)
         product = self.object
         
-        # Check if user already enrolled
         if self.request.user.is_authenticated:
             context['is_enrolled'] = StudentEnrollment.objects.filter(
                 user=self.request.user,
@@ -219,16 +169,21 @@ class ProductDetailView(DetailView):
         else:
             context['is_enrolled'] = False
         
-        # Related products (same grade or subject)
+        # Optimized related products query
         context['related_products'] = Product.objects.filter(
             is_active=True
         ).filter(
             Q(grade_level=product.grade_level) | Q(subject=product.subject)
         ).exclude(
             id=product.id
-        ).select_related('grade_level', 'subject')[:4]
+        ).select_related(
+            'grade_level', 
+            'subject'
+        ).only(
+            'id', 'name', 'slug', 'short_description', 
+            'price', 'is_free', 'image'
+        )[:4]
         
-        # Cart count
         cart = Cart(self.request)
         context['cart_count'] = len(cart)
         
@@ -731,23 +686,28 @@ def order_confirmation(request, order_number):
 
 
 class OrderListView(LoginRequiredMixin, ListView):
-    """
-    User's order history
-    
-    Security: Users only see their own orders
-    """
-    
     model = Order
     template_name = 'shop/order_list.html'
     context_object_name = 'orders'
     paginate_by = 20
     
     def get_queryset(self):
-        """Filter by user"""
-        order_service = OrderService()
-        return order_service.get_user_orders(self.request.user).order_by('-created_at')
-
-
+        if self.request.user.role == User.ADMIN:
+            queryset = Order.objects.all()
+        else:
+            queryset = Order.objects.filter(user=self.request.user)
+        
+        return queryset.select_related(
+            'user'
+        ).prefetch_related(
+            'items__product'
+        ).only(
+            'id', 'order_number', 'status', 'total_amount', 
+            'created_at', 'paid_at', 'payment_method',
+            'user__username', 'user__email'
+        ).order_by('-created_at')
+    
+    
 class OrderDetailView(LoginRequiredMixin, DetailView):
     """
     Order detail page
@@ -777,35 +737,50 @@ class OrderDetailView(LoginRequiredMixin, DetailView):
 # ==================== STUDENT DASHBOARD VIEWS ====================
 
 class MyCoursesView(StudentRequiredMixin, ListView):
-    """
-    Student's enrolled courses
-    
-    Shows:
-    - Active enrollments
-    - Progress
-    - Access links
-    """
-    
     model = StudentEnrollment
     template_name = 'shop/my_courses.html'
     context_object_name = 'enrollments'
     paginate_by = 20
     
     def get_queryset(self):
-        """Get user's active enrollments"""
         return StudentEnrollment.objects.filter(
             user=self.request.user,
             is_active=True
-        ).select_related('product', 'order').order_by('-created_at')
+        ).select_related(
+            'product',
+            'product__moodle_course',
+            'product__grade_level',
+            'product__subject',
+            'order'
+        ).prefetch_related(
+            'product__bundle_items__course__category'
+        ).only(
+            'id', 'progress_percentage', 'created_at', 'expires_at', 
+            'completed_at', 'is_free', 'starts_at',
+            'product__id', 'product__name', 'product__slug', 
+            'product__short_description', 'product__product_type',
+            'product__moodle_course__moodle_course_id',
+            'product__moodle_course__title'
+        ).order_by('-created_at')
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         
-        # Stats
-        enrollments = self.get_queryset()
-        context['total_courses'] = enrollments.count()
-        context['completed_courses'] = enrollments.filter(completed_at__isnull=False).count()
-        context['active_courses'] = enrollments.filter(completed_at__isnull=True).count()
+        # Use database aggregation instead of Python loops
+        from django.db.models import Count, Q
+        
+        stats = StudentEnrollment.objects.filter(
+            user=self.request.user,
+            is_active=True
+        ).aggregate(
+            total=Count('id'),
+            completed=Count('id', filter=Q(completed_at__isnull=False)),
+            active=Count('id', filter=Q(completed_at__isnull=True))
+        )
+        
+        context['total_courses'] = stats['total']
+        context['completed_courses'] = stats['completed']
+        context['active_courses'] = stats['active']
         
         return context
 
