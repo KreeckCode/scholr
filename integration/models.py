@@ -280,8 +280,11 @@ class Course(models.Model):
         verbose_name_plural = 'Courses'
         ordering = ['category', 'title']
         indexes = [
-            models.Index(fields=['sync_status', 'auto_enroll_enabled']),
-            models.Index(fields=['category', 'visible']),
+            models.Index(fields=['short_name'], name='idx_course_shortname'),
+            models.Index(fields=['category'], name='idx_course_category'),
+            models.Index(fields=['moodle_course_id'], name='idx_course_moodle_id'),
+            models.Index(fields=['sync_status'], name='idx_course_sync_status'),
+            models.Index(fields=['visible'], name='idx_course_visible'), 
         ]
     
     def __str__(self):
@@ -392,8 +395,9 @@ class MoodleUserMapping(models.Model):
         verbose_name_plural = 'Moodle User Mappings'
         ordering = ['-created_at']
         indexes = [
-            models.Index(fields=['sync_status']),
-            models.Index(fields=['moodle_user_id']),
+            models.Index(fields=['cas_user'], name='idx_moodle_user'),
+            models.Index(fields=['moodle_user_id'], name='idx_moodle_id'),
+            models.Index(fields=['sync_status'], name='idx_moodle_sync'),
         ]
     
     def __str__(self):
@@ -511,9 +515,10 @@ class CourseEnrollment(models.Model):
         ordering = ['-enrolled_at']
         unique_together = [['user', 'course']]
         indexes = [
-            models.Index(fields=['sync_status', 'is_active']),
-            models.Index(fields=['user', 'is_active']),
-            models.Index(fields=['course', 'is_active']),
+            models.Index(fields=['is_active'], name='idx_enrollment_active'),
+            models.Index(fields=['sync_status'], name='idx_enrollment_sync_status'),
+            models.Index(fields=['user'], name='idx_enrollment_user'),
+            models.Index(fields=['course'], name='idx_enrollment_course'),
         ]
     
     def __str__(self):
@@ -657,8 +662,9 @@ class SyncLog(models.Model):
         verbose_name_plural = 'Sync Logs'
         ordering = ['-started_at']
         indexes = [
-            models.Index(fields=['sync_type', 'status']),
-            models.Index(fields=['started_at']),
+            models.Index(fields=['sync_type', 'status'], name='idx_synclog_type_status'),
+            models.Index(fields=['started_at'], name='idx_synclog_started'),
+            models.Index(fields=['status'], name='idx_synclog_status'),
         ]
     
     def __str__(self):

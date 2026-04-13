@@ -91,9 +91,11 @@ class User(AbstractUser):
         verbose_name_plural = 'Users'
         ordering = ['-created_at']
         indexes = [
-            models.Index(fields=['role', 'is_verified']),
-            models.Index(fields=['phone_number']),
-            models.Index(fields=['created_at']),
+            models.Index(fields=['email'], name='idx_user_email'),
+            models.Index(fields=['phone_number'], name='idx_user_phone'),
+            models.Index(fields=['role', 'is_active'], name='idx_user_role_active'),
+            models.Index(fields=['is_verified'], name='idx_user_verified'),
+            models.Index(fields=['created_at'], name='idx_user_created'),
         ]
     
     def __str__(self):
@@ -579,10 +581,14 @@ class Product(models.Model):
         verbose_name_plural = 'Products'
         ordering = ['sort_order', '-created_at']
         indexes = [
-            models.Index(fields=['is_active', 'is_free']),
-            models.Index(fields=['product_type']),
-            models.Index(fields=['grade_level', 'subject']),
-            models.Index(fields=['slug']),
+            models.Index(fields=['is_active', 'is_featured'], name='idx_product_active_featured'),
+            models.Index(fields=['product_type', 'is_active'], name='idx_product_type_active'),
+            models.Index(fields=['slug'], name='idx_product_slug'),
+            models.Index(fields=['grade_level', 'is_active'], name='idx_product_grade_active'),
+            models.Index(fields=['subject', 'is_active'], name='idx_product_subject_active'),
+            models.Index(fields=['price'], name='idx_product_price'),
+            models.Index(fields=['sort_order'], name='idx_product_sort'),
+            models.Index(fields=['created_at'], name='idx_product_created'),
         ]
     
     def __str__(self):
@@ -641,6 +647,11 @@ class ProductBundle(models.Model):
         verbose_name_plural = 'Product Bundle Items'
         unique_together = [['product', 'course']]
         ordering = ['sort_order']
+        indexes = [
+            models.Index(fields=['product'], name='idx_bundle_product'),
+            models.Index(fields=['course'], name='idx_bundle_course'),
+            models.Index(fields=['sort_order'], name='idx_bundle_sort'),
+        ]
     
     def __str__(self):
         terms = f" (Terms {self.include_terms})" if self.include_terms else ""
@@ -756,10 +767,12 @@ class Order(models.Model):
         verbose_name_plural = 'Orders'
         ordering = ['-created_at']
         indexes = [
-            models.Index(fields=['user', '-created_at']),
-            models.Index(fields=['status', '-created_at']),
-            models.Index(fields=['payment_reference']),
-            models.Index(fields=['enrollment_processed']),
+            models.Index(fields=['user', 'status'], name='idx_order_user_status'),
+            models.Index(fields=['order_number'], name='idx_order_number'),
+            models.Index(fields=['status', 'created_at'], name='idx_order_status_created'),
+            models.Index(fields=['payment_reference'], name='idx_order_payment_ref'),
+            models.Index(fields=['created_at'], name='idx_order_created'),
+            models.Index(fields=['paid_at'], name='idx_order_paid'),
         ]
     
     def __str__(self):
@@ -963,9 +976,13 @@ class StudentEnrollment(models.Model):
         unique_together = [['user', 'product']]
         ordering = ['-created_at']
         indexes = [
-            models.Index(fields=['user', 'is_active']),
-            models.Index(fields=['expires_at']),
-            models.Index(fields=['product', 'is_active']),
+            models.Index(fields=['user', 'is_active'], name='idx_enrollment_user_active'),
+            models.Index(fields=['product', 'is_active'], name='idx_enrollment_product_active'),
+            models.Index(fields=['user', 'product'], name='idx_enrollment_user_product'),
+            models.Index(fields=['expires_at'], name='idx_enrollment_expires'),
+            models.Index(fields=['created_at'], name='idx_enrollment_created'),
+            models.Index(fields=['completed_at'], name='idx_enrollment_completed'),
+            models.Index(fields=['is_active', 'expires_at'], name='idx_enrollment_active_expires'),
         ]
     
     def __str__(self):
