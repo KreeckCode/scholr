@@ -976,6 +976,36 @@ def reconcile_courses(request):
     return render(request, 'integration/reconcile_courses.html', context)
 
 
-
-
+@login_required
+@admin_required
+@require_http_methods(['POST'])
+def reconcile_enrollments(request):
+    """
+    Reconcile all enrollments between Django and Moodle
+    Cleans up stale access and manages account status
+    """
+    try:
+        from shop.services import EnrollmentReconciliationService
+        
+        service = EnrollmentReconciliationService()
+        results = service.reconcile_all_enrollments(initiated_by=request.user)
+        
+        messages.success(
+            request,
+            f"Reconciliation complete: Processed {results['users_processed']} users. "
+            f"Added {results['enrollments_added']} enrollments, "
+            f"removed {results['enrollments_removed']} stale enrollments, "
+            f"deactivated {results['accounts_deactivated']} accounts."
+        )
+        
+        if results['errors']:
+            messages.warning(
+                request,
+                f"{len(results['errors'])} errors occurred. Check logs for details."
+            )
+        
+    except Exception as e:
+        messages.error(request, f"Reconciliation failed: {str(e)}")
+    
+    return redirect('integration:sync_dashboard')
 

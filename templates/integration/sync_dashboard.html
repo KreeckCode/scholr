@@ -132,6 +132,92 @@
                             </div>
                         </button>
                     </form>
+                    
+                </div>
+            </div>
+        </div>
+
+        <!-- Enrollment Reconciliation Card -->
+        <div class="bg-white rounded-xl shadow-md mb-8">
+            <div class="px-6 py-5 border-b border-gray-200 bg-gradient-to-r from-purple-50 to-pink-50">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <div class="bg-purple-600 rounded-lg p-3">
+                            <svg class="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="ml-4">
+                        <h3 class="text-lg font-semibold text-gray-900">Enrollment Reconciliation</h3>
+                        <p class="text-sm text-gray-600 mt-1">Clean up stale access and synchronize enrollment status</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="p-6">
+                <div class="bg-purple-50 border-l-4 border-purple-400 p-4 mb-6">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <svg class="h-5 w-5 text-purple-400" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+                            </svg>
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-sm text-purple-700 font-medium">What does this do?</p>
+                            <div class="mt-2 text-sm text-purple-700">
+                                <ul class="list-disc list-inside space-y-1">
+                                    <li>Removes Moodle access for users who no longer have active enrollments</li>
+                                    <li>Adds missing enrollments for users with active products</li>
+                                    <li>Deactivates Moodle accounts with no active courses</li>
+                                    <li>Reactivates suspended accounts when users purchase new courses</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-600">
+                            <span class="font-semibold text-gray-900">Use this when:</span>
+                            Orders or products have been deleted and users still have Moodle access
+                        </p>
+                    </div>
+                    
+                    <form method="post" action="{% url 'integration:reconcile_enrollments' %}" 
+                          onsubmit="return confirm('⚠️ IMPORTANT\n\nThis will reconcile ALL user enrollments with Moodle.\n\nThis process will:\n• Check every user with a Moodle account\n• Remove stale course access\n• Suspend accounts with no enrollments\n• This may take 5-10 minutes\n\nContinue?');">
+                        {% csrf_token %}
+                        
+                        <button type="submit" 
+                                class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all shadow-md hover:shadow-lg font-medium transform hover:scale-105">
+                            <svg class="h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            Reconcile All Enrollments
+                        </button>
+                    </form>
+                </div>
+                
+                <div class="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <svg class="h-5 w-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                            </svg>
+                        </div>
+                        <div class="ml-3">
+                            <h3 class="text-sm font-medium text-yellow-800">Important Notes</h3>
+                            <div class="mt-2 text-sm text-yellow-700">
+                                <ul class="list-disc list-inside space-y-1">
+                                    <li>This process can take 5-10 minutes for systems with many users</li>
+                                    <li>The page will reload automatically when complete</li>
+                                    <li>Users will be immediately logged out of Moodle if access is removed</li>
+                                    <li>Check the sync history after completion for detailed results</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

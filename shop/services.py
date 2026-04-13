@@ -361,6 +361,7 @@ class EnrollmentService:
     def _sync_to_moodle(self, user, courses_to_enroll):
         """
         Sync enrollments to Moodle with immediate enrollment
+        Also reactivates suspended accounts
         """
         moodle_service = self._get_moodle_service()
         
@@ -388,6 +389,17 @@ class EnrollmentService:
                     user_ids=[user.id]
                 )
                 logger.info(f"User sync for {user.username}: {user_sync.status}")
+            
+            # IMPORTANT: Reactivate account if suspended
+            if mapping.moodle_user_id:
+                try:
+                    moodle_service.client.update_user(
+                        user_id=mapping.moodle_user_id,
+                        user_data={'suspended': 0}
+                    )
+                    logger.info(f"✓ Ensured Moodle account active for {user.username}")
+                except Exception as e:
+                    logger.warning(f"Could not reactivate account for {user.username}: {str(e)}")
             
             # Now sync each course enrollment
             for course_data in courses_to_enroll:
@@ -448,12 +460,13 @@ class EnrollmentService:
         except Exception as e:
             logger.error(f"Moodle sync failed: {str(e)}")
 
+
+
     
 
     def _create_course_enrollments_for_bundle(self, user, product, order):
         """
         When user enrolls in bundle, create CourseEnrollment for each course
-        
         Critical: This ensures Moodle knows about the enrollment
         """
         if product.product_type != Product.BUNDLE:
@@ -474,9 +487,10 @@ class EnrollmentService:
                 user=user,
                 course=course,
                 defaults={
-                    'enrolled_by': None,  # System enrollment
+                    'enrolled_by': None,
                     'is_active': True,
-                    'sync_status': 'pending'
+                    'sync_status': 'pending',
+                    'enrolled_at': timezone.now()
                 }
             )
             
@@ -491,77 +505,67 @@ class EnrollmentService:
                     enrollment.save()
                     created_enrollments.append(enrollment)
         
-        # Trigger Moodle sync for all course enrollments
+        # Sync to Moodle
         if created_enrollments:
-            from integration.services import MoodleIntegrationService
+            moodle_service = self._get_moodle_service()
+            
+            if not moodle_service:
+                logger.warning("Moodle service unavailable for bundle enrollment sync")
+                return created_enrollments
             
             try:
-                moodle_service = MoodleIntegrationService()
+                # Get user's Moodle mapping
+                mapping = MoodleUserMapping.objects.filter(cas_user=user).first()
                 
+                if not mapping or not mapping.moodle_user_id:
+                    logger.error(f"User {user.username} has no Moodle mapping, skipping sync")
+                    return created_enrollments
+                
+                # Enroll in each course via Moodle client
                 for enrollment in created_enrollments:
                     try:
-                        moodle_service.sync_user_enrollment(enrollment)
+                        if not enrollment.course.moodle_course_id:
+                            logger.error(
+                                f"Course {enrollment.course.short_name} has no Moodle ID"
+                            )
+                            enrollment.sync_status = 'failed'
+                            enrollment.sync_error = 'No Moodle course ID'
+                            enrollment.save()
+                            continue
+                        
+                        # Direct enrollment via client
+                        moodle_service.client.enrol_user(
+                            user_id=mapping.moodle_user_id,
+                            course_id=enrollment.course.moodle_course_id,
+                            role_id=5
+                        )
+                        
+                        # Mark as synced
+                        enrollment.sync_status = 'synced'
+                        enrollment.last_synced = timezone.now()
+                        enrollment.save()
+                        
+                        logger.info(
+                            f"✓ Enrolled {user.username} in {enrollment.course.short_name} "
+                            f"(Moodle user {mapping.moodle_user_id}, "
+                            f"course {enrollment.course.moodle_course_id})"
+                        )
+                    
                     except Exception as e:
-                        logger.error(f"Moodle sync failed for {enrollment}: {str(e)}")
-                        enrollment.mark_failed(str(e))
+                        enrollment.sync_status = 'failed'
+                        enrollment.sync_error = str(e)
+                        enrollment.save()
+                        logger.error(
+                            f"Failed to enroll {user.username} in "
+                            f"{enrollment.course.short_name}: {str(e)}"
+                        )
             
             except Exception as e:
-                logger.error(f"Moodle service error: {str(e)}")
+                logger.error(f"Moodle bundle enrollment error: {str(e)}")
         
         return created_enrollments
 
 
-    # Update the process_order_enrollment method - find it and add this call
-
-    def process_order_enrollment(self, order):
-        """
-        Process enrollments for a completed order
-        Creates StudentEnrollment for product access AND CourseEnrollment for Moodle
-        """
-        if order.enrollment_processed:
-            logger.warning(f"Order {order.order_number} already processed")
-            return []
-        
-        enrollments = []
-        
-        for item in order.items.all():
-            product = item.product
-            user = order.user
-            
-            # Create StudentEnrollment (product access)
-            enrollment, created = StudentEnrollment.objects.get_or_create(
-                user=user,
-                product=product,
-                defaults={
-                    'order': order,
-                    'is_free': order.is_free_order(),
-                    'enrolled_by': None,
-                    'starts_at': timezone.now(),
-                    'expires_at': timezone.now() + timedelta(days=product.duration_months * 30)
-                }
-            )
-            
-            if created or not enrollment.is_active:
-                if not created:
-                    enrollment.is_active = True
-                    enrollment.save()
-                
-                enrollments.append(enrollment)
-                logger.info(f"Enrollment created: {user.username} → {product.name}")
-                
-                # NEW: Create course enrollments for bundles
-                if product.product_type == Product.BUNDLE:
-                    course_enrollments = self._create_course_enrollments_for_bundle(
-                        user, product, order
-                    )
-                    logger.info(f"Created {len(course_enrollments)} course enrollments for bundle")
-        
-        # Mark order as processed
-        order.enrollment_processed = True
-        order.enrollment_processed_at = timezone.now()
-        order.save()
-        
-        return enrollments
 
 
 
@@ -958,3 +962,256 @@ class MoodleProgressService:
                 bundles_updated += 1
         
         return bundles_updated
+    
+
+
+
+class EnrollmentReconciliationService:
+    """
+    Reconciles enrollment state between Django and Moodle
+    Cleans up stale enrollments and manages account status
+    """
+    
+    def __init__(self):
+        """Initialize with Moodle service"""
+        instance = MoodleInstance.objects.filter(
+            is_active=True,
+            is_primary=True
+        ).first()
+        
+        if not instance:
+            raise ValueError("No active Moodle instance configured")
+        
+        self.moodle_service = MoodleIntegrationService(instance)
+        self.client = self.moodle_service.client
+    
+    def reconcile_all_enrollments(self, initiated_by=None):
+        """
+        Full reconciliation of all user enrollments
+        
+        Process:
+        1. Get all users with Moodle accounts
+        2. Check what they should have access to (active StudentEnrollments)
+        3. Check what they actually have in Moodle
+        4. Unenroll from courses they shouldn't have
+        5. Enroll in courses they should have
+        6. Deactivate accounts with no active enrollments
+        
+        Returns:
+            dict with reconciliation results
+        """
+        logger.info("Starting full enrollment reconciliation")
+        
+        results = {
+            'users_processed': 0,
+            'enrollments_added': 0,
+            'enrollments_removed': 0,
+            'accounts_deactivated': 0,
+            'accounts_reactivated': 0,
+            'errors': []
+        }
+        
+        # Get all users with Moodle mappings
+        users_with_moodle = User.objects.filter(
+            role=User.STUDENT,
+            moodle_mapping__isnull=False,
+            moodle_mapping__moodle_user_id__isnull=False
+        ).select_related('moodle_mapping')
+        
+        for user in users_with_moodle:
+            try:
+                user_result = self._reconcile_user_enrollments(user)
+                
+                results['users_processed'] += 1
+                results['enrollments_added'] += user_result['added']
+                results['enrollments_removed'] += user_result['removed']
+                
+                if user_result['deactivated']:
+                    results['accounts_deactivated'] += 1
+                elif user_result['reactivated']:
+                    results['accounts_reactivated'] += 1
+                
+            except Exception as e:
+                error_msg = f"Error reconciling {user.username}: {str(e)}"
+                results['errors'].append(error_msg)
+                logger.error(error_msg)
+        
+        logger.info(
+            f"Reconciliation complete: {results['users_processed']} users, "
+            f"{results['enrollments_added']} added, "
+            f"{results['enrollments_removed']} removed, "
+            f"{results['accounts_deactivated']} deactivated"
+        )
+        
+        return results
+    
+    def _reconcile_user_enrollments(self, user):
+        """
+        Reconcile enrollments for a single user
+        Also cleans up CourseEnrollment records in Django
+        
+        Returns:
+            dict with counts: added, removed, deactivated, reactivated
+        """
+        result = {
+            'added': 0,
+            'removed': 0,
+            'deactivated': False,
+            'reactivated': False
+        }
+        
+        mapping = user.moodle_mapping
+        moodle_user_id = mapping.moodle_user_id
+        
+        # Get what user SHOULD be enrolled in (from Django)
+        should_have_access = self._get_courses_user_should_access(user)
+        should_have_course_ids = set(should_have_access.keys())
+        
+        # Get what user ACTUALLY has in Moodle
+        try:
+            moodle_courses = self.client.get_user_courses(moodle_user_id)
+            has_course_ids = {c['id'] for c in moodle_courses}
+        except Exception as e:
+            logger.error(f"Failed to get Moodle courses for {user.username}: {str(e)}")
+            has_course_ids = set()
+        
+        # Courses to add (missing in Moodle)
+        to_enroll = should_have_course_ids - has_course_ids
+        for course_id in to_enroll:
+            try:
+                self.client.enrol_user(moodle_user_id, course_id)
+                result['added'] += 1
+                logger.info(f"✓ Enrolled {user.username} in course {course_id}")
+            except Exception as e:
+                logger.error(f"Failed to enroll {user.username} in {course_id}: {str(e)}")
+        
+        # Courses to remove (in Moodle but shouldn't be)
+        to_unenroll = has_course_ids - should_have_course_ids
+        for course_id in to_unenroll:
+            try:
+                # Remove from Moodle
+                self.client.unenrol_user(moodle_user_id, course_id)
+                result['removed'] += 1
+                logger.info(f"✓ Unenrolled {user.username} from course {course_id}")
+                
+                # IMPORTANT: Also deactivate Django CourseEnrollment record
+                try:
+                    course = Course.objects.get(moodle_course_id=course_id)
+                    course_enrollment = CourseEnrollment.objects.filter(
+                        user=user,
+                        course=course
+                    ).first()
+                    
+                    if course_enrollment and course_enrollment.is_active:
+                        course_enrollment.is_active = False
+                        course_enrollment.sync_status = 'synced'
+                        course_enrollment.save()
+                        logger.info(f"✓ Deactivated CourseEnrollment in Django for {user.username} → {course.short_name}")
+                
+                except Course.DoesNotExist:
+                    logger.warning(f"Course with Moodle ID {course_id} not found in Django")
+                except Exception as ce_error:
+                    logger.error(f"Error deactivating CourseEnrollment: {str(ce_error)}")
+            
+            except Exception as e:
+                logger.error(f"Failed to unenroll {user.username} from {course_id}: {str(e)}")
+        
+        # Manage account status
+        if len(should_have_course_ids) == 0:
+            # No active enrollments - deactivate account
+            if self._deactivate_moodle_account(user, moodle_user_id):
+                result['deactivated'] = True
+        else:
+            # Has enrollments - ensure account is active
+            if self._reactivate_moodle_account(user, moodle_user_id):
+                result['reactivated'] = True
+        
+        return result
+    
+    def _get_courses_user_should_access(self, user):
+        """
+        Get all courses user should have access to based on active StudentEnrollments
+        
+        Returns:
+            dict: {moodle_course_id: course_object}
+        """
+        courses = {}
+        
+        # Get active student enrollments
+        active_enrollments = StudentEnrollment.objects.filter(
+            user=user,
+            is_active=True
+        ).select_related('product').prefetch_related('product__bundle_items__course')
+        
+        for enrollment in active_enrollments:
+            product = enrollment.product
+            
+            if product.product_type == Product.BUNDLE:
+                # Get all courses in bundle
+                for bundle_item in product.bundle_items.all():
+                    if bundle_item.course.moodle_course_id:
+                        courses[bundle_item.course.moodle_course_id] = bundle_item.course
+            
+            elif product.moodle_course and product.moodle_course.moodle_course_id:
+                # Single course product
+                courses[product.moodle_course.moodle_course_id] = product.moodle_course
+        
+        return courses
+    
+    def _deactivate_moodle_account(self, user, moodle_user_id):
+        """
+        Deactivate Moodle user account (suspend, don't delete)
+        
+        Returns:
+            bool: True if deactivated, False if already inactive or error
+        """
+        try:
+            # Update user to suspended status
+            self.client.update_user(
+                user_id=moodle_user_id,
+                user_data={'suspended': 1}
+            )
+            
+            logger.info(f"✓ Deactivated Moodle account for {user.username} (no active enrollments)")
+            return True
+            
+        except Exception as e:
+            logger.error(f"Failed to deactivate Moodle account for {user.username}: {str(e)}")
+            return False
+    
+    def _reactivate_moodle_account(self, user, moodle_user_id):
+        """
+        Reactivate Moodle user account if suspended
+        
+        Returns:
+            bool: True if reactivated, False if already active or error
+        """
+        try:
+            # Check if account is suspended
+            moodle_user = self.client._make_request(
+                'core_user_get_users_by_field',
+                {
+                    'field': 'id',
+                    'values': [moodle_user_id]
+                }
+            )
+            
+            if moodle_user and len(moodle_user) > 0:
+                user_data = moodle_user[0]
+                
+                if user_data.get('suspended', 0) == 1:
+                    # Reactivate
+                    self.client.update_user(
+                        user_id=moodle_user_id,
+                        user_data={'suspended': 0}
+                    )
+                    
+                    logger.info(f"✓ Reactivated Moodle account for {user.username}")
+                    return True
+            
+            return False
+            
+        except Exception as e:
+            logger.error(f"Failed to check/reactivate Moodle account for {user.username}: {str(e)}")
+            return False
+        

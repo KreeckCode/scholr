@@ -221,13 +221,21 @@ class OrderAdmin(admin.ModelAdmin):
     actions = ['mark_as_completed', 'process_enrollment']
     
     def enrollment_status(self, obj):
-        """Show enrollment processing status"""
+        """
+        Display enrollment processing status with visual indicator
+        Shows whether order has been processed for course access
+        """
+        from django.utils.safestring import mark_safe
+        
         if obj.enrollment_processed:
-            return format_html('<span style="color: green;">✓ Processed</span>')
+            return mark_safe('<span style="color: green;">✓ Processed</span>')
         elif obj.enrollment_error:
-            return format_html('<span style="color: red;">✗ Error</span>')
+            return mark_safe(
+                f'<span style="color: red;" title="{obj.enrollment_error}">✗ Failed</span>'
+            )
         else:
-            return format_html('<span style="color: orange;">Pending</span>')
+            return mark_safe('<span style="color: orange;">⏳ Pending</span>')
+
     enrollment_status.short_description = 'Enrollment'
     
     def mark_as_completed(self, request, queryset):
@@ -303,19 +311,37 @@ class StudentEnrollmentAdmin(admin.ModelAdmin):
     ]
     autocomplete_fields = ['user', 'product', 'order', 'enrolled_by']
     
-    actions = ['extend_access', 'mark_completed']
+    actions = ['extend_access', 'mark_completed', 'deactivate_and_unenroll', 'force_sync_to_moodle']
     
     def progress_display(self, obj):
-        """Show progress bar"""
-        percent = int(obj.progress_percentage)
-        color = 'green' if percent >= 75 else 'orange' if percent >= 50 else 'red'
+        """Display progress as colored bar with percentage"""
+        percent = min(100, max(0, float(obj.progress_percentage)))
+        
+        if percent == 0:
+            color = '#d1d5db'
+        elif percent < 30:
+            color = '#ef4444'
+        elif percent < 70:
+            color = '#f59e0b'
+        elif percent < 100:
+            color = '#3b82f6'
+        else:
+            color = '#10b981'
+        
+        # Format progress outside of format_html to avoid format spec issues
+        progress_text = f"{float(obj.progress_percentage):.1f}%"
+        
         return format_html(
             '<div style="width: 100px; background: #eee; border-radius: 3px;">'
-            '<div style="width: {}%; background: {}; height: 20px; border-radius: 3px; text-align: center; color: white; line-height: 20px;">{:.0f}%</div>'
-            '</div>',
-            percent, color, obj.progress_percentage
+            '<div style="width: {}%; background: {}; height: 20px; border-radius: 3px;"></div>'
+            '</div> {}',
+            percent,
+            color,
+            progress_text
         )
+
     progress_display.short_description = 'Progress'
+
     
     def extend_access(self, request, queryset):
         """Extend access by 1 month"""
@@ -334,6 +360,102 @@ class StudentEnrollmentAdmin(admin.ModelAdmin):
         )
         self.message_user(request, f"{count} enrollments marked as completed")
     mark_completed.short_description = "Mark as completed"
+    
+    def deactivate_and_unenroll(self, request, queryset):
+        """
+        Deactivate enrollments and unenroll from Moodle
+        Triggers automatic Moodle sync via signals
+        """
+        count = 0
+        for enrollment in queryset.filter(is_active=True):
+            enrollment.is_active = False
+            enrollment.save()  # This triggers the signal
+            count += 1
+        
+        self.message_user(
+            request,
+            f"Deactivated {count} enrollments. Users will be unenrolled from Moodle automatically."
+        )
+    deactivate_and_unenroll.short_description = "Deactivate and unenroll from Moodle"
+    
+    def force_sync_to_moodle(self, request, queryset):
+        """Force immediate sync to Moodle"""
+        from integration.models import MoodleInstance, CourseEnrollment, ProductBundle
+        from integration.services import MoodleIntegrationService
+        
+        try:
+            instance = MoodleInstance.objects.filter(is_active=True, is_primary=True).first()
+            if not instance:
+                self.message_user(request, "No Moodle instance configured", level='error')
+                return
+            
+            service = MoodleIntegrationService(instance)
+            synced = 0
+            errors = 0
+            
+            for student_enrollment in queryset:
+                # Get related course enrollments
+                course_enrollments = []
+                
+                if student_enrollment.product.product_type == 'bundle':
+                    bundle_items = ProductBundle.objects.filter(
+                        product=student_enrollment.product
+                    ).select_related('course')
+                    
+                    for item in bundle_items:
+                        try:
+                            ce = CourseEnrollment.objects.get(
+                                user=student_enrollment.user,
+                                course=item.course
+                            )
+                            course_enrollments.append(ce)
+                        except CourseEnrollment.DoesNotExist:
+                            pass
+                
+                elif student_enrollment.product.moodle_course:
+                    try:
+                        ce = CourseEnrollment.objects.get(
+                            user=student_enrollment.user,
+                            course=student_enrollment.product.moodle_course
+                        )
+                        course_enrollments.append(ce)
+                    except CourseEnrollment.DoesNotExist:
+                        pass
+                
+                # Sync each enrollment
+                for ce in course_enrollments:
+                    try:
+                        mapping = student_enrollment.user.moodle_mapping
+                        
+                        if ce.is_active:
+                            # Enroll
+                            service.client.enrol_user(
+                                mapping.moodle_user_id,
+                                ce.course.moodle_course_id
+                            )
+                        else:
+                            # Unenroll
+                            service.client.unenrol_user(
+                                mapping.moodle_user_id,
+                                ce.course.moodle_course_id
+                            )
+                        
+                        ce.mark_synced()
+                        synced += 1
+                    
+                    except Exception as e:
+                        ce.mark_failed(str(e))
+                        errors += 1
+            
+            self.message_user(
+                request,
+                f"Synced {synced} enrollments to Moodle. {errors} errors."
+            )
+        
+        except Exception as e:
+            self.message_user(request, f"Sync failed: {str(e)}", level='error')
+    
+    force_sync_to_moodle.short_description = "Force sync to Moodle now"
     
     fieldsets = (
         ('Enrollment', {
@@ -355,7 +477,6 @@ class StudentEnrollmentAdmin(admin.ModelAdmin):
     )
     
     readonly_fields = ['created_at', 'updated_at']
-
 
 # ==================== DISCOUNT CODE ====================
 
