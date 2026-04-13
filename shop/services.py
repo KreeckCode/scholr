@@ -574,6 +574,10 @@ class EnrollmentService:
         """Send confirmation email"""
         if not user.email:
             return
+        from shop.tasks import send_enrollment_email_task
+
+        send_enrollment_email_task.delay(user.id, order.id)
+        logger.info(f"Queued enrollment confirmation email for {user.email}")
         
         context = {
             'user': user,

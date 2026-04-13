@@ -14,7 +14,11 @@ from django.core.paginator import Paginator
 from django.utils import timezone
 from django.conf import settings
 from django.urls import reverse
-
+from shop.tasks import (
+    sync_user_progress_task, 
+    send_enrollment_email_task,
+    process_order_enrollment_task
+)
 from accounts.models import (
     User, Product, ProductBundle, Order, OrderItem,
     StudentEnrollment, DiscountCode, GradeLevel, Subject
@@ -1097,51 +1101,26 @@ class BundleDetailView(AdminRequiredMixin, DetailView):
 @login_required
 def refresh_progress(request):
     """
-    Refresh course progress from Moodle
-    
-    Fetches latest completion data and updates display
-    Returns JSON for AJAX or redirects for regular requests
+    Queue progress refresh as background task
+    Returns immediately with confirmation
     """
-    try:
-        service = MoodleProgressService()
-        result = service.sync_user_progress(request.user)
-        
-        if result['success']:
-            message = f"✓ Progress updated! Synced {result['courses_synced']} courses"
-            if result['bundles_updated']:
-                message += f" and {result['bundles_updated']} bundles"
-            
-            messages.success(request, message)
-            
-            # Show any non-critical errors as warnings
-            for error in result['errors']:
-                if 'No course enrollments' not in error:
-                    messages.warning(request, error)
-        else:
-            error_msg = '; '.join(result['errors']) if result['errors'] else 'Unknown error'
-            messages.error(request, f'Failed to sync progress: {error_msg}')
-        
-        # AJAX response
-        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-            return JsonResponse({
-                'success': result['success'],
-                'message': message if result['success'] else error_msg,
-                'courses_synced': result['courses_synced'],
-                'bundles_updated': result['bundles_updated'],
-                'errors': result['errors']
-            })
-        
-    except Exception as e:
-        logger.error(f"Progress refresh error: {str(e)}")
-        messages.error(request, f'Error refreshing progress: {str(e)}')
-        
-        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-            return JsonResponse({
-                'success': False,
-                'message': str(e)
-            }, status=500)
+    # Queue the task
+    task = sync_user_progress_task.delay(request.user.id)
     
-    # Redirect back to my courses
+    messages.info(
+        request,
+        "Progress sync queued! Your course progress will update in a few moments. "
+        "Refresh the page in 30 seconds to see updated progress."
+    )
+    
+    # AJAX response
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return JsonResponse({
+            'success': True,
+            'message': 'Progress sync queued',
+            'task_id': task.id
+        })
+    
     return redirect('shop:my_courses')
 
 @login_required

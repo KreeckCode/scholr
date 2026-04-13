@@ -131,50 +131,70 @@ def integration_dashboard(request):
 @admin_required
 def sync_dashboard(request):
     """
-    Dedicated sync control panel
-    Shows detailed sync status and provides sync controls
+    Sync dashboard showing pending items and recent history
+    Optimized with select_related and aggregation
     """
-    # Get primary instance
-    moodle_instance = MoodleInstance.objects.filter(
-        is_active=True,
-        is_primary=True
-    ).first()
+    from django.db.models import Count, Q
     
-    if not moodle_instance:
-        messages.error(request, 'No Moodle instance configured. Please configure one first.')
-        return redirect('integration:moodle_config')
-    
-    # Pending items detail
-    pending_categories = CourseCategory.objects.filter(
-        is_active=True,
-        moodle_category_id__isnull=True
+    # Get counts with single query using aggregation
+    category_stats = Category.objects.aggregate(
+        pending=Count('id', filter=Q(sync_status='pending') | Q(sync_status='modified'))
     )
     
+    course_stats = Course.objects.aggregate(
+        pending=Count('id', filter=Q(sync_status='pending') | Q(sync_status='modified'))
+    )
+    
+    user_stats = MoodleUserMapping.objects.aggregate(
+        pending=Count('id', filter=Q(sync_status='pending'))
+    )
+    
+    enrollment_stats = CourseEnrollment.objects.aggregate(
+        pending=Count('id', filter=Q(sync_status='pending'))
+    )
+    
+    # Get limited pending items with optimization
+    pending_categories = Category.objects.filter(
+        Q(sync_status='pending') | Q(sync_status='modified')
+    ).only('id', 'name', 'sync_status', 'moodle_category_id', 'sync_error')[:10]
+    
     pending_courses = Course.objects.filter(
-        sync_status__in=['pending', 'modified', 'failed']
-    ).select_related('category')
+        Q(sync_status='pending') | Q(sync_status='modified')
+    ).select_related(
+        'category'
+    ).only(
+        'id', 'title', 'short_name', 'sync_status', 
+        'moodle_course_id', 'sync_error',
+        'category__id', 'category__name', 'category__moodle_category_id'
+    )[:10]
     
     pending_users = User.objects.filter(
         role=User.STUDENT,
-        is_verified=True,
-        moodle_mapping__sync_status__in=['pending', 'modified', 'failed']
-    ).select_related('profile')
-    
-    pending_enrollments = CourseEnrollment.objects.filter(
-        sync_status='pending'
-    ).select_related('user', 'course')[:20]
+        moodle_mapping__sync_status='pending'
+    ).select_related(
+        'profile'
+    ).only(
+        'id', 'username', 'first_name', 'last_name',
+        'profile__region', 'profile__country', 'profile__church_name'
+    )[:10]
     
     # Recent sync history
     sync_history = SyncLog.objects.select_related(
         'initiated_by'
+    ).only(
+        'id', 'sync_type', 'status', 'started_at', 'completed_at',
+        'total_items', 'successful_items',
+        'initiated_by__username'
     ).order_by('-started_at')[:20]
     
     context = {
-        'moodle_instance': moodle_instance,
         'pending_categories': pending_categories,
         'pending_courses': pending_courses,
         'pending_users': pending_users,
-        'pending_enrollments': pending_enrollments,
+        'pending_enrollments_count': enrollment_stats['pending'],
+        'category_count': category_stats['pending'],
+        'course_count': course_stats['pending'],
+        'user_count': user_stats['pending'],
         'sync_history': sync_history,
     }
     
@@ -976,36 +996,23 @@ def reconcile_courses(request):
     return render(request, 'integration/reconcile_courses.html', context)
 
 
+from shop.tasks import reconcile_enrollments_task
+
 @login_required
 @admin_required
 @require_http_methods(['POST'])
 def reconcile_enrollments(request):
     """
-    Reconcile all enrollments between Django and Moodle
-    Cleans up stale access and manages account status
+    Queue enrollment reconciliation as background task
     """
-    try:
-        from shop.services import EnrollmentReconciliationService
-        
-        service = EnrollmentReconciliationService()
-        results = service.reconcile_all_enrollments(initiated_by=request.user)
-        
-        messages.success(
-            request,
-            f"Reconciliation complete: Processed {results['users_processed']} users. "
-            f"Added {results['enrollments_added']} enrollments, "
-            f"removed {results['enrollments_removed']} stale enrollments, "
-            f"deactivated {results['accounts_deactivated']} accounts."
-        )
-        
-        if results['errors']:
-            messages.warning(
-                request,
-                f"{len(results['errors'])} errors occurred. Check logs for details."
-            )
-        
-    except Exception as e:
-        messages.error(request, f"Reconciliation failed: {str(e)}")
+    # Queue the task
+    task = reconcile_enrollments_task.delay(initiated_by_id=request.user.id)
+    
+    messages.info(
+        request,
+        "Enrollment reconciliation started in background. "
+        "This will take 5-10 minutes. Check sync history for results."
+    )
     
     return redirect('integration:sync_dashboard')
 
