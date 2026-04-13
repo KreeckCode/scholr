@@ -10,3 +10,12 @@ sudo systemctl enable redis
 redis-cli ping
 # Should return: PONG
 
+
+
+
+
+ssh root@165.232.37.122   
+
+moodle credentials:L
+username: admin
+Password: MoodleAdmin12345@
