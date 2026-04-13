@@ -476,7 +476,8 @@ class MoodleProgressService:
             base_url=self.instance.base_url,
             token=self.instance.ws_token
         )
-    
+    from integration.models import CourseEnrollment
+
     def sync_user_progress(self, user):
         """Sync all course progress for a user from Moodle"""
         result = {
@@ -519,6 +520,7 @@ class MoodleProgressService:
                     if progress is not None:
                         course_progress_map[enrollment.course.id] = progress
                         
+                        enrollment.progress_percentage = Decimal(str(progress))
                         enrollment.sync_status = 'synced'
                         enrollment.last_synced = timezone.now()
                         enrollment.save()
@@ -617,12 +619,20 @@ class MoodleProgressService:
         return progress
     
     def _fetch_from_moodle(self, moodle_user_id, moodle_course_id):
-        """Actual Moodle API calls"""
+        """
+        Actual Moodle API calls with fallback hierarchy:
+        1. Activity completion (if activities exist)
+        2. Course progress field (from enrollment)
+        3. Default to 0%
+        """
         if not moodle_course_id:
             return None
         
         try:
-            # Try activity completion
+            activity_progress = None
+            course_progress = None
+            
+            # Method 1: Try activity completion
             try:
                 activities_completion = self.client._make_request(
                     'core_completion_get_activities_completion_status',
@@ -635,6 +645,7 @@ class MoodleProgressService:
                 if activities_completion and 'statuses' in activities_completion:
                     statuses = activities_completion['statuses']
                     
+                    # Only use activity completion if there are actual activities
                     if len(statuses) > 0:
                         total_activities = len(statuses)
                         completed_activities = sum(
@@ -642,29 +653,23 @@ class MoodleProgressService:
                             if activity.get('state', 0) == 1
                         )
                         
-                        percentage = (completed_activities / total_activities) * 100
+                        activity_progress = (completed_activities / total_activities) * 100
                         
                         logger.info(
                             f"Activity completion: {completed_activities}/{total_activities} = "
-                            f"{percentage:.1f}% for user {moodle_user_id} in course {moodle_course_id}"
+                            f"{activity_progress:.1f}% for user {moodle_user_id} in course {moodle_course_id}"
                         )
-                        
-                        return round(percentage, 2)
             
             except Exception as e:
                 error_msg = str(e)
-                
                 if 'nocriteriaset' in error_msg.lower():
-                    logger.info(f"Course {moodle_course_id} has no completion criteria configured")
+                    logger.info(f"Course {moodle_course_id} has no completion criteria")
                 elif 'cannotviewreport' in error_msg.lower():
-                    logger.warning(
-                        f"Permission denied viewing completion for course {moodle_course_id}. "
-                        f"Check web service user capabilities."
-                    )
+                    logger.warning(f"Permission denied for course {moodle_course_id}")
                 else:
                     logger.error(f"Error fetching activity completion: {error_msg}")
             
-            # Try user courses
+            # Method 2: Get course progress from enrollment
             try:
                 user_courses = self.client._make_request(
                     'core_enrol_get_users_courses',
@@ -674,36 +679,48 @@ class MoodleProgressService:
                 if user_courses:
                     for course in user_courses:
                         if course.get('id') == int(moodle_course_id):
+                            # Check for progress field - handle None values
                             if 'progress' in course:
-                                progress = float(course['progress'])
-                                logger.info(
-                                    f"Course progress from enrollment: {progress}% "
-                                    f"for user {moodle_user_id} in course {moodle_course_id}"
-                                )
-                                return round(progress, 2)
+                                try:
+                                    if course['progress'] is not None:
+                                        course_progress = float(course['progress'])
+                                        logger.info(
+                                            f"Course progress from enrollment: {course_progress}% "
+                                            f"for user {moodle_user_id} in course {moodle_course_id}"
+                                        )
+                                except (ValueError, TypeError) as e:
+                                    logger.warning(f"Invalid progress value: {course['progress']}, error: {e}")
                             
+                            # Check if marked as completed
                             if course.get('completed', False):
-                                logger.info(
-                                    f"Course {moodle_course_id} marked as completed "
-                                    f"for user {moodle_user_id}"
-                                )
+                                logger.info(f"Course {moodle_course_id} marked as completed")
                                 return 100.0
             
             except Exception as e:
                 logger.error(f"Error fetching user courses: {str(e)}")
             
-            logger.info(
-                f"No progress data available for user {moodle_user_id} "
-                f"in course {moodle_course_id} - defaulting to 0%"
-            )
-            return 0.0
+            # Decision logic: Use most reliable data
+            # Priority: activity_progress (if exists) > course_progress > 0%
+            if activity_progress is not None:
+                logger.info(f"Using activity completion: {activity_progress}%")
+                return round(activity_progress, 2)
+            elif course_progress is not None:
+                logger.info(f"Using course progress field: {course_progress}%")
+                return round(course_progress, 2)
+            else:
+                logger.info(
+                    f"No progress data available for user {moodle_user_id} "
+                    f"in course {moodle_course_id} - defaulting to 0%"
+                )
+                return 0.0
             
         except Exception as e:
             logger.error(
                 f"Error fetching Moodle progress for course {moodle_course_id}, "
                 f"user {moodle_user_id}: {str(e)}"
             )
-            return 0.0
+        return 0.0
+    
 
 
 class EnrollmentReconciliationService:

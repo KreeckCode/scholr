@@ -1091,7 +1091,6 @@ class BundleDetailView(AdminRequiredMixin, DetailView):
         return context
         
 
-
 @login_required
 def refresh_progress(request):
     """
@@ -1099,6 +1098,29 @@ def refresh_progress(request):
     Returns immediately with confirmation
     """
     from shop.tasks import sync_user_progress_task
+    from django.core.cache import cache  # Use default cache, not caches['moodle']
+    
+    # Clear Moodle cache for this user to force fresh data
+    try:
+        # Get user's Moodle ID
+        from integration.models import MoodleUserMapping, CourseEnrollment
+        mapping = MoodleUserMapping.objects.filter(cas_user=request.user).first()
+        
+        if mapping and mapping.moodle_user_id:
+            # Clear progress cache for all user's courses
+            enrollments = CourseEnrollment.objects.filter(
+                user=request.user,
+                is_active=True
+            ).values_list('course__moodle_course_id', flat=True)
+            
+            for moodle_course_id in enrollments:
+                # MATCH THE FORMAT FROM services.py
+                cache_key = f'moodle_progress:{mapping.moodle_user_id}:{moodle_course_id}'
+                cache.delete(cache_key)
+                
+            logger.info(f"Cleared Moodle cache for user {request.user.username}: {len(enrollments)} courses")
+    except Exception as e:
+        logger.warning(f"Failed to clear Moodle cache: {e}")
     
     # Queue the task
     task = sync_user_progress_task.delay(request.user.id)
@@ -1118,6 +1140,8 @@ def refresh_progress(request):
         })
     
     return redirect('shop:my_courses')
+
+
 
 @login_required
 def debug_moodle_apis(request):

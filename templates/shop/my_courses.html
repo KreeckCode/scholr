@@ -1,6 +1,6 @@
 {% extends 'base/base.html' %}
 {% load static %}
-
+{% load progress_tags %}
 {% block title %}My Learning - African Pastoral Academy{% endblock %}
 
 {% block content %}
@@ -156,9 +156,22 @@
                                                         <h5 class="font-semibold text-gray-900 mb-1">
                                                             {{ course.title }}
                                                         </h5>
-                                                        <p class="text-sm text-gray-600 mb-3">
+                                                        <p class="text-sm text-gray-600 mb-2">
                                                             {{ course.short_name }} • {{ course.category.name }}
                                                         </p>
+                                                        
+                                                        <!-- Course Progress -->
+                                                        {% get_course_progress user course as progress %}
+                                                        <div class="mb-3">
+                                                            <div class="flex items-center justify-between mb-1">
+                                                                <span class="text-xs font-medium text-gray-600">Course Progress</span>
+                                                                <span class="text-xs font-bold text-gray-900">{{ progress }}%</span>
+                                                            </div>
+                                                            <div class="w-full bg-gray-200 rounded-full h-2">
+                                                                <div class="bg-gradient-to-r from-blue-500 to-blue-600 h-2 rounded-full transition-all duration-300" 
+                                                                    style="width: {{ progress }}%"></div>
+                                                            </div>
+                                                        </div>
                                                     </div>
                                                     
                                                     <!-- Access Course Button -->

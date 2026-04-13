@@ -454,6 +454,13 @@ class CourseEnrollment(models.Model):
         default=True,
         help_text="Whether enrollment is currently active"
     )
+
+    progress_percentage = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        default=0.00,
+        help_text="Course completion percentage (0-100)"
+    )
     
     # Moodle integration
     moodle_enrollment_id = models.IntegerField(

@@ -137,8 +137,8 @@ def sync_dashboard(request):
     from django.db.models import Count, Q
     
     # Get counts with single query using aggregation
-    category_stats = Category.objects.aggregate(
-        pending=Count('id', filter=Q(sync_status='pending') | Q(sync_status='modified'))
+    category_stats = CourseCategory.objects.aggregate(
+        pending=Count('id', filter=Q(is_active=True, moodle_category_id__isnull=True))
     )
     
     course_stats = Course.objects.aggregate(
@@ -154,9 +154,10 @@ def sync_dashboard(request):
     )
     
     # Get limited pending items with optimization
-    pending_categories = Category.objects.filter(
-        Q(sync_status='pending') | Q(sync_status='modified')
-    ).only('id', 'name', 'sync_status', 'moodle_category_id', 'sync_error')[:10]
+    pending_categories = CourseCategory.objects.filter(
+    is_active=True,
+    moodle_category_id__isnull=True
+)[:10]
     
     pending_courses = Course.objects.filter(
         Q(sync_status='pending') | Q(sync_status='modified')

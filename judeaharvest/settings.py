@@ -385,3 +385,30 @@ CELERY_TASK_ANNOTATIONS = {
     'shop.tasks.sync_user_progress_task': {'rate_limit': '10/m'},
     'shop.tasks.sync_moodle_courses': {'rate_limit': '5/m'},
 }
+
+
+
+# Hide browser noise in logs
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'filters': {
+        'ignore_browser_requests': {
+            '()': 'django.utils.log.CallbackFilter',
+            'callback': lambda record: '.well-known' not in record.getMessage()
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'filters': ['ignore_browser_requests'],
+        },
+    },
+    'loggers': {
+        'django.server': {
+            'handlers': ['console'],
+            'level': 'INFO',
+        },
+    },
+}
+
