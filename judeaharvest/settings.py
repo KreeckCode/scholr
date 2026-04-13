@@ -372,13 +372,14 @@ CELERY_WORKER_PREFETCH_MULTIPLIER = 1
 CELERY_WORKER_MAX_TASKS_PER_CHILD = 1000
 CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
 
+"""
 # Task routing
 CELERY_TASK_ROUTES = {
     'shop.tasks.sync_*': {'queue': 'sync'},
     'shop.tasks.process_*': {'queue': 'priority'},
     'shop.tasks.send_*': {'queue': 'email'},
 }
-
+"""
 # Rate limits
 CELERY_TASK_ANNOTATIONS = {
     'shop.tasks.sync_user_progress_task': {'rate_limit': '10/m'},

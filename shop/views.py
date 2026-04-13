@@ -81,17 +81,12 @@ class ProductCatalogView(ListView):
         ).select_related(
             'grade_level',
             'subject',
-            'moodle_course',
-            'moodle_course__category'
+            'moodle_course'
         ).prefetch_related(
-            'bundle_items__course__category'
-        ).only(
-            'id', 'name', 'slug', 'short_description', 'price', 
-            'is_free', 'is_featured', 'product_type', 'image',
-            'grade_level__name', 'subject__name', 
-            'moodle_course__title', 'moodle_course__short_name'
+            'bundle_items__course'
         )
         
+        # Apply filters from form
         form = ProductSearchForm(self.request.GET)
         
         if form.is_valid():
@@ -139,6 +134,21 @@ class ProductCatalogView(ListView):
         
         return queryset
     
+    def get_context_data(self, **kwargs):
+        """Add search form and filter options to context"""
+        context = super().get_context_data(**kwargs)
+        
+        # Changed from 'form' to 'search_form' to match template
+        context['search_form'] = ProductSearchForm(self.request.GET)
+        
+        # Add filter options
+        context['grade_levels'] = GradeLevel.objects.filter(is_active=True)
+        context['subjects'] = Subject.objects.filter(is_active=True)
+        
+        # Add total count
+        context['total_products'] = self.get_queryset().count()
+        
+        return context
 
 
 class ProductDetailView(DetailView):
@@ -173,7 +183,7 @@ class ProductDetailView(DetailView):
         else:
             context['is_enrolled'] = False
         
-        # Optimized related products query
+        # Removed only() - conflicts with select_related
         context['related_products'] = Product.objects.filter(
             is_active=True
         ).filter(
@@ -183,9 +193,6 @@ class ProductDetailView(DetailView):
         ).select_related(
             'grade_level', 
             'subject'
-        ).only(
-            'id', 'name', 'slug', 'short_description', 
-            'price', 'is_free', 'image'
         )[:4]
         
         cart = Cart(self.request)
@@ -705,11 +712,8 @@ class OrderListView(LoginRequiredMixin, ListView):
             'user'
         ).prefetch_related(
             'items__product'
-        ).only(
-            'id', 'order_number', 'status', 'total_amount', 
-            'created_at', 'paid_at', 'payment_method',
-            'user__username', 'user__email'
         ).order_by('-created_at')
+        # Removed only()
     
 
 class OrderDetailView(LoginRequiredMixin, DetailView):
@@ -757,14 +761,7 @@ class MyCoursesView(StudentRequiredMixin, ListView):
             'product__subject',
             'order'
         ).prefetch_related(
-            'product__bundle_items__course__category'
-        ).only(
-            'id', 'progress_percentage', 'created_at', 'expires_at', 
-            'completed_at', 'is_free', 'starts_at',
-            'product__id', 'product__name', 'product__slug', 
-            'product__short_description', 'product__product_type',
-            'product__moodle_course__moodle_course_id',
-            'product__moodle_course__title'
+            'product__bundle_items__course'
         ).order_by('-created_at')
     
     def get_context_data(self, **kwargs):
@@ -880,9 +877,6 @@ class BundleListView(AdminRequiredMixin, ListView):
             product_type=Product.BUNDLE
         ).prefetch_related(
             'bundle_items__course'
-        ).only(
-            'id', 'name', 'slug', 'price', 'is_free', 
-            'is_active', 'is_featured', 'created_at'
         ).order_by('-is_featured', '-created_at')
     
     def get_context_data(self, **kwargs):
