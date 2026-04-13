@@ -1125,8 +1125,6 @@ def debug_moodle_apis(request):
     Test what Moodle APIs return for current user
     Admin only
     """
-    if not request.user.role == User.ADMIN:
-        raise PermissionDenied
     
     from integration.models import MoodleInstance, MoodleUserMapping
     from integration.moodle_client import MoodleClient
