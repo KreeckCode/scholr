@@ -707,7 +707,7 @@ class OrderListView(LoginRequiredMixin, ListView):
             'user__username', 'user__email'
         ).order_by('-created_at')
     
-    
+
 class OrderDetailView(LoginRequiredMixin, DetailView):
     """
     Order detail page
@@ -866,41 +866,42 @@ class BulkEnrollmentView(AdminRequiredMixin, View):
 # ==================== BUNDLE MANAGEMENT VIEWS ====================
 
 class BundleListView(AdminRequiredMixin, ListView):
-    """
-    Admin: List all course bundles
-    
-    Features:
-    - View all bundles
-    - Quick stats (courses, price, status)
-    - Edit/delete actions
-    - Create new bundle button
-    """
-    
     model = Product
     template_name = 'shop/bundles/bundle_list.html'
     context_object_name = 'bundles'
     paginate_by = 20
     
     def get_queryset(self):
-        """Get only bundle products with course counts"""
         return Product.objects.filter(
             product_type=Product.BUNDLE
         ).prefetch_related(
             'bundle_items__course'
+        ).only(
+            'id', 'name', 'slug', 'price', 'is_free', 
+            'is_active', 'is_featured', 'created_at'
         ).order_by('-is_featured', '-created_at')
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         
-        # Stats
-        bundles = self.get_queryset()
-        context['total_bundles'] = bundles.count()
-        context['active_bundles'] = bundles.filter(is_active=True).count()
-        context['free_bundles'] = bundles.filter(is_free=True).count()
-        context['paid_bundles'] = bundles.filter(is_free=False).count()
+        # Use aggregation
+        from django.db.models import Count, Q
+        
+        stats = Product.objects.filter(
+            product_type=Product.BUNDLE
+        ).aggregate(
+            total=Count('id'),
+            active=Count('id', filter=Q(is_active=True)),
+            free=Count('id', filter=Q(is_free=True)),
+            paid=Count('id', filter=Q(is_free=False))
+        )
+        
+        context['total_bundles'] = stats['total']
+        context['active_bundles'] = stats['active']
+        context['free_bundles'] = stats['free']
+        context['paid_bundles'] = stats['paid']
         
         return context
-
 
 class BundleCreateView(AdminRequiredMixin, View):
     """
