@@ -283,7 +283,11 @@ class EnrollmentService:
         return enrollments
     
     def _sync_to_moodle(self, user, courses_to_enroll):
-        """Sync enrollments to Moodle with immediate enrollment and account reactivation"""
+        """
+        Sync enrollments to Moodle with immediate enrollment and account reactivation
+        
+        Critical: Maintains consistent mapping reference throughout to avoid stale data
+        """
         moodle_service = self._get_moodle_service()
         
         if not moodle_service:
@@ -293,6 +297,7 @@ class EnrollmentService:
         try:
             from integration.models import MoodleUserMapping
             
+            # Get or create mapping
             mapping, created = MoodleUserMapping.objects.get_or_create(
                 cas_user=user,
                 defaults={
@@ -313,47 +318,52 @@ class EnrollmentService:
                         user=user,
                         course=course_data['course'],
                         defaults={
-                            'is_active': False,  # Not active until verified
+                            'is_active': False,
                             'sync_status': 'pending',
                             'sync_error': 'User not verified',
                             'enrolled_at': timezone.now()
                         }
                     )
                 return
-
+            
             # Sync user to Moodle if not already synced
             if not mapping.moodle_user_id or mapping.sync_status != 'synced':
+                logger.info(f"Syncing verified user {user.username} to Moodle...")
+                
                 user_sync = moodle_service.sync_users(
                     initiated_by=user,
                     user_ids=[user.id]
                 )
-                logger.info(f"User sync for {user.username}: {user_sync.status}")
+                logger.info(f"User sync result for {user.username}: {user_sync.status}")
                 
-                # Refresh mapping to get moodle_user_id
+                # CRITICAL: Refresh to get newly created moodle_user_id
                 mapping.refresh_from_db()
                 
-                # Verify sync succeeded
+                # Verify sync actually created the Moodle user
                 if not mapping.moodle_user_id:
                     logger.error(
-                        f"User sync completed but no Moodle ID assigned for {user.username}. "
-                        f"Sync status: {mapping.sync_status}"
+                        f"❌ User sync completed but {user.username} still has no Moodle ID! "
+                        f"Sync status: {mapping.sync_status}, Log ID: {user_sync.id}"
                     )
                     return
+                
+                logger.info(f"✓ Moodle user created: {user.username} → Moodle ID {mapping.moodle_user_id}")
             
             # Reactivate account if suspended
-            if mapping.moodle_user_id:
-                try:
-                    moodle_service.client.update_user(
-                        user_id=mapping.moodle_user_id,
-                        user_data={'suspended': 0}
-                    )
-                    logger.info(f"✓ Ensured Moodle account active for {user.username}")
-                except Exception as e:
-                    logger.warning(f"Could not reactivate account for {user.username}: {str(e)}")
+            try:
+                moodle_service.client.update_user(
+                    user_id=mapping.moodle_user_id,
+                    user_data={'suspended': 0}
+                )
+                logger.info(f"✓ Ensured Moodle account active for {user.username}")
+            except Exception as e:
+                logger.warning(f"Could not reactivate account for {user.username}: {str(e)}")
             
+            # Now enroll in each course
             for course_data in courses_to_enroll:
                 course = course_data['course']
                 
+                # Create CourseEnrollment record
                 enrollment, created = CourseEnrollment.objects.get_or_create(
                     user=user,
                     course=course,
@@ -364,6 +374,7 @@ class EnrollmentService:
                     }
                 )
                 
+                # Log to order item
                 course_data['order_item'].enrollment_log[str(course.id)] = {
                     'course_name': course.title,
                     'enrolled_at': timezone.now().isoformat(),
@@ -371,19 +382,17 @@ class EnrollmentService:
                 }
                 course_data['order_item'].save()
                 
+                # Validate course has Moodle ID
+                if not course.moodle_course_id:
+                    error_msg = f"Course {course.short_name} has no Moodle ID"
+                    logger.error(error_msg)
+                    enrollment.mark_failed(error_msg)
+                    continue
+                
+                # Enroll in Moodle (use the SAME mapping variable from above)
                 try:
-                    mapping = user.moodle_mapping
-                    
-                    if not mapping.moodle_user_id:
-                        logger.error(f"User {user.username} has no Moodle ID, skipping enrollment")
-                        continue
-                    
-                    if not course.moodle_course_id:
-                        logger.error(f"Course {course.short_name} has no Moodle ID, skipping enrollment")
-                        continue
-                    
                     moodle_service.client.enrol_user(
-                        mapping.moodle_user_id,
+                        mapping.moodle_user_id,  # Use mapping from outer scope
                         course.moodle_course_id
                     )
                     
@@ -395,11 +404,12 @@ class EnrollmentService:
                     )
                 
                 except Exception as e:
-                    enrollment.mark_failed(str(e))
-                    logger.error(f"Failed to enroll {user.username} in {course.short_name}: {str(e)}")
+                    error_msg = f"Failed to enroll in {course.short_name}: {str(e)}"
+                    enrollment.mark_failed(error_msg)
+                    logger.error(f"❌ {user.username} → {error_msg}")
         
         except Exception as e:
-            logger.error(f"Moodle sync failed: {str(e)}")
+            logger.error(f"Moodle sync failed for {user.username}: {str(e)}", exc_info=True)
     
     def _send_enrollment_confirmation(self, user, enrollments, order):
         """Queue confirmation email as background task"""
