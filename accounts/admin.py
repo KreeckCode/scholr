@@ -262,8 +262,8 @@ class UserProfileAdmin(admin.ModelAdmin):
     def profile_complete_status(self, obj):
         """Visual indicator of profile completion"""
         if obj.is_profile_complete():
-            return format_html('<span style="color: green;">✓ Complete</span>')
-        return format_html('<span style="color: orange;">Incomplete</span>')
+            return format_html('<span style="color: {};">{}</span>', 'green', '✓ Complete')
+        return format_html('<span style="color: {};">{}</span>', 'orange', 'Incomplete')
     profile_complete_status.short_description = 'Profile Status'
 
 

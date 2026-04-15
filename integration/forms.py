@@ -1,3 +1,5 @@
+from venv import logger
+
 from django import forms
 from django.core.validators import URLValidator
 from django.core.exceptions import ValidationError as DjangoValidationError
@@ -401,3 +403,237 @@ class TestConnectionForm(forms.Form):
     No fields needed - just triggers connection test
     """
     pass
+
+
+
+from decimal import Decimal
+from accounts.models import Product, GradeLevel, Subject
+
+
+class CourseProductForm(forms.ModelForm):
+    """
+    Combined form for creating Course + Product in one workflow
+    
+    This form creates both the Moodle-synced Course and the catalog Product
+    Ensures courses appear in catalog immediately with proper pricing
+    """
+    
+    # Product-specific fields added to Course form
+    product_price = forms.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        min_value=Decimal('0.00'),
+        initial=Decimal('0.00'),
+        required=True,
+        widget=forms.NumberInput(attrs={
+            'class': 'form-control',
+            'step': '0.01',
+            'placeholder': '0.00'
+        }),
+        label='Price (ZAR)',
+        help_text='Set to 0 for free courses'
+    )
+    
+    product_grade_level = forms.ModelChoiceField(
+        queryset=GradeLevel.objects.filter(is_active=True),
+        required=False,
+        widget=forms.Select(attrs={'class': 'form-control'}),
+        label='Grade Level',
+        help_text='Catalog grade level (for filtering)'
+    )
+    
+    product_subject = forms.ModelChoiceField(
+        queryset=Subject.objects.filter(is_active=True),
+        required=False,
+        widget=forms.Select(attrs={'class': 'form-control'}),
+        label='Subject',
+        help_text='Catalog subject (for filtering)'
+    )
+    
+    product_image = forms.ImageField(
+        required=False,
+        widget=forms.FileInput(attrs={
+            'class': 'form-control',
+            'accept': 'image/*'
+        }),
+        label='Product Image',
+        help_text='Featured image for catalog'
+    )
+    
+    product_is_active = forms.BooleanField(
+        required=False,
+        initial=False,
+        widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        label='Publish to Catalog',
+        help_text='Make this course immediately available for purchase/enrollment'
+    )
+    
+    product_is_featured = forms.BooleanField(
+        required=False,
+        initial=False,
+        widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        label='Featured Product',
+        help_text='Show in featured products section'
+    )
+    
+    product_duration_months = forms.IntegerField(
+        min_value=1,
+        initial=12,
+        widget=forms.NumberInput(attrs={'class': 'form-control'}),
+        label='Access Duration (Months)',
+        help_text='How long students have access after enrollment'
+    )
+    
+    class Meta:
+        model = Course
+        fields = [
+            'title', 'short_name', 'code', 'category', 'summary',
+            'start_date', 'end_date', 'visible', 'auto_enroll_enabled',
+            'enrollment_capacity'
+        ]
+        widgets = {
+            'title': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'e.g., Introduction to Biblical Hermeneutics'
+            }),
+            'short_name': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'e.g., BIB101'
+            }),
+            'code': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Optional course code'
+            }),
+            'category': forms.Select(attrs={'class': 'form-control'}),
+            'summary': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 4,
+                'placeholder': 'Course description and objectives'
+            }),
+            'start_date': forms.DateInput(attrs={
+                'class': 'form-control',
+                'type': 'date'
+            }),
+            'end_date': forms.DateInput(attrs={
+                'class': 'form-control',
+                'type': 'date'
+            }),
+            'visible': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'auto_enroll_enabled': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'enrollment_capacity': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'min': 1,
+                'placeholder': 'Leave empty for unlimited'
+            }),
+        }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Only show active categories
+        self.fields['category'].queryset = CourseCategory.objects.filter(is_active=True)
+        
+        # If editing existing course, load product data
+        if self.instance and self.instance.pk:
+            try:
+                product = Product.objects.get(
+                    moodle_course=self.instance,
+                    product_type=Product.COURSE
+                )
+                # Pre-populate product fields
+                self.fields['product_price'].initial = product.price
+                self.fields['product_grade_level'].initial = product.grade_level
+                self.fields['product_subject'].initial = product.subject
+                self.fields['product_is_active'].initial = product.is_active
+                self.fields['product_is_featured'].initial = product.is_featured
+                self.fields['product_duration_months'].initial = product.duration_months
+            except Product.DoesNotExist:
+                pass
+    
+    def clean_short_name(self):
+        """Validate short name is unique and alphanumeric"""
+        short_name = self.cleaned_data.get('short_name')
+        
+        if short_name:
+            short_name = short_name.replace(' ', '').upper()
+            
+            if not short_name.replace('_', '').replace('-', '').isalnum():
+                raise forms.ValidationError(
+                    'Short name can only contain letters, numbers, hyphens, and underscores.'
+                )
+            
+            existing = Course.objects.filter(short_name__iexact=short_name)
+            
+            if self.instance.pk:
+                existing = existing.exclude(pk=self.instance.pk)
+            
+            if existing.exists():
+                raise forms.ValidationError(
+                    f'A course with short name "{short_name}" already exists.'
+                )
+        
+        return short_name
+    
+    def clean(self):
+        """Validate date range"""
+        cleaned_data = super().clean()
+        start_date = cleaned_data.get('start_date')
+        end_date = cleaned_data.get('end_date')
+        
+        if start_date and end_date:
+            if end_date <= start_date:
+                raise forms.ValidationError('End date must be after start date.')
+        
+        return cleaned_data
+    
+    def save(self, commit=True):
+        """Create both Course and Product in single transaction"""
+        from django.db import transaction
+        from django.utils.text import slugify
+        
+        course = super().save(commit=False)
+        
+        # Mark as modified if already synced
+        if course.pk and course.sync_status == 'synced':
+            course.sync_status = 'modified'
+        
+        if commit:
+            with transaction.atomic():
+                # Save course
+                course.save()
+                
+                # Create or update product
+                product, created = Product.objects.get_or_create(
+                    moodle_course=course,
+                    product_type=Product.COURSE,
+                    defaults={
+                        'name': course.title,
+                        'slug': slugify(course.short_name),
+                        'description': course.summary or '',
+                        'short_description': (course.summary[:200] if course.summary else ''),
+                    }
+                )
+                
+                # Update product fields
+                product.name = course.title
+                product.price = self.cleaned_data['product_price']
+                product.grade_level = self.cleaned_data.get('product_grade_level')
+                product.subject = self.cleaned_data.get('product_subject')
+                product.is_active = self.cleaned_data['product_is_active']
+                product.is_featured = self.cleaned_data['product_is_featured']
+                product.duration_months = self.cleaned_data['product_duration_months']
+                product.description = course.summary or product.description
+                product.short_description = (course.summary[:200] if course.summary else product.short_description)
+                
+                # Handle image upload
+                if self.cleaned_data.get('product_image'):
+                    product.image = self.cleaned_data['product_image']
+                
+                product.save()
+                
+                logger.info(
+                    f"{'Created' if created else 'Updated'} Product '{product.name}' "
+                    f"for Course '{course.title}'"
+                )
+        
+        return course
+    

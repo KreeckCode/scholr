@@ -91,9 +91,7 @@ class ProductCatalogView(ListView):
         queryset = queryset.annotate(
             bundle_courses_count=Count('bundle_items')
         ).exclude(
-            # Exclude single-course products with deleted course
             Q(product_type=Product.COURSE, moodle_course__isnull=True) |
-            # Exclude bundles with no courses
             Q(product_type=Product.BUNDLE, bundle_courses_count=0)
         )
         

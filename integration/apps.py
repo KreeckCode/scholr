@@ -2,8 +2,9 @@ from django.apps import AppConfig
 
 
 class IntegrationConfig(AppConfig):
+    default_auto_field = 'django.db.models.BigAutoField'
     name = 'integration'
-    
+
     def ready(self):
-        """Import signals when app is ready"""
-        import integration.signals  # Register integration signals
+        """Register signal handlers when app loads"""
+        import integration.signals

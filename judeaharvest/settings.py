@@ -44,7 +44,7 @@ INSTALLED_APPS = [
     
     # Project apps
     'accounts',
-    'integration',
+    'integration.apps.IntegrationConfig',
     'shop',
 ]
 CSRF_TRUSTED_ORIGINS = [

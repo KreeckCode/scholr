@@ -17,13 +17,13 @@ from integration.services import MoodleIntegrationService
 def is_staff_or_admin(user):
     """Check if user is staff, admin, or dean"""
     return user.is_staff or user.role in ['admin', 'dean']
-from accounts.models import User
+from accounts.models import Product, User
 from .models import (
     MoodleInstance, Course, CourseCategory, 
     CourseEnrollment, SyncLog, MoodleUserMapping
 )
 from .forms import (
-    MoodleConfigurationForm, CourseForm, CourseCategoryForm,
+    CourseProductForm, MoodleConfigurationForm, CourseForm, CourseCategoryForm,
     BulkEnrollmentForm, SyncFilterForm, TestConnectionForm
 )
 from .services import MoodleIntegrationService
@@ -394,12 +394,14 @@ def course_list(request):
     return render(request, 'integration/course_list.html', context)
 
 
+
+
 @login_required
 @admin_required
 def course_create(request):
-    """Create a new course"""
+    """Create a new course with integrated product creation"""
     if request.method == 'POST':
-        form = CourseForm(request.POST)
+        form = CourseProductForm(request.POST, request.FILES)  # Added request.FILES for image
         
         if form.is_valid():
             course = form.save(commit=False)
@@ -407,13 +409,20 @@ def course_create(request):
             course.sync_status = 'pending'
             course.save()
             
+            # form.save() already created the product
+            product = Product.objects.get(
+                moodle_course=course,
+                product_type=Product.COURSE
+            )
+            
             messages.success(
                 request,
-                f'Course "{course.title}" created successfully. Use sync to push to Moodle.'
+                f'Course "{course.title}" and catalog product "{product.name}" created successfully. '
+                f'Use sync to push to Moodle.'
             )
             return redirect('integration:course_detail', course_id=course.id)
     else:
-        form = CourseForm()
+        form = CourseProductForm()
     
     context = {
         'form': form,
@@ -422,18 +431,19 @@ def course_create(request):
     
     return render(request, 'integration/course_form.html', context)
 
+
 @login_required
 def course_edit(request, course_id):
-    """Edit course and sync changes to Moodle"""
+    """Edit course and product together"""
     course = get_object_or_404(Course, pk=course_id)
     
     if request.method == 'POST':
-        form = CourseForm(request.POST, instance=course)
+        form = CourseProductForm(request.POST, request.FILES, instance=course)
         if form.is_valid():
-            course = form.save()
+            course = form.save()  # Saves both course and product
             
             # Sync to Moodle if course has been synced before
-            if course.moodle_course_id:  # FIXED - was moodle_id
+            if course.moodle_course_id:
                 try:
                     service = MoodleIntegrationService()
                     service.update_course(course)
@@ -446,23 +456,28 @@ def course_edit(request, course_id):
                     course.save(update_fields=['sync_status'])
                     messages.warning(
                         request,
-                        f'PLEASE SYNC!!!!Course updated in Django but Moodle sync failed: {str(e)}'
+                        f'Course updated in Django but Moodle sync failed: {str(e)}. '
+                        f'Please sync manually.'
                     )
             else:
                 messages.success(
                     request, 
-                    f'Course "{course.title}" updated successfully.'
+                    f'Course "{course.title}" and product updated successfully.'
                 )
             
             return redirect('integration:course_detail', course_id=course.pk)
     else:
-        form = CourseForm(instance=course)
+        form = CourseProductForm(instance=course)
     
     return render(request, 'integration/course_form.html', {
         'form': form,
         'course': course,
         'is_edit': True
     })
+
+
+
+
 
 @login_required
 @admin_required

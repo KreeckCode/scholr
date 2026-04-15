@@ -3,12 +3,18 @@ Django signals for automatic sync triggers
 Handles post-save actions to mark items for sync
 """
 
-from django.db.models.signals import post_save, pre_save
+import logging
+from decimal import Decimal
+
+from django.db.models.signals import post_save, pre_save, pre_delete
 from django.dispatch import receiver
 from django.utils import timezone
+from django.utils.text import slugify
 
-from accounts.models import User
+from accounts.models import Product, StudentEnrollment, User
 from .models import Course, CourseEnrollment, MoodleUserMapping
+
+logger = logging.getLogger(__name__)
 
 
 @receiver(post_save, sender=User)
@@ -128,9 +134,126 @@ def auto_enroll_verified_students(sender, instance, created, **kwargs):
             enrollments.append(enrollment)
     
     if enrollments:
-        from .utils import log_sync_event
-        log_sync_event(
-            'AUTO_ENROLL',
-            f'Auto-enrolled {len(enrollments)} students in {instance.short_name}',
-            'INFO'
+        try:
+            from .utils import log_sync_event
+            log_sync_event(
+                'AUTO_ENROLL',
+                f'Auto-enrolled {len(enrollments)} students in {instance.short_name}',
+                'INFO'
+            )
+        except ImportError:
+            # If utils doesn't exist, just log normally
+            logger.info(
+                f'Auto-enrolled {len(enrollments)} students in {instance.short_name}'
+            )
+
+
+@receiver(post_save, sender=Course)
+def auto_create_product_for_course(sender, instance, created, **kwargs):
+    """
+    Automatically create a Product when a Course is created
+    
+    This ensures new courses appear in the catalog immediately
+    Product is created as inactive by default - admin must review and activate
+    
+    Why: Prevents orphaned courses that never appear in catalog
+    """
+    if created:
+        # Check if Product already exists (edge case: manual creation)
+        if Product.objects.filter(moodle_course=instance).exists():
+            logger.info(
+                f"Product already exists for course '{instance.title}' - skipping auto-creation"
+            )
+            return
+        
+        # Generate slug from short_name
+        slug = slugify(instance.short_name)
+        
+        # Ensure slug is unique
+        base_slug = slug
+        counter = 1
+        while Product.objects.filter(slug=slug).exists():
+            slug = f"{base_slug}-{counter}"
+            counter += 1
+        
+        # Create product
+        product = Product.objects.create(
+            name=instance.title,
+            slug=slug,
+            product_type=Product.COURSE,
+            moodle_course=instance,
+            price=Decimal('0.00'),  # Default to free
+            is_free=True,
+            description=instance.summary or 'Course description pending',
+            short_description=instance.summary[:200] if instance.summary else '',
+            is_active=False,  # Admin must activate after setting price
+            duration_months=12,  # Default duration
+            # Note: grade_level and subject require mapping - leave null for now
+        )
+        
+        logger.info(
+            f"Auto-created Product '{product.name}' (ID: {product.id}) for "
+            f"Course '{instance.title}' (ID: {instance.id})"
+        )
+
+
+@receiver(pre_delete, sender=Course)
+def handle_course_product_cleanup(sender, instance, **kwargs):
+    """
+    When a Course is deleted, deactivate or delete associated single-course Products
+    
+    Two scenarios:
+    1. Product type='course' → Deactivate (preserves order history)
+    2. Product type='bundle' → Already handled by handle_course_deletion_from_bundles
+    
+    Why deactivate instead of delete:
+    - Preserves order history and audit trail
+    - Students who purchased still see what they bought
+    - Can be manually deleted later if needed
+    """
+    course_title = instance.title
+    course_id = instance.id
+    
+    # Find single-course products linked to this course
+    affected_products = Product.objects.filter(
+        moodle_course=instance,
+        product_type=Product.COURSE  # Only single-course products
+    )
+    
+    if not affected_products.exists():
+        return
+    
+    product_names = []
+    
+    for product in affected_products:
+        product_names.append(product.name)
+        
+        # Check if product has active enrollments
+        active_enrollments = StudentEnrollment.objects.filter(
+            product=product,
+            is_active=True
+        ).count()
+        
+        if active_enrollments > 0:
+            # Deactivate product but keep it for enrolled students
+            product.is_active = False
+            product.save(update_fields=['is_active'])
+            
+            logger.warning(
+                f"Product '{product.name}' (ID: {product.id}) deactivated - "
+                f"course '{course_title}' deleted, {active_enrollments} active enrollment(s) remain"
+            )
+        else:
+            # No enrollments - safe to delete product
+            product.delete()
+            
+            logger.info(
+                f"Product '{product.name}' (ID: {product.id}) deleted - "
+                f"course '{course_title}' deleted, no active enrollments"
+            )
+    
+    if product_names:
+        logger.warning(
+            f"Course '{course_title}' (ID: {course_id}) deletion affected "
+            f"{len(product_names)} product(s): {', '.join(product_names)}"
         )
