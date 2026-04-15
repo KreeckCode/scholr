@@ -232,7 +232,7 @@
                 
                 <div class="flex flex-col sm:flex-row gap-4 mb-12">
                     <a href="{% url 'shop:catalog' %}" 
-                       class="group inline-flex items-center justify-center px-8 py-4 bg-white text-blue-700 font-semibold rounded-xl shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:scale-105">
+                    class="group inline-flex items-center justify-center px-8 py-4 bg-white text-blue-700 font-semibold rounded-xl shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:scale-105">
                         Start Learning
                         <svg class="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
@@ -240,11 +240,23 @@
                     </a>
                     
                     <a href="#video-section" 
-                       class="group inline-flex items-center justify-center px-8 py-4 glass border-2 border-white/30 text-white font-semibold rounded-xl hover:bg-white/20 transition-all duration-300">
+                    class="group inline-flex items-center justify-center px-8 py-4 glass border-2 border-white/30 text-white font-semibold rounded-xl hover:bg-white/20 transition-all duration-300">
                         Watch Video
                         <svg class="w-5 h-5 ml-2 group-hover:scale-110 transition-transform" fill="currentColor" viewBox="0 0 20 20">
                             <path d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z"></path>
                         </svg>
+                    </a>
+                </div>
+
+                <!-- Add login button for existing users -->
+                <div class="text-center mb-12">
+                    <p class="text-blue-100 text-sm mb-4">Already have an account?</p>
+                    <a href="{% url 'accounts:login' %}" 
+                    class="inline-flex items-center justify-center px-8 py-4 bg-white/10 backdrop-blur-sm border-2 border-white/40 text-white font-semibold rounded-xl hover:bg-white/20 transition-all duration-300 shadow-lg hover:shadow-2xl">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path>
+                        </svg>
+                        Log In to Your Account
                     </a>
                 </div>
                 

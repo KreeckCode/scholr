@@ -11,6 +11,7 @@ from django.views import View
 from django.views.generic import CreateView, UpdateView, DetailView, ListView
 from django.http import JsonResponse
 from accounts.models import StudentEnrollment
+from integration.views import admin_required
 from .models import User, UserProfile, LoginAttempt
 from .forms import (
     PastorRegistrationForm, 
@@ -19,6 +20,70 @@ from .forms import (
     UserUpdateForm
 )
 from django.db.models import Q, Count
+
+
+
+from shop.tasks import process_pending_enrollments_task
+
+@login_required
+@admin_required
+def verify_student(request, user_id):
+    """
+    Verify student and trigger pending enrollments
+    """
+    user = get_object_or_404(User, id=user_id, role=User.STUDENT)
+    
+    if request.method == 'POST':
+        # Verify user
+        user.is_verified = True
+        user.verified_by = request.user
+        user.verified_at = timezone.now()
+        user.save(update_fields=['is_verified', 'verified_by', 'verified_at'])
+        
+        # Trigger Moodle sync for this user
+        from shop.tasks import sync_moodle_users
+        sync_moodle_users.delay(
+            user_ids=[user.id],
+            initiated_by_id=request.user.id
+        )
+        
+        # Check for pending enrollments
+        from accounts.models import StudentEnrollment
+        pending_enrollments = StudentEnrollment.objects.filter(
+            user=user,
+            is_active=True
+        ).count()
+        
+        if pending_enrollments > 0:
+            # Queue enrollment processing
+            from shop.tasks import process_order_enrollment_task
+            
+            # Get user's paid orders that haven't been processed
+            from accounts.models import Order
+            pending_orders = Order.objects.filter(
+                user=user,
+                status__in=[Order.COMPLETED, Order.FREE],
+                enrollment_processed=False
+            )
+            
+            for order in pending_orders:
+                process_order_enrollment_task.delay(order.id)
+            
+            messages.success(
+                request,
+                f'✓ User verified! Queued Moodle sync and {pending_enrollments} enrollment(s). '
+                f'Check back in 2 minutes.'
+            )
+        else:
+            messages.success(request, f'✓ User {user.username} verified successfully!')
+        
+        return redirect('accounts:student_detail', user_id=user.id)
+    
+    context = {
+        'student': user,
+    }
+    
+    return render(request, 'accounts/verify_student.html', context)
 
 
 def get_client_ip(request):

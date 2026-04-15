@@ -288,3 +288,57 @@ def sync_moodle_courses(self, course_ids=None, initiated_by_id=None):
     except Exception as exc:
         logger.error(f"Error syncing courses: {str(exc)}")
         raise self.retry(exc=exc, countdown=60)
+    
+
+@shared_task(bind=True, max_retries=3)
+def process_pending_enrollments_task(self, user_id):
+    """
+    Process all pending enrollments for newly verified user
+    Called after user verification
+    """
+    from accounts.models import User, Order
+    from shop.services import EnrollmentService
+    
+    try:
+        user = User.objects.get(id=user_id)
+        
+        if not user.is_verified:
+            logger.warning(f"User {user.username} not verified, skipping enrollment processing")
+            return
+        
+        # Get all paid orders that haven't been processed
+        pending_orders = Order.objects.filter(
+            user=user,
+            status__in=[Order.COMPLETED, Order.FREE],
+            enrollment_processed=False
+        )
+        
+        if not pending_orders.exists():
+            logger.info(f"No pending orders for {user.username}")
+            return
+        
+        service = EnrollmentService()
+        processed_count = 0
+        
+        for order in pending_orders:
+            try:
+                service.process_order_enrollment(order)
+                processed_count += 1
+                logger.info(f"Processed enrollment for order {order.order_number}")
+            except Exception as e:
+                logger.error(f"Failed to process order {order.order_number}: {str(e)}")
+        
+        logger.info(f"Processed {processed_count} pending enrollments for {user.username}")
+        
+        return {
+            'user': user.username,
+            'orders_processed': processed_count
+        }
+        
+    except User.DoesNotExist:
+        logger.error(f"User {user_id} not found")
+        raise
+    
+    except Exception as exc:
+        logger.error(f"Error processing pending enrollments for user {user_id}: {str(exc)}")
+        raise self.retry(exc=exc, countdown=120)

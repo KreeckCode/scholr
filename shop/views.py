@@ -474,8 +474,11 @@ def checkout(request):
                     email=email or None,
                     first_name=form.cleaned_data['first_name'],
                     last_name=form.cleaned_data['last_name'],
-                    role=User.STUDENT
+                    role=User.STUDENT,
+                    is_verified=True  # Auto-verify paying customers - payment is verification
                 )
+
+                logger.info(f"Auto-verified new user {user.username} (paid customer)")
                 
                 # Create profile
                 from accounts.models import UserProfile

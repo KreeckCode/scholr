@@ -301,12 +301,44 @@ class EnrollmentService:
                 }
             )
             
+            # Ensure user is verified before Moodle sync
+            if not user.is_verified:
+                logger.error(
+                    f"User {user.username} is not verified - cannot sync to Moodle. "
+                    f"Enrollment will be pending until user is verified."
+                )
+                # Mark enrollments as pending verification
+                for course_data in courses_to_enroll:
+                    enrollment, _ = CourseEnrollment.objects.get_or_create(
+                        user=user,
+                        course=course_data['course'],
+                        defaults={
+                            'is_active': False,  # Not active until verified
+                            'sync_status': 'pending',
+                            'sync_error': 'User not verified',
+                            'enrolled_at': timezone.now()
+                        }
+                    )
+                return
+
+            # Sync user to Moodle if not already synced
             if not mapping.moodle_user_id or mapping.sync_status != 'synced':
                 user_sync = moodle_service.sync_users(
                     initiated_by=user,
                     user_ids=[user.id]
                 )
                 logger.info(f"User sync for {user.username}: {user_sync.status}")
+                
+                # Refresh mapping to get moodle_user_id
+                mapping.refresh_from_db()
+                
+                # Verify sync succeeded
+                if not mapping.moodle_user_id:
+                    logger.error(
+                        f"User sync completed but no Moodle ID assigned for {user.username}. "
+                        f"Sync status: {mapping.sync_status}"
+                    )
+                    return
             
             # Reactivate account if suspended
             if mapping.moodle_user_id:
