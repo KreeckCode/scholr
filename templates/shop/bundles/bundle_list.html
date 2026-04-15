@@ -266,8 +266,10 @@ function confirmDelete(bundleId, bundleName) {
     const form = document.getElementById('deleteForm');
     const message = document.getElementById('deleteMessage');
     
-    message.textContent = `Are you sure you want to delete "${bundleName}"? This action cannot be undone.`;
-    form.action = `/shop/bundles/${bundleId}/delete/`;
+    message.textContent = `Are you sure you want to delete "${bundleName}"? This will remove the bundle but keep all courses intact.`;
+    
+    // Use Django's URL reversing instead of hardcoded path
+    form.action = "{% url 'shop:bundle_delete' 0 %}".replace('0', bundleId);
     
     modal.classList.remove('hidden');
 }

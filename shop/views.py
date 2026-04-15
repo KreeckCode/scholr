@@ -85,6 +85,17 @@ class ProductCatalogView(ListView):
         ).prefetch_related(
             'bundle_items__course'
         )
+
+        from django.db.models import Q, Count
+    
+        queryset = queryset.annotate(
+            bundle_courses_count=Count('bundle_items')
+        ).exclude(
+            # Exclude single-course products with deleted course
+            Q(product_type=Product.COURSE, moodle_course__isnull=True) |
+            # Exclude bundles with no courses
+            Q(product_type=Product.BUNDLE, bundle_courses_count=0)
+        )
         
         # Apply filters from form
         form = ProductSearchForm(self.request.GET)
@@ -1002,47 +1013,66 @@ class BundleEditView(AdminRequiredMixin, View):
         
         return render(request, self.template_name, context)
 
-
+@login_required
 @require_POST
 def bundle_delete(request, bundle_id):
     """
-    Admin: Delete bundle
+    Delete bundle product
     
-    Security:
-    - Admin only
-    - POST required
-    - Confirmation handled by frontend
+    Deletion cascade:
+    - Product (bundle) deleted
+    - ProductBundle entries CASCADE deleted automatically
+    - Course records remain intact
+    
+    Safety: Prevents deletion if active enrollments exist
     """
+    # Security check
     if not request.user.is_authenticated or request.user.role != User.ADMIN:
         messages.error(request, 'Only administrators can delete bundles')
         return redirect('accounts:dashboard')
     
-    bundle = get_object_or_404(Product, id=bundle_id, product_type=Product.BUNDLE)
+    bundle = get_object_or_404(
+        Product.objects.prefetch_related('bundle_items'),
+        id=bundle_id,
+        product_type=Product.BUNDLE
+    )
+    
     bundle_name = bundle.name
     
     try:
-        # Check if bundle has active enrollments
-        enrollment_count = StudentEnrollment.objects.filter(
+        # Check for active enrollments
+        active_enrollments = StudentEnrollment.objects.filter(
             product=bundle,
             is_active=True
         ).count()
         
-        if enrollment_count > 0:
+        if active_enrollments > 0:
             messages.warning(
                 request,
-                f'Cannot delete "{bundle_name}" - {enrollment_count} active enrollments exist. '
+                f'Cannot delete "{bundle_name}" - {active_enrollments} student(s) have active access. '
                 f'Deactivate the bundle instead.'
             )
             return redirect('shop:bundle_list')
         
-        # Safe to delete
+        # Log what's being deleted
+        courses_count = bundle.bundle_items.count()
+        
+        # Delete bundle (ProductBundle CASCADE deletes automatically)
         bundle.delete()
         
-        messages.success(request, f'✓ Bundle "{bundle_name}" deleted successfully')
+        messages.success(
+            request,
+            f'Bundle "{bundle_name}" deleted successfully. '
+            f'{courses_count} course(s) remain available.'
+        )
+        
+        logger.info(
+            f"Bundle deleted: {bundle_name} (ID: {bundle_id}) by {request.user.username}"
+        )
         
     except Exception as e:
-        logger.error(f"Error deleting bundle {bundle_id}: {str(e)}")
-        messages.error(request, 'Error deleting bundle. Please try again.')
+        logger.error(f"Error deleting bundle {bundle_id}: {str(e)}", exc_info=True)
+        messages.error(request, f'Error deleting bundle: {str(e)}')
     
     return redirect('shop:bundle_list')
 

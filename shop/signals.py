@@ -2,7 +2,7 @@
 Signals for automatic enrollment/unenrollment handling
 Ensures Moodle stays in sync when enrollments change
 """
-
+from accounts.models import Product
 import logging
 from django.db.models.signals import post_save, pre_delete, post_delete
 from django.dispatch import receiver
@@ -296,4 +296,129 @@ def _deactivate_moodle_account(user):
     except Exception as e:
         logger.error(f"Failed to deactivate Moodle account for {user.username}: {str(e)}")
 
+        
+
+
+# Add this import at the top with your other imports
+from integration.models import Course
+
+# Add this signal handler at the end of the file
+@receiver(pre_delete, sender=Course)
+def handle_course_deletion_from_bundles(sender, instance, **kwargs):
+    """
+    Clean up ProductBundle entries when a Course is deleted
+    
+    This ensures:
+    - Bundles don't have broken FK references
+    - Empty bundles get auto-deactivated
+    - Audit trail via logging
+    
+    Runs BEFORE deletion so we can access course data for logging
+    """
+    from accounts.models import ProductBundle, Product
+    
+    course_title = instance.title
+    course_id = instance.id
+    
+    # Find all bundles containing this course
+    affected_bundles = ProductBundle.objects.filter(
+        course=instance
+    ).select_related('product')
+    
+    if not affected_bundles.exists():
+        logger.info(f"Course '{course_title}' (ID: {course_id}) deleted - no bundles affected")
+        return
+    
+    bundle_names = []
+    bundles_to_deactivate = []
+    
+    for bundle_item in affected_bundles:
+        bundle = bundle_item.product
+        bundle_names.append(bundle.name)
+        
+        # Check if this was the last course in bundle
+        remaining_courses = bundle.bundle_items.exclude(course=instance).count()
+        
+        if remaining_courses == 0:
+            bundles_to_deactivate.append(bundle)
+    
+    # Delete ProductBundle entries (CASCADE will handle this, but explicit logging)
+    deleted_count = affected_bundles.count()
+    
+    logger.warning(
+        f"Course '{course_title}' (ID: {course_id}) deleted from {deleted_count} bundle(s): "
+        f"{', '.join(bundle_names)}"
+    )
+    
+    # Deactivate empty bundles
+    for bundle in bundles_to_deactivate:
+        bundle.is_active = False
+        bundle.save(update_fields=['is_active'])
+        
+        logger.warning(
+            f"Bundle '{bundle.name}' (ID: {bundle.id}) auto-deactivated - "
+            f"no courses remaining after deletion of '{course_title}'"
+        )
+        
+
+@receiver(pre_delete, sender=Course)
+def handle_course_product_cleanup(sender, instance, **kwargs):
+    """
+    When a Course is deleted, deactivate or delete associated single-course Products
+    
+    Two scenarios:
+    1. Product type='course' → Deactivate (preserves order history)
+    2. Product type='bundle' → Already handled by handle_course_deletion_from_bundles
+    
+    Why deactivate instead of delete:
+    - Preserves order history and audit trail
+    - Students who purchased still see what they bought
+    - Can be manually deleted later if needed
+    """
+    course_title = instance.title
+    course_id = instance.id
+    
+    # Find single-course products linked to this course
+    affected_products = Product.objects.filter(
+        moodle_course=instance,
+        product_type=Product.COURSE  # Only single-course products
+    )
+    
+    if not affected_products.exists():
+        return
+    
+    product_names = []
+    
+    for product in affected_products:
+        product_names.append(product.name)
+        
+        # Check if product has active enrollments
+        active_enrollments = StudentEnrollment.objects.filter(
+            product=product,
+            is_active=True
+        ).count()
+        
+        if active_enrollments > 0:
+            # Deactivate product but keep it for enrolled students
+            product.is_active = False
+            product.save(update_fields=['is_active'])
+            
+            logger.warning(
+                f"Product '{product.name}' (ID: {product.id}) deactivated - "
+                f"course '{course_title}' deleted, {active_enrollments} active enrollment(s) remain"
+            )
+        else:
+            # No enrollments - safe to delete product
+            product.delete()
+            
+            logger.info(
+                f"Product '{product.name}' (ID: {product.id}) deleted - "
+                f"course '{course_title}' deleted, no active enrollments"
+            )
+    
+    if product_names:
+        logger.warning(
+            f"Course '{course_title}' (ID: {course_id}) deletion affected "
+            f"{len(product_names)} product(s): {', '.join(product_names)}"
+        )
         
