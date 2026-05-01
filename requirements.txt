@@ -69,3 +69,5 @@ bandit>=1.7.0
 flake8>=7.0.0
 python-dotenv
 dj_database_url
+psycopg2
+psycopg
