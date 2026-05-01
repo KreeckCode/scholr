@@ -212,8 +212,10 @@ jobs:
       
       # Backup database before deployment
       - name: Backup database
+        env:
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
         run: |
-          ssh ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} << 'ENDSSH'
+          ssh ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} "DB_PASSWORD='${DB_PASSWORD}'" << 'ENDSSH'
             set -e
             BACKUP_DIR="/var/backups/judeaharvest"
             BACKUP_FILE="judeaharvest_$(date +%Y%m%d_%H%M%S).sql"
@@ -222,7 +224,7 @@ jobs:
             sudo mkdir -p $BACKUP_DIR
             
             echo "Backing up database..."
-            PGPASSWORD='${{ secrets.DB_PASSWORD }}' pg_dump \
+            sudo PGPASSWORD="$DB_PASSWORD" pg_dump \
               -U admin \
               -h localhost \
               -d judeaharvest \
@@ -233,7 +235,7 @@ jobs:
             
             # Keep only last 7 backups
             cd $BACKUP_DIR
-            ls -t | tail -n +8 | xargs -r rm
+            sudo ls -t | tail -n +8 | xargs -r sudo rm
           ENDSSH
       
       # Deploy application
@@ -245,36 +247,34 @@ jobs:
             echo "=== Starting Deployment ==="
             cd /var/www/judeaharvest
             
+            # Fix git ownership issue
+            sudo git config --global --add safe.directory /var/www/judeaharvest
+            
             # Ensure proper ownership
             echo "Fixing permissions..."
             sudo chown -R www-data:www-data /var/www/judeaharvest
             
-            # Pull latest code
+            # Pull latest code as www-data user
             echo "Pulling latest code..."
             sudo -u www-data git fetch origin
             sudo -u www-data git reset --hard origin/main
             
-            # Activate virtual environment
-            source venv/bin/activate
-            
-            # Install/update dependencies
+            # Activate virtual environment and run commands as www-data
             echo "Installing dependencies..."
-            sudo -u www-data pip install -r requirements.txt --quiet
-            
-            # Run migrations
-            echo "Running migrations..."
-            sudo -u www-data python manage.py migrate --no-input
-            
-            # Collect static files
-            echo "Collecting static files..."
-            sudo -u www-data python manage.py collectstatic --no-input --clear
-            
-            # Check for issues
-            echo "Running Django checks..."
-            sudo -u www-data python manage.py check --deploy
+            sudo -u www-data bash << 'EOF'
+              cd /var/www/judeaharvest
+              source venv/bin/activate
+              pip install -r requirements.txt --quiet
+              python manage.py migrate --no-input
+              python manage.py collectstatic --no-input --clear
+              python manage.py check --deploy
+            EOF
             
             echo "=== Deployment Complete ==="
           ENDSSH
+
+
+
       
       # Restart services
       - name: Restart services
@@ -350,14 +350,22 @@ jobs:
             set -e
             cd /var/www/judeaharvest
             
+            echo "Fixing git ownership..."
+            sudo git config --global --add safe.directory /var/www/judeaharvest
+            
             echo "Reverting to previous commit..."
-            git reset --hard HEAD~1
+            sudo -u www-data git reset --hard HEAD~1
             
-            source venv/bin/activate
-            pip install -r requirements.txt --quiet
-            python manage.py migrate --no-input
-            python manage.py collectstatic --no-input --clear
+            echo "Reinstalling dependencies and migrating..."
+            sudo -u www-data bash << 'EOF'
+              cd /var/www/judeaharvest
+              source venv/bin/activate
+              pip install -r requirements.txt --quiet
+              python manage.py migrate --no-input
+              python manage.py collectstatic --no-input --clear
+            EOF
             
+            echo "Restarting services..."
             sudo systemctl restart gunicorn celery celery-beat
             sudo systemctl reload nginx
             
