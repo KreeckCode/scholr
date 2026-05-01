@@ -126,9 +126,10 @@ LOGOUT_REDIRECT_URL = 'accounts:login'
 STATIC_URL = '/static/'
 STATIC_ROOT = os.getenv('STATIC_ROOT', str(BASE_DIR / 'staticfiles'))
 
-STATICFILES_DIRS = [
-    BASE_DIR / 'static',
-]
+# Only include static/ directory if it exists
+STATICFILES_DIRS = []
+if (BASE_DIR / 'static').exists():
+    STATICFILES_DIRS = [BASE_DIR / 'static']
 
 # MEDIA FILES
 MEDIA_URL = '/media/'

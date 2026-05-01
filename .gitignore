@@ -3,3 +3,7 @@ staticfiles/
 logs/*.log
 *.pyc
 __pycache__/
+
+# Static files
+staticfiles/
+!static/

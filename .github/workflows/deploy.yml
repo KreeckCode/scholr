@@ -166,11 +166,17 @@ jobs:
         run: |
           pip install -r requirements.txt
       
+      - name: Create required directories
+        run: |
+          mkdir -p static staticfiles logs
+      
       - name: Collect static files
         env:
           SECRET_KEY: build-secret-key
           DEBUG: False
           DATABASE_URL: sqlite:///db.sqlite3
+          STATIC_ROOT: ./staticfiles  # Force local path
+          ALLOWED_HOSTS: localhost,127.0.0.1
         run: |
           python manage.py collectstatic --no-input --clear
 
@@ -239,29 +245,33 @@ jobs:
             echo "=== Starting Deployment ==="
             cd /var/www/judeaharvest
             
+            # Ensure proper ownership
+            echo "Fixing permissions..."
+            sudo chown -R www-data:www-data /var/www/judeaharvest
+            
             # Pull latest code
             echo "Pulling latest code..."
-            git fetch origin
-            git reset --hard origin/main
+            sudo -u www-data git fetch origin
+            sudo -u www-data git reset --hard origin/main
             
             # Activate virtual environment
             source venv/bin/activate
             
             # Install/update dependencies
             echo "Installing dependencies..."
-            pip install -r requirements.txt --quiet
+            sudo -u www-data pip install -r requirements.txt --quiet
             
             # Run migrations
             echo "Running migrations..."
-            python manage.py migrate --no-input
+            sudo -u www-data python manage.py migrate --no-input
             
             # Collect static files
             echo "Collecting static files..."
-            python manage.py collectstatic --no-input --clear
+            sudo -u www-data python manage.py collectstatic --no-input --clear
             
             # Check for issues
             echo "Running Django checks..."
-            python manage.py check --deploy
+            sudo -u www-data python manage.py check --deploy
             
             echo "=== Deployment Complete ==="
           ENDSSH
