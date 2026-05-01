@@ -77,7 +77,7 @@ jobs:
           MOODLE_URL: http://localhost/moodle
           MOODLE_WS_TOKEN: test-token
         run: |
-          python manage.py test --parallel
+          python manage.py test
       
       - name: Check for missing migrations
         env:
