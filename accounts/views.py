@@ -1,4 +1,5 @@
 from django.contrib.auth import login, logout, authenticate
+from django.db.models import Q, Count
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib import messages
@@ -19,7 +20,7 @@ from .forms import (
     UserProfileForm,
     UserUpdateForm
 )
-from django.db.models import Q, Count
+
 
 
 
@@ -578,11 +579,11 @@ class StudentListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
         search = self.request.GET.get('search', '')
         if search:
             queryset = queryset.filter(
-                models.Q(username__icontains=search) |
-                models.Q(first_name__icontains=search) |
-                models.Q(last_name__icontains=search) |
-                models.Q(phone_number__icontains=search) |
-                models.Q(profile__church_name__icontains=search)
+                Q(username__icontains=search) |
+                Q(first_name__icontains=search) |
+                Q(last_name__icontains=search) |
+                Q(phone_number__icontains=search) |
+                Q(profile__church_name__icontains=search)
             )
         
         # Filter by verification status
