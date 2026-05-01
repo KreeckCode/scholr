@@ -67,3 +67,4 @@ zope.interface==8.3
 safety>=3.0.0
 bandit>=1.7.0
 flake8>=7.0.0
+python-dotenv
