@@ -69,7 +69,7 @@ WSGI_APPLICATION = 'judeaharvest.wsgi.application'
 
 # DATABASE
 # Use DATABASE_URL for easy configuration
-import dj_database_url # type: ignore
+import dj_database_url
 
 if os.getenv('DATABASE_URL'):
     # Production - PostgreSQL from environment
