@@ -312,7 +312,7 @@ class EnrollmentService:
             course_names = [e.product.name for e in enrollments]
             is_free = order.is_free_order()
             
-            subject = f"{'Free Course Enrollment' if is_free else 'Purchase Confirmation'} - Judea Harvest"
+            subject = f"{'Free Course Enrollment' if is_free else 'Purchase Confirmation'} - scholr"
             
             message = f"""
 Dear {user.get_full_name()},
@@ -337,7 +337,7 @@ NEED HELP?
 Contact us at support@scholr.com or WhatsApp: +27 XX XXX XXXX
 
 Blessings,
-The Judea Harvest Team
+The scholr Team
             """
             
             send_mail(

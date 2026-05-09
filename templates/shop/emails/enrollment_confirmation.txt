@@ -1,4 +1,4 @@
-Welcome to Judea Harvest!
+Welcome to scholr!
 
 Dear {{ user.get_full_name }},
 
@@ -35,7 +35,7 @@ If you have any questions, our support team is here to help.
 Contact us at: support@ascholr.co.za
 
 Best regards,
-The Judea Harvest Team
+The scholr Team
 
 ---
 This email was sent to {{ user.email }}

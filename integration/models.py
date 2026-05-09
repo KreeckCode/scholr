@@ -96,7 +96,7 @@ class MoodleInstance(models.Model):
 
 class CourseCategory(models.Model):
     """
-    Course categories matching the 5 disciplines from Judea Harvest
+    Course categories matching the 5 disciplines from scholr
     These map to Moodle course categories
     """
     

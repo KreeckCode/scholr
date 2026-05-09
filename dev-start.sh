@@ -2,7 +2,7 @@
 
 # Development startup script for macOS
 
-echo "Starting Judea Harvest Development Environment..."
+echo "Starting scholr Development Environment..."
 
 # Check Redis is running
 if ! redis-cli ping > /dev/null 2>&1; then

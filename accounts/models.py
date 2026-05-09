@@ -9,7 +9,7 @@ from django.utils import timezone
 
 class User(AbstractUser):
     """
-    Custom user model for Judea Harvest CAS
+    Custom user model for scholr CAS
     Extends Django's AbstractUser to support role-based access and African context needs
     Phone numbers are primary contact method since many pastors lack email
     """

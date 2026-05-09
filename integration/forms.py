@@ -95,7 +95,7 @@ class MoodleConfigurationForm(forms.ModelForm):
 class CourseCategoryForm(forms.ModelForm):
     """
     Form for creating/editing course categories
-    Maps to the 5 disciplines from Judea Harvest
+    Maps to the 5 disciplines from scholr
     """
     
     class Meta:
