@@ -45,7 +45,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'judeaharvest.urls'
+ROOT_URLCONF = 'scholr.urls'
 
 # TEMPLATES
 TEMPLATES = [
@@ -65,7 +65,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'judeaharvest.wsgi.application'
+WSGI_APPLICATION = 'scholr.wsgi.application'
 
 # DATABASE
 # Use DATABASE_URL for easy configuration
@@ -165,8 +165,8 @@ EMAIL_PORT = int(os.getenv('EMAIL_PORT', '587'))
 EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'True') == 'True'
 EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', '')
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
-DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'noreply@judeaharvest.co.za')
-SERVER_EMAIL = os.getenv('SERVER_EMAIL', 'server@judeaharvest.co.za')
+DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'noreply@scholr.co.za')
+SERVER_EMAIL = os.getenv('SERVER_EMAIL', 'server@scholr.co.za')
 
 # SHOP CONFIGURATION
 CURRENCY_SYMBOL = 'R'
@@ -205,7 +205,7 @@ CACHES = {
             },
             'SERIALIZER': 'django_redis.serializers.json.JSONSerializer',
         },
-        'KEY_PREFIX': 'judeaharvest',
+        'KEY_PREFIX': 'scholr',
         'TIMEOUT': 300,
     },
     'sessions': {

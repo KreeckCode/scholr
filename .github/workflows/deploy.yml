@@ -217,8 +217,8 @@ jobs:
         run: |
           ssh ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} "DB_PASSWORD='${DB_PASSWORD}'" << 'ENDSSH'
             set -e
-            BACKUP_DIR="/var/backups/judeaharvest"
-            BACKUP_FILE="judeaharvest_$(date +%Y%m%d_%H%M%S).sql"
+            BACKUP_DIR="/var/backups/scholr"
+            BACKUP_FILE="scholr_$(date +%Y%m%d_%H%M%S).sql"
             
             echo "Creating backup directory..."
             sudo mkdir -p $BACKUP_DIR
@@ -227,7 +227,7 @@ jobs:
             sudo PGPASSWORD="$DB_PASSWORD" pg_dump \
               -U admin \
               -h localhost \
-              -d judeaharvest \
+              -d scholr \
               -F c \
               -f $BACKUP_DIR/$BACKUP_FILE
             
@@ -245,14 +245,14 @@ jobs:
             set -e
             
             echo "=== Starting Deployment ==="
-            cd /var/www/judeaharvest
+            cd /var/www/scholr
             
             # Fix git ownership issue
-            sudo git config --global --add safe.directory /var/www/judeaharvest
+            sudo git config --global --add safe.directory /var/www/scholr
             
             # Ensure proper ownership
             echo "Fixing permissions..."
-            sudo chown -R www-data:www-data /var/www/judeaharvest
+            sudo chown -R www-data:www-data /var/www/scholr
             
             # Pull latest code as www-data user
             echo "Pulling latest code..."
@@ -262,7 +262,7 @@ jobs:
             # Activate virtual environment and run commands as www-data
             echo "Installing dependencies..."
             sudo -u www-data bash << 'EOF'
-              cd /var/www/judeaharvest
+              cd /var/www/scholr
               source venv/bin/activate
               pip install -r requirements.txt --quiet
               python manage.py migrate --no-input
@@ -337,7 +337,7 @@ jobs:
         if: always()
         run: |
           ssh ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} << ENDSSH
-            echo "[${{ env.DEPLOYMENT_TIME }}] Deployment ${{ env.DEPLOYMENT_ID }} - Status: ${{ job.status }}" >> /var/www/judeaharvest/logs/deployments.log
+            echo "[${{ env.DEPLOYMENT_TIME }}] Deployment ${{ env.DEPLOYMENT_ID }} - Status: ${{ job.status }}" >> /var/www/scholr/logs/deployments.log
           ENDSSH
       
       # Rollback on failure
@@ -348,17 +348,17 @@ jobs:
           
           ssh ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} << 'ENDSSH'
             set -e
-            cd /var/www/judeaharvest
+            cd /var/www/scholr
             
             echo "Fixing git ownership..."
-            sudo git config --global --add safe.directory /var/www/judeaharvest
+            sudo git config --global --add safe.directory /var/www/scholr
             
             echo "Reverting to previous commit..."
             sudo -u www-data git reset --hard HEAD~1
             
             echo "Reinstalling dependencies and migrating..."
             sudo -u www-data bash << 'EOF'
-              cd /var/www/judeaharvest
+              cd /var/www/scholr
               source venv/bin/activate
               pip install -r requirements.txt --quiet
               python manage.py migrate --no-input
@@ -389,7 +389,7 @@ jobs:
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_SSH_KEY }}
           script: |
-            cd /var/www/judeaharvest
+            cd /var/www/scholr
             source venv/bin/activate
             python manage.py shell << 'EOF'
             from django.core.cache import cache

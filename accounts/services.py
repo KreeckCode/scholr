@@ -334,7 +334,7 @@ ACCESS YOUR COURSES:
 Your access expires on: {enrollments[0].expires_at.strftime('%B %d, %Y')}
 
 NEED HELP?
-Contact us at support@judeaharvest.com or WhatsApp: +27 XX XXX XXXX
+Contact us at support@scholr.com or WhatsApp: +27 XX XXX XXXX
 
 Blessings,
 The Judea Harvest Team

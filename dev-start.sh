@@ -15,11 +15,11 @@ echo "✓ Redis is running"
 
 # Start Celery worker in background
 echo "Starting Celery worker..."
-celery -A judeaharvest worker -l info --detach
+celery -A scholr worker -l info --detach
 
 # Start Celery beat in background
 echo "Starting Celery beat..."
-celery -A judeaharvest beat -l info --detach
+celery -A scholr beat -l info --detach
 
 echo ""
 echo "✓✓✓ All services started! ✓✓✓"
@@ -33,7 +33,7 @@ echo "To start Django:"
 echo "  python manage.py runserver"
 echo ""
 echo "To monitor Celery tasks:"
-echo "  celery -A judeaharvest flower"
+echo "  celery -A scholr flower"
 echo "  Then visit: http://localhost:5555"
 echo ""
 echo "To stop Celery:"

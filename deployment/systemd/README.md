@@ -18,7 +18,7 @@ sudo chown www-data:www-data /var/run/celery
 sudo chown www-data:www-data /var/log/celery
 ```
 
-3. Update paths in service files if needed (default: /var/www/judeaharvest)
+3. Update paths in service files if needed (default: /var/www/scholr)
 
 4. Reload systemd and start services:
 ```bash

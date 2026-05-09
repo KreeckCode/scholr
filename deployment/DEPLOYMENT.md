@@ -34,7 +34,7 @@ On deployment failure, automatic rollback:
 ```bash
 ssh root@165.232.37.122
 
-cd /var/www/judeaharvest
+cd /var/www/scholr
 git log --oneline -n 10  # Find commit to rollback to
 
 # Rollback to specific commit
@@ -52,7 +52,7 @@ systemctl reload nginx
 ## Database Backups
 
 Automatic backups before each deployment:
-- Location: `/var/backups/judeaharvest/`
+- Location: `/var/backups/scholr/`
 - Format: PostgreSQL custom format (`.sql`)
 - Retention: Last 7 backups
 
@@ -64,9 +64,9 @@ ssh root@165.232.37.122
 PGPASSWORD='YOUR_DB_PASSWORD' pg_dump \
   -U admin \
   -h localhost \
-  -d judeaharvest \
+  -d scholr \
   -F c \
-  -f /var/backups/judeaharvest/manual_$(date +%Y%m%d_%H%M%S).sql
+  -f /var/backups/scholr/manual_$(date +%Y%m%d_%H%M%S).sql
 ```
 
 ### Restore from Backup
@@ -77,17 +77,17 @@ systemctl stop gunicorn celery celery-beat
 
 # Drop and recreate database
 sudo -u postgres psql << EOF
-DROP DATABASE judeaharvest;
-CREATE DATABASE judeaharvest OWNER admin;
+DROP DATABASE scholr;
+CREATE DATABASE scholr OWNER admin;
 EOF
 
 # Restore backup
 PGPASSWORD='YOUR_DB_PASSWORD' pg_restore \
   -U admin \
   -h localhost \
-  -d judeaharvest \
+  -d scholr \
   -v \
-  /var/backups/judeaharvest/BACKUP_FILE.sql
+  /var/backups/scholr/BACKUP_FILE.sql
 
 # Restart services
 systemctl start gunicorn celery celery-beat
@@ -99,7 +99,7 @@ systemctl start gunicorn celery celery-beat
 
 ```bash
 ssh root@165.232.37.122
-tail -f /var/www/judeaharvest/logs/deployments.log
+tail -f /var/www/scholr/logs/deployments.log
 ```
 
 ### Check Service Status
@@ -123,7 +123,7 @@ tail -f /var/log/nginx/error.log
 1. Check GitHub Actions logs
 2. Check server logs: `journalctl -u gunicorn -n 50`
 3. Verify services: `systemctl status gunicorn celery`
-4. Test manually: `cd /var/www/judeaharvest && source venv/bin/activate && python manage.py check`
+4. Test manually: `cd /var/www/scholr && source venv/bin/activate && python manage.py check`
 
 ### Health Check Failed
 
@@ -148,5 +148,5 @@ python manage.py migrate app_name previous_migration_name
 ## Emergency Contacts
 
 - **System Admin**: [Your Email]
-- **Database Issues**: Check `/var/backups/judeaharvest/`
+- **Database Issues**: Check `/var/backups/scholr/`
 - **Moodle Integration**: Check Moodle web services status

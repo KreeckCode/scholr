@@ -6,17 +6,17 @@ After=network.target redis.service postgresql.service
 Type=forking
 User=www-data
 Group=www-data
-WorkingDirectory=/var/www/judeaharvest
-Environment="PATH=/var/www/judeaharvest/venv/bin"
-ExecStart=/var/www/judeaharvest/venv/bin/celery -A judeaharvest multi start worker \
+WorkingDirectory=/var/www/scholr
+Environment="PATH=/var/www/scholr/venv/bin"
+ExecStart=/var/www/scholr/venv/bin/celery -A scholr multi start worker \
     --pidfile=/var/run/celery/%n.pid \
     --logfile=/var/log/celery/%n%I.log \
     --loglevel=INFO \
     --concurrency=4 \
     --max-tasks-per-child=100
-ExecStop=/var/www/judeaharvest/venv/bin/celery -A judeaharvest multi stopwait worker \
+ExecStop=/var/www/scholr/venv/bin/celery -A scholr multi stopwait worker \
     --pidfile=/var/run/celery/%n.pid
-ExecReload=/var/www/judeaharvest/venv/bin/celery -A judeaharvest multi restart worker \
+ExecReload=/var/www/scholr/venv/bin/celery -A scholr multi restart worker \
     --pidfile=/var/run/celery/%n.pid \
     --logfile=/var/log/celery/%n%I.log \
     --loglevel=INFO
