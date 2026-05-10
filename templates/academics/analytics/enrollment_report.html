@@ -1,0 +1,130 @@
+{% extends 'academics/base.html' %}
+
+{% block academics_content %}
+<div class="flex items-center justify-between mb-6">
+    <div class="flex items-center gap-3">
+        <a href="{% url 'academics:analytics_dashboard' %}" class="text-gray-400 hover:text-gray-600">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+            </svg>
+        </a>
+        <h1 class="text-xl font-bold text-gray-900">Enrollment Report</h1>
+    </div>
+    <a href="{% url 'academics:analytics_export' %}"
+       class="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700">
+        Export Excel
+    </a>
+</div>
+
+<!-- Summary row -->
+<div class="grid grid-cols-4 gap-4 mb-6">
+    <div class="bg-white rounded-xl border border-gray-200 p-4 text-center">
+        <p class="text-3xl font-bold text-gray-800">{{ total }}</p>
+        <p class="text-xs text-gray-400 mt-1">Total Enrolled</p>
+    </div>
+    <div class="bg-white rounded-xl border border-gray-200 p-4 text-center">
+        <p class="text-3xl font-bold text-blue-600">{{ male }}</p>
+        <p class="text-xs text-gray-400 mt-1">Male</p>
+    </div>
+    <div class="bg-white rounded-xl border border-gray-200 p-4 text-center">
+        <p class="text-3xl font-bold text-purple-600">{{ female }}</p>
+        <p class="text-xs text-gray-400 mt-1">Female</p>
+    </div>
+    <div class="bg-white rounded-xl border border-gray-200 p-4 text-center">
+        <p class="text-3xl font-bold text-green-600">{{ transfers_in }}</p>
+        <p class="text-3xl font-bold text-red-500 inline"> / {{ transfers_out }}</p>
+        <p class="text-xs text-gray-400 mt-1">Transfers In / Out</p>
+    </div>
+</div>
+
+<div class="grid grid-cols-2 gap-6">
+    <!-- Enrollment by grade -->
+    <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        <div class="px-5 py-4 border-b border-gray-100">
+            <h2 class="text-sm font-semibold text-gray-800">Enrollment by Grade</h2>
+        </div>
+        <table class="w-full text-sm">
+            <thead class="bg-gray-50 border-b border-gray-200">
+                <tr>
+                    <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Grade</th>
+                    <th class="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">Total</th>
+                    <th class="px-4 py-3 text-center text-xs font-semibold text-blue-500 uppercase">M</th>
+                    <th class="px-4 py-3 text-center text-xs font-semibold text-purple-500 uppercase">F</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+                {% for g in grade_data %}
+                <tr class="hover:bg-gray-50">
+                    <td class="px-4 py-2 font-medium text-gray-800">{{ g.grade_name }}</td>
+                    <td class="px-4 py-2 text-center font-semibold text-gray-800">{{ g.count }}</td>
+                    <td class="px-4 py-2 text-center text-blue-600">{{ g.male }}</td>
+                    <td class="px-4 py-2 text-center text-purple-600">{{ g.female }}</td>
+                </tr>
+                {% endfor %}
+                <tr class="bg-gray-50 font-semibold">
+                    <td class="px-4 py-2 text-gray-700">Total</td>
+                    <td class="px-4 py-2 text-center text-gray-800">{{ total }}</td>
+                    <td class="px-4 py-2 text-center text-blue-700">{{ male }}</td>
+                    <td class="px-4 py-2 text-center text-purple-700">{{ female }}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Nationality + Classification -->
+    <div class="space-y-4">
+        <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+            <div class="px-5 py-4 border-b border-gray-100">
+                <h2 class="text-sm font-semibold text-gray-800">Nationality</h2>
+            </div>
+            <table class="w-full text-sm">
+                <tbody class="divide-y divide-gray-100">
+                    {% for row in nationality_counts %}
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-4 py-2 text-gray-700">{{ row.learner__nationality }}</td>
+                        <td class="px-4 py-2 text-right font-semibold text-gray-800">{{ row.count }}</td>
+                        <td class="px-4 py-2 text-right text-gray-400 text-xs">
+                            {% if total %}{{ row.count|floatformat:0 }}{% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+            <div class="px-5 py-4 border-b border-gray-100">
+                <h2 class="text-sm font-semibold text-gray-800">Classification</h2>
+            </div>
+            <table class="w-full text-sm">
+                <tbody class="divide-y divide-gray-100">
+                    {% for row in classification_counts %}
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-4 py-2 text-gray-700 capitalize">
+                            {{ row.learner__classification| default:""}}
+                        </td>
+                        <td class="px-4 py-2 text-right font-semibold text-gray-800">{{ row.count }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+            <div class="px-5 py-4 border-b border-gray-100">
+                <h2 class="text-sm font-semibold text-gray-800">Home Language</h2>
+            </div>
+            <table class="w-full text-sm">
+                <tbody class="divide-y divide-gray-100">
+                    {% for row in language_counts %}
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-4 py-2 text-gray-700 capitalize">{{ row.learner__home_language }}</td>
+                        <td class="px-4 py-2 text-right font-semibold text-gray-800">{{ row.count }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

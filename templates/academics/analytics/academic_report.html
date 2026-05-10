@@ -1,0 +1,173 @@
+{% extends 'academics/base.html' %}
+
+{% block academics_content %}
+<div class="flex items-center justify-between mb-6">
+    <div class="flex items-center gap-3">
+        <a href="{% url 'academics:analytics_dashboard' %}" class="text-gray-400 hover:text-gray-600">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+            </svg>
+        </a>
+        <h1 class="text-xl font-bold text-gray-900">Academic Performance Report</h1>
+    </div>
+    <a href="{% url 'academics:analytics_export' %}"
+       class="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700">
+        Export Excel
+    </a>
+</div>
+
+<!-- Grade Summary -->
+{% if grade_stats %}
+<div class="bg-white rounded-xl border border-gray-200 overflow-hidden mb-6">
+    <div class="px-5 py-4 border-b border-gray-100">
+        <h2 class="text-sm font-semibold text-gray-800">Performance by Grade</h2>
+    </div>
+    <table class="w-full text-sm">
+        <thead class="bg-gray-50 border-b border-gray-200">
+            <tr>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Grade</th>
+                <th class="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">Marks</th>
+                <th class="px-4 py-3 text-center text-xs font-semibold text-green-600 uppercase">Passed</th>
+                <th class="px-4 py-3 text-center text-xs font-semibold text-red-500 uppercase">Failed</th>
+                <th class="px-4 py-3 text-center text-xs font-semibold text-blue-600 uppercase">Distinctions</th>
+                <th class="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">Pass Rate</th>
+                <th class="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">Average</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+            {% for g in grade_stats %}
+            <tr class="hover:bg-gray-50">
+                <td class="px-4 py-3 font-medium text-gray-800">{{ g.grade_name }}</td>
+                <td class="px-4 py-3 text-center text-gray-600">{{ g.total_marks }}</td>
+                <td class="px-4 py-3 text-center text-green-700 font-medium">{{ g.passed }}</td>
+                <td class="px-4 py-3 text-center {% if g.failed %}text-red-600 font-medium{% else %}text-gray-300{% endif %}">{{ g.failed }}</td>
+                <td class="px-4 py-3 text-center text-blue-600">{{ g.distinctions }}</td>
+                <td class="px-4 py-3 text-center font-semibold
+                    {% if g.pass_rate and g.pass_rate >= 70 %}text-green-700
+                    {% elif g.pass_rate %}text-amber-600{% else %}text-gray-300{% endif %}">
+                    {% if g.pass_rate %}{{ g.pass_rate }}%{% else %}-{% endif %}
+                </td>
+                <td class="px-4 py-3 text-center text-gray-700">{{ g.average }}%</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+
+<!-- Subject breakdown -->
+{% if subject_stats %}
+<div class="bg-white rounded-xl border border-gray-200 overflow-hidden mb-6">
+    <div class="px-5 py-4 border-b border-gray-100">
+        <h2 class="text-sm font-semibold text-gray-800">Performance by Subject</h2>
+    </div>
+    <table class="w-full text-sm">
+        <thead class="bg-gray-50 border-b border-gray-200">
+            <tr>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Subject</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Grade</th>
+                <th class="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">Learners</th>
+                <th class="px-4 py-3 text-center text-xs font-semibold text-green-600 uppercase">Passed</th>
+                <th class="px-4 py-3 text-center text-xs font-semibold text-red-500 uppercase">Failed</th>
+                <th class="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">Pass Rate</th>
+                <th class="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">Average</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+            {% for s in subject_stats %}
+            <tr class="hover:bg-gray-50 {% if s.pass_rate and s.pass_rate < 40 %}bg-red-50{% endif %}">
+                <td class="px-4 py-2 font-medium text-gray-800">{{ s.subject_name }}</td>
+                <td class="px-4 py-2 text-gray-600">{{ s.grade_name }}</td>
+                <td class="px-4 py-2 text-center text-gray-600">{{ s.total }}</td>
+                <td class="px-4 py-2 text-center text-green-700">{{ s.passed }}</td>
+                <td class="px-4 py-2 text-center {% if s.failed %}text-red-600{% else %}text-gray-300{% endif %}">{{ s.failed }}</td>
+                <td class="px-4 py-2 text-center font-semibold
+                    {% if s.pass_rate and s.pass_rate >= 70 %}text-green-700
+                    {% elif s.pass_rate and s.pass_rate >= 40 %}text-amber-600
+                    {% elif s.pass_rate %}text-red-600{% else %}text-gray-300{% endif %}">
+                    {% if s.pass_rate %}{{ s.pass_rate }}%{% else %}-{% endif %}
+                </td>
+                <td class="px-4 py-2 text-center text-gray-700">{{ s.average }}%</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+
+<!-- Learners failing 3+ subjects -->
+{% if multi_fail_learners %}
+<div class="bg-white rounded-xl border border-red-200 overflow-hidden mb-6">
+    <div class="px-5 py-4 border-b border-red-100 bg-red-50">
+        <h2 class="text-sm font-semibold text-red-800">Learners Failing 3 or More Subjects</h2>
+        <p class="text-xs text-red-600 mt-0.5">These learners require urgent intervention.</p>
+    </div>
+    <table class="w-full text-sm">
+        <thead class="bg-gray-50 border-b border-gray-200">
+            <tr>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Learner</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Admission No.</th>
+                <th class="px-4 py-3 text-center text-xs font-semibold text-red-500 uppercase">Failing</th>
+                <th class="px-4 py-3"></th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+            {% for item in multi_fail_learners %}
+            <tr class="bg-red-50 hover:bg-red-100">
+                <td class="px-4 py-2 font-medium text-gray-800">
+                    {{ item.subject_enrollment__learner__last_name }}, {{ item.subject_enrollment__learner__first_name }}
+                </td>
+                <td class="px-4 py-2 font-mono text-gray-500 text-xs">
+                    {{ item.subject_enrollment__learner__admission_number }}
+                </td>
+                <td class="px-4 py-2 text-center font-bold text-red-700">
+                    {{ item.fail_count }} subjects
+                </td>
+                <td class="px-4 py-2 text-right">
+                    <a href="{% url 'academics:learner_analysis' item.subject_enrollment__learner %}"
+                       class="text-xs text-blue-600 hover:text-blue-800">View Analysis</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+
+<!-- Distinction achievers -->
+{% if distinctions %}
+<div class="bg-white rounded-xl border border-blue-200 overflow-hidden">
+    <div class="px-5 py-4 border-b border-blue-100 bg-blue-50">
+        <h2 class="text-sm font-semibold text-blue-800">Distinction Achievers (80%+)</h2>
+    </div>
+    <table class="w-full text-sm">
+        <thead class="bg-gray-50 border-b border-gray-200">
+            <tr>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Learner</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Subject</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Grade</th>
+                <th class="px-4 py-3 text-center text-xs font-semibold text-blue-500 uppercase">Mark</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+            {% for fm in distinctions %}
+            <tr class="hover:bg-blue-50">
+                <td class="px-4 py-2 font-medium text-gray-800">
+                    {{ fm.subject_enrollment.learner.get_full_name }}
+                </td>
+                <td class="px-4 py-2 text-gray-600">
+                    {{ fm.subject_enrollment.subject_offering.subject.name }}
+                </td>
+                <td class="px-4 py-2 text-gray-600">
+                    {{ fm.subject_enrollment.subject_offering.grade.name }}
+                </td>
+                <td class="px-4 py-2 text-center font-bold text-blue-700">
+                    {{ fm.final_percentage|floatformat:1 }}%
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+{% endblock %}

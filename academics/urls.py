@@ -13,6 +13,10 @@ from .views.curriculum import (
     SubjectOfferingUpdateView,
     SubjectUpdateView,
 )
+from .views.analytics import (
+    AnalyticsDashboardView, AcademicReportView,
+    EnrollmentReportView, ExportAnalyticsExcelView,
+)
 from .views.portal import (
     PortalDashboardView, PortalChildOverviewView,
     PortalChildMarksView, PortalChildAttendanceView,
@@ -144,4 +148,10 @@ urlpatterns = [
     path("parent-accounts/", ParentAccountsView.as_view(), name="parent_accounts"),
     path("parent-accounts/<int:guardian_pk>/create/", CreateParentAccountView.as_view(), name="parent_account_create"),
     path("parent-accounts/<int:guardian_pk>/revoke/", RevokeParentAccountView.as_view(), name="parent_account_revoke"),
+
+    # Analytics
+    path("analytics/", AnalyticsDashboardView.as_view(), name="analytics_dashboard"),
+    path("analytics/academic/", AcademicReportView.as_view(), name="analytics_academic"),
+    path("analytics/enrollment/", EnrollmentReportView.as_view(), name="analytics_enrollment"),
+    path("analytics/export/", ExportAnalyticsExcelView.as_view(), name="analytics_export"),
 ]
