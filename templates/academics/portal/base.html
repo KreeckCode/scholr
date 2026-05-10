@@ -1,0 +1,57 @@
+{% extends 'base/base.html' %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50">
+
+    <!-- Portal header -->
+    <header class="bg-white border-b border-gray-200 sticky top-0 z-20">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                {% if school and school.logo %}
+                <img src="{{ school.logo.url }}" alt="{{ school.name }}" class="h-8 w-auto">
+                {% endif %}
+                <div>
+                    <p class="text-sm font-semibold text-gray-900">
+                        {% if school %}{{ school.name }}{% else %}Parent Portal{% endif %}
+                    </p>
+                    <p class="text-xs text-gray-400 hidden sm:block">Parent Portal</p>
+                </div>
+            </div>
+            <nav class="flex items-center gap-4 text-sm">
+                <a href="{% url 'academics:portal_dashboard' %}"
+                   class="text-gray-600 hover:text-gray-900">My Children</a>
+                <span class="text-gray-300">|</span>
+                <span class="text-gray-600">{{ request.user.get_full_name }}</span>
+                <a href="{% url 'accounts:logout' %}"
+                   class="text-gray-400 hover:text-gray-600 text-xs">Log out</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Messages -->
+    {% if messages %}
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 pt-4">
+        {% for message in messages %}
+        <div class="mb-2 px-4 py-3 rounded-lg text-sm
+            {% if message.tags == 'success' %}bg-green-50 text-green-800 border border-green-200
+            {% elif message.tags == 'error' %}bg-red-50 text-red-800 border border-red-200
+            {% else %}bg-blue-50 text-blue-800 border border-blue-200{% endif %}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Main content -->
+    <main class="max-w-4xl mx-auto px-4 sm:px-6 py-8">
+        {% block portal_content %}{% endblock %}
+    </main>
+
+    <footer class="border-t border-gray-200 mt-12 py-6">
+        <p class="text-center text-xs text-gray-400">
+            {% if school %}{{ school.name }} &middot;{% endif %}
+            Parent Portal &middot; Scholr
+        </p>
+    </footer>
+</div>
+{% endblock %}

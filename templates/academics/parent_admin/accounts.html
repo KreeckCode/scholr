@@ -1,0 +1,86 @@
+{% extends 'academics/base.html' %}
+
+{% block academics_content %}
+<div class="flex items-center justify-between mb-6">
+    <h1 class="text-2xl font-bold text-gray-900">Parent Portal Accounts</h1>
+</div>
+
+{% if without_account %}
+<div class="bg-white rounded-xl border border-gray-200 overflow-hidden mb-6">
+    <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+        <h2 class="text-sm font-semibold text-gray-800">Guardians Without Portal Access</h2>
+        <span class="text-xs text-gray-400">{{ without_account|length }} total</span>
+    </div>
+    <table class="w-full text-sm">
+        <thead class="bg-gray-50 border-b border-gray-200">
+            <tr>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Guardian</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Phone</th>
+                <th class="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">Learners</th>
+                <th class="px-4 py-3"></th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+            {% for item in without_account %}
+            <tr class="hover:bg-gray-50">
+                <td class="px-4 py-3 font-medium text-gray-800">{{ item.guardian.get_full_name }}</td>
+                <td class="px-4 py-3 text-gray-600">{{ item.guardian.phone_primary }}</td>
+                <td class="px-4 py-3 text-center text-gray-600">{{ item.learner_count }}</td>
+                <td class="px-4 py-3 text-right">
+                    <a href="{% url 'academics:parent_account_create' item.guardian.pk %}"
+                       class="text-xs text-white bg-blue-600 hover:bg-blue-700 px-3 py-1.5 rounded-lg font-medium">
+                        Create Account
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+
+{% if with_account %}
+<div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+    <div class="px-5 py-4 border-b border-gray-100">
+        <h2 class="text-sm font-semibold text-gray-800">Active Portal Accounts</h2>
+    </div>
+    <table class="w-full text-sm">
+        <thead class="bg-gray-50 border-b border-gray-200">
+            <tr>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Guardian</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Username</th>
+                <th class="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">Learners</th>
+                <th class="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">Status</th>
+                <th class="px-4 py-3"></th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+            {% for item in with_account %}
+            <tr class="hover:bg-gray-50">
+                <td class="px-4 py-3 font-medium text-gray-800">{{ item.guardian.get_full_name }}</td>
+                <td class="px-4 py-3 font-mono text-gray-600 text-xs">{{ item.guardian.user.username }}</td>
+                <td class="px-4 py-3 text-center text-gray-600">{{ item.learner_count }}</td>
+                <td class="px-4 py-3 text-center">
+                    {% if item.guardian.user.is_active %}
+                    <span class="inline-block px-2 py-0.5 bg-green-50 text-green-700 text-xs rounded font-medium">Active</span>
+                    {% else %}
+                    <span class="inline-block px-2 py-0.5 bg-red-50 text-red-700 text-xs rounded font-medium">Deactivated</span>
+                    {% endif %}
+                </td>
+                <td class="px-4 py-3 text-right">
+                    <form method="post" action="{% url 'academics:parent_account_revoke' item.guardian.pk %}"
+                          onsubmit="return confirm('Deactivate portal access for {{ item.guardian.get_full_name }}?')">
+                        {% csrf_token %}
+                        <button type="submit"
+                                class="text-xs text-red-500 hover:text-red-700 border border-red-200 px-2 py-1 rounded hover:bg-red-50">
+                            Revoke
+                        </button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+{% endblock %}

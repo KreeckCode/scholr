@@ -1,0 +1,103 @@
+{% extends 'academics/portal/base.html' %}
+
+{% block portal_content %}
+<div class="flex items-center gap-3 mb-6">
+    <a href="{% url 'academics:portal_child' learner.pk %}" class="text-gray-400 hover:text-gray-600">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+        </svg>
+    </a>
+    <div>
+        <h1 class="text-xl font-bold text-gray-900">{{ learner.get_full_name }}</h1>
+        <p class="text-sm text-gray-500">Academic Performance - {{ current_year.year }}</p>
+    </div>
+</div>
+
+<!-- Tabs -->
+<div class="flex gap-1 mb-6 bg-gray-100 rounded-xl p-1">
+    <a href="{% url 'academics:portal_child' learner.pk %}" class="flex-1 text-center px-4 py-2 text-sm text-gray-600 hover:text-gray-900">Overview</a>
+    <a href="{% url 'academics:portal_marks' learner.pk %}" class="flex-1 text-center px-4 py-2 text-sm font-medium rounded-lg bg-white shadow-sm text-blue-700">Marks</a>
+    <a href="{% url 'academics:portal_attendance' learner.pk %}" class="flex-1 text-center px-4 py-2 text-sm text-gray-600 hover:text-gray-900">Attendance</a>
+    <a href="{% url 'academics:portal_reports' learner.pk %}" class="flex-1 text-center px-4 py-2 text-sm text-gray-600 hover:text-gray-900">Reports</a>
+</div>
+
+{% if not has_published %}
+<div class="bg-white rounded-xl border border-gray-200 p-12 text-center">
+    <p class="text-gray-400">No published results yet.</p>
+    <p class="text-sm text-gray-400 mt-1">Results are published by the school at the end of each term.</p>
+</div>
+{% else %}
+<div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+    <table class="w-full text-sm">
+        <thead class="bg-gray-50 border-b border-gray-200">
+            <tr>
+                <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Subject</th>
+                <th class="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase hidden sm:table-cell">Term 1</th>
+                <th class="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase hidden sm:table-cell">Term 2</th>
+                <th class="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase hidden sm:table-cell">Term 3</th>
+                <th class="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase hidden sm:table-cell">Term 4</th>
+                <th class="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">Final</th>
+                <th class="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">Level</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+            {% for row in subject_rows %}
+            <tr class="{% if row.final_mark and not row.final_mark.is_published %}opacity-40{% endif %}
+                       {% if row.final_mark and row.final_mark.result == 'fail' %}bg-red-50{% endif %}">
+                <td class="px-5 py-3 font-medium text-gray-800">
+                    {{ row.subject_name }}
+                    <span class="block text-xs text-gray-400 font-normal">
+                        SBA {{ row.sba_weighting }}% / Exam {{ row.exam_weighting }}%
+                    </span>
+                </td>
+                {% with t=row.t1 %}
+                <td class="px-4 py-3 text-center text-gray-600 hidden sm:table-cell">
+                    {% if t and t.sba_percentage is not None %}{{ t.sba_percentage|floatformat:1 }}%{% else %}<span class="text-gray-200">-</span>{% endif %}
+                </td>
+                {% endwith %}
+                {% with t=row.t2 %}
+                <td class="px-4 py-3 text-center text-gray-600 hidden sm:table-cell">
+                    {% if t and t.sba_percentage is not None %}{{ t.sba_percentage|floatformat:1 }}%{% else %}<span class="text-gray-200">-</span>{% endif %}
+                </td>
+                {% endwith %}
+                {% with t=row.t3 %}
+                <td class="px-4 py-3 text-center text-gray-600 hidden sm:table-cell">
+                    {% if t and t.sba_percentage is not None %}{{ t.sba_percentage|floatformat:1 }}%{% else %}<span class="text-gray-200">-</span>{% endif %}
+                </td>
+                {% endwith %}
+                {% with t=row.t4 %}
+                <td class="px-4 py-3 text-center text-gray-600 hidden sm:table-cell">
+                    {% if t and t.sba_percentage is not None %}{{ t.sba_percentage|floatformat:1 }}%{% else %}<span class="text-gray-200">-</span>{% endif %}
+                </td>
+                {% endwith %}
+                <td class="px-4 py-3 text-center font-bold
+                    {% if row.final_mark and row.final_mark.result == 'fail' %}text-red-700
+                    {% elif row.final_mark %}text-gray-800{% else %}text-gray-300{% endif %}">
+                    {% if row.final_mark and row.final_mark.is_published and row.final_mark.final_percentage is not None %}
+                    {{ row.final_mark.final_percentage|floatformat:1 }}%
+                    {% else %}-{% endif %}
+                </td>
+                <td class="px-4 py-3 text-center">
+                    {% if row.symbol %}
+                    <span class="inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-bold
+                        {% if row.symbol >= 6 %}bg-blue-100 text-blue-700
+                        {% elif row.symbol >= 4 %}bg-green-100 text-green-700
+                        {% elif row.symbol == 3 %}bg-yellow-100 text-yellow-700
+                        {% else %}bg-red-100 text-red-700{% endif %}">
+                        {{ row.symbol }}
+                    </span>
+                    {% else %}<span class="text-gray-200">-</span>{% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <div class="px-5 py-3 bg-gray-50 border-t border-gray-100">
+        <p class="text-xs text-gray-400">
+            Minimum pass mark: 40% &middot;
+            7=Outstanding (80%+) &middot; 4=Adequate (50%) &middot; 1=Not Achieved (&lt;30%)
+        </p>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

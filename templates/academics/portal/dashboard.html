@@ -1,0 +1,86 @@
+{% extends 'academics/portal/base.html' %}
+
+{% block portal_content %}
+<div class="mb-8">
+    <h1 class="text-2xl font-bold text-gray-900">
+        Hello, {{ request.user.first_name|default:request.user.get_full_name }}
+    </h1>
+    <p class="text-gray-500 mt-1 text-sm">
+        {% if current_year %}{{ current_year.year }} Academic Year
+        {% if current_term %}&middot; {{ current_term }}{% endif %}
+        {% endif %}
+    </p>
+</div>
+
+{% if child_cards %}
+<div class="space-y-4">
+    {% for card in child_cards %}
+    <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
+        <div class="p-6">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-4">
+                    {% if card.learner.photo %}
+                    <img src="{{ card.learner.photo.url }}" alt=""
+                         class="w-14 h-14 rounded-full object-cover border-2 border-gray-100">
+                    {% else %}
+                    <div class="w-14 h-14 rounded-full bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center border-2 border-gray-100">
+                        <span class="text-xl font-semibold text-blue-600">
+                            {{ card.learner.first_name|first }}{{ card.learner.last_name|first }}
+                        </span>
+                    </div>
+                    {% endif %}
+                    <div>
+                        <h2 class="text-lg font-bold text-gray-900">{{ card.learner.get_full_name }}</h2>
+                        {% if card.enrollment %}
+                        <p class="text-sm text-gray-500">
+                            {{ card.enrollment.grade.name }}
+                            {% if card.enrollment.stream %}
+                            &middot; Class {{ card.enrollment.stream.get_display_name }}
+                            {% endif %}
+                        </p>
+                        {% endif %}
+                    </div>
+                </div>
+                <a href="{% url 'academics:portal_child' card.learner.pk %}"
+                   class="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">
+                    View
+                </a>
+            </div>
+
+            <!-- Quick stats -->
+            <div class="mt-4 pt-4 border-t border-gray-100 grid grid-cols-3 gap-4 text-center">
+                <div>
+                    <p class="text-xs text-gray-400 mb-1">Attendance</p>
+                    {% if card.attendance %}
+                    <p class="font-semibold {% if card.attendance.is_at_risk %}text-red-600{% else %}text-green-600{% endif %}">
+                        {{ card.attendance.attendance_percentage|floatformat:0 }}%
+                    </p>
+                    {% if card.attendance.is_at_risk %}
+                    <p class="text-xs text-red-500">Below 80%</p>
+                    {% endif %}
+                    {% else %}
+                    <p class="text-gray-300 text-sm">-</p>
+                    {% endif %}
+                </div>
+                <div>
+                    <p class="text-xs text-gray-400 mb-1">Report Cards</p>
+                    <p class="font-semibold text-gray-800">{{ card.report_count }}</p>
+                    <p class="text-xs text-gray-400">Available</p>
+                </div>
+                <div>
+                    <p class="text-xs text-gray-400 mb-1">Admission</p>
+                    <p class="font-mono text-sm text-gray-600">{{ card.learner.admission_number }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+{% else %}
+<div class="bg-white rounded-2xl border border-gray-200 p-12 text-center">
+    <p class="text-gray-400">No learners linked to your account.</p>
+    <p class="text-sm text-gray-400 mt-2">Contact the school office to link your children.</p>
+</div>
+{% endif %}
+{% endblock %}

@@ -13,6 +13,12 @@ from .views.curriculum import (
     SubjectOfferingUpdateView,
     SubjectUpdateView,
 )
+from .views.portal import (
+    PortalDashboardView, PortalChildOverviewView,
+    PortalChildMarksView, PortalChildAttendanceView,
+    PortalChildReportsView, PortalReportDownloadView,
+    ParentAccountsView, CreateParentAccountView, RevokeParentAccountView,
+)
 from .views.lurits import (
     LURITSDashboardView, RunValidationView,
     ValidationResultsView, ExportDataView, ExportDownloadView,
@@ -125,4 +131,17 @@ urlpatterns = [
     path("lurits/validation/", ValidationResultsView.as_view(), name="lurits_validation"),
     path("lurits/export/", ExportDataView.as_view(), name="lurits_export"),
     path("lurits/download/<int:pk>/", ExportDownloadView.as_view(), name="lurits_download"),
+
+    # Parent portal
+    path("portal/", PortalDashboardView.as_view(), name="portal_dashboard"),
+    path("portal/<int:learner_pk>/", PortalChildOverviewView.as_view(), name="portal_child"),
+    path("portal/<int:learner_pk>/marks/", PortalChildMarksView.as_view(), name="portal_marks"),
+    path("portal/<int:learner_pk>/attendance/", PortalChildAttendanceView.as_view(), name="portal_attendance"),
+    path("portal/<int:learner_pk>/reports/", PortalChildReportsView.as_view(), name="portal_reports"),
+    path("portal/<int:learner_pk>/reports/<int:report_pk>/download/", PortalReportDownloadView.as_view(), name="portal_report_download"),
+
+    # Parent account administration
+    path("parent-accounts/", ParentAccountsView.as_view(), name="parent_accounts"),
+    path("parent-accounts/<int:guardian_pk>/create/", CreateParentAccountView.as_view(), name="parent_account_create"),
+    path("parent-accounts/<int:guardian_pk>/revoke/", RevokeParentAccountView.as_view(), name="parent_account_revoke"),
 ]

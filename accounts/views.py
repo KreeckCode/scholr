@@ -284,10 +284,15 @@ def dashboard_view(request):
     
     if user.role == User.ADMIN:
         return redirect('accounts:admin_dashboard')
+    elif user.role == 'parent':
+        return redirect('academics:portal_dashboard')
+    elif user.role in ('teacher', 'principal', 'hod', 'admin_clerk'):
+        return redirect('academics:learner_list')
     elif user.role == User.DEAN:
         return redirect('accounts:dean_dashboard')
     else:  # STUDENT
         return redirect('accounts:student_dashboard')
+    
 
 
 @login_required
