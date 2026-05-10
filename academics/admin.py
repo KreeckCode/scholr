@@ -1,5 +1,6 @@
 from django.contrib import admin
-
+from .models.curriculum import Curriculum, SchoolSubject, SubjectOffering, AssessmentTask
+from .models.marks import SubjectEnrollment, AssessmentRecord, TermMark, FinalMark
 from .models import (
     AcademicYear,
     Department,
@@ -194,3 +195,143 @@ class GuardianAdmin(admin.ModelAdmin):
     def learner_count(self, obj):
         return obj.learner_relationships.count()
     learner_count.short_description = "Learners"
+
+
+@admin.register(Curriculum)
+class CurriculumAdmin(admin.ModelAdmin):
+    list_display = ("name", "code", "is_default", "is_active")
+    list_editable = ("is_default", "is_active")
+
+    def has_delete_permission(self, request, obj=None):
+        # Prevent deleting a curriculum that has subjects linked to it
+        if obj and obj.subjects.exists():
+            return False
+        return super().has_delete_permission(request, obj)
+
+
+class SubjectOfferingInline(admin.TabularInline):
+    model = SubjectOffering
+    extra = 0
+    fields = ("grade", "is_compulsory", "sba_weighting", "exam_weighting", "pass_mark", "is_active")
+
+
+class AssessmentTaskInline(admin.TabularInline):
+    model = AssessmentTask
+    extra = 0
+    fields = ("term_number", "name", "task_type", "max_marks", "is_sba", "sequence", "is_active")
+
+
+@admin.register(SchoolSubject)
+class SchoolSubjectAdmin(admin.ModelAdmin):
+    list_display = (
+        "code", "name", "subject_type", "curriculum", "department",
+        "lurits_code", "active_offering_count", "is_active",
+    )
+    list_filter = ("curriculum", "subject_type", "is_active", "department")
+    search_fields = ("name", "code", "lurits_code")
+    list_editable = ("is_active",)
+    ordering = ("sort_order", "name")
+    inlines = [SubjectOfferingInline]
+
+    def active_offering_count(self, obj):
+        return obj.offerings.filter(is_active=True).count()
+    active_offering_count.short_description = "Grades"
+
+
+@admin.register(SubjectOffering)
+class SubjectOfferingAdmin(admin.ModelAdmin):
+    list_display = (
+        "__str__", "grade", "subject", "is_compulsory",
+        "sba_weighting", "exam_weighting", "pass_mark", "task_count", "is_active",
+    )
+    list_filter = ("grade", "subject__subject_type", "is_compulsory", "is_active")
+    search_fields = ("subject__name", "subject__code", "grade__name")
+    inlines = [AssessmentTaskInline]
+
+    def task_count(self, obj):
+        return obj.tasks.filter(is_active=True).count()
+    task_count.short_description = "Tasks"
+
+
+@admin.register(AssessmentTask)
+class AssessmentTaskAdmin(admin.ModelAdmin):
+    list_display = (
+        "name", "get_subject", "get_grade", "term_number",
+        "task_type", "max_marks", "is_sba", "sequence", "is_active",
+    )
+    list_filter = (
+        "term_number", "task_type", "is_sba", "is_active",
+        "subject_offering__grade",
+    )
+    search_fields = ("name", "subject_offering__subject__name", "subject_offering__grade__name")
+
+    def get_subject(self, obj):
+        return obj.subject_offering.subject.name
+    get_subject.short_description = "Subject"
+
+    def get_grade(self, obj):
+        return obj.subject_offering.grade.name
+    get_grade.short_description = "Grade"
+
+
+@admin.register(SubjectEnrollment)
+class SubjectEnrollmentAdmin(admin.ModelAdmin):
+    list_display = ("learner", "get_subject", "get_grade", "stream", "academic_year", "is_active")
+    list_filter = ("academic_year", "subject_offering__grade", "is_active")
+    search_fields = ("learner__first_name", "learner__last_name", "learner__admission_number")
+    raw_id_fields = ("learner",)
+
+    def get_subject(self, obj):
+        return obj.subject_offering.subject.name
+    get_subject.short_description = "Subject"
+
+    def get_grade(self, obj):
+        return obj.subject_offering.grade.name
+    get_grade.short_description = "Grade"
+
+
+@admin.register(AssessmentRecord)
+class AssessmentRecordAdmin(admin.ModelAdmin):
+    list_display = (
+        "get_learner", "get_task", "raw_mark", "is_absent",
+        "moderated_mark", "captured_by", "captured_at",
+    )
+    list_filter = (
+        "is_absent",
+        "assessment_task__subject_offering__grade",
+        "assessment_task__term_number",
+    )
+    search_fields = (
+        "subject_enrollment__learner__first_name",
+        "subject_enrollment__learner__last_name",
+    )
+    readonly_fields = ("captured_at", "updated_at")
+
+    def get_learner(self, obj):
+        return obj.subject_enrollment.learner.get_full_name()
+    get_learner.short_description = "Learner"
+
+    def get_task(self, obj):
+        return obj.assessment_task.name
+    get_task.short_description = "Task"
+
+
+@admin.register(FinalMark)
+class FinalMarkAdmin(admin.ModelAdmin):
+    list_display = (
+        "get_learner", "get_subject", "year_sba_percentage",
+        "exam_percentage", "final_percentage", "result", "is_published",
+    )
+    list_filter = (
+        "result", "is_published",
+        "subject_enrollment__subject_offering__grade",
+    )
+    list_editable = ("is_published",)
+
+    def get_learner(self, obj):
+        return obj.subject_enrollment.learner.get_full_name()
+    get_learner.short_description = "Learner"
+
+    def get_subject(self, obj):
+        return obj.subject_enrollment.subject_offering.subject.name
+    get_subject.short_description = "Subject"

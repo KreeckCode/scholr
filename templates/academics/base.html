@@ -15,15 +15,12 @@
         <nav class="p-3 space-y-0.5">
             {% if request.user.role in "admin,principal,admin_clerk,hod,teacher" %}
             <a href="{% url 'academics:learner_list' %}"
-               class="flex items-center gap-3 px-3 py-2 text-sm rounded-lg
-                      {% if 'learner' in request.resolver_match.url_name %}
-                      bg-blue-50 text-blue-700 font-medium
-                      {% else %}
-                      text-gray-600 hover:bg-gray-50 hover:text-gray-900
-                      {% endif %}">
+            class="flex items-center gap-3 px-3 py-2 text-sm rounded-lg
+                    {% if 'learner' in request.resolver_match.url_name %}bg-blue-50 text-blue-700 font-medium
+                    {% else %}text-gray-600 hover:bg-gray-50 hover:text-gray-900{% endif %}">
                 <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                          d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0"/>
+                        d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0"/>
                 </svg>
                 Learners
             </a>
@@ -31,17 +28,69 @@
 
             {% if request.user.role in "admin,principal,admin_clerk" %}
             <a href="{% url 'academics:grade_list' %}"
-               class="flex items-center gap-3 px-3 py-2 text-sm rounded-lg
-                      {% if 'grade' in request.resolver_match.url_name or 'stream' in request.resolver_match.url_name %}
-                      bg-blue-50 text-blue-700 font-medium
-                      {% else %}
-                      text-gray-600 hover:bg-gray-50 hover:text-gray-900
-                      {% endif %}">
+            class="flex items-center gap-3 px-3 py-2 text-sm rounded-lg
+                    {% if 'grade' in request.resolver_match.url_name or 'stream' in request.resolver_match.url_name %}bg-blue-50 text-blue-700 font-medium
+                    {% else %}text-gray-600 hover:bg-gray-50 hover:text-gray-900{% endif %}">
                 <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                          d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+                        d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
                 </svg>
                 Grades and Classes
+            </a>
+            
+
+            <!-- Curriculum section -->
+            <div class="pt-3">
+                <p class="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Curriculum</p>
+            </div>
+
+            <a href="{% url 'academics:subject_list' %}"
+            class="flex items-center gap-3 px-3 py-2 text-sm rounded-lg
+                    {% if 'subject' in request.resolver_match.url_name %}bg-blue-50 text-blue-700 font-medium
+                    {% else %}text-gray-600 hover:bg-gray-50 hover:text-gray-900{% endif %}">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                </svg>
+                Subjects
+            </a>
+
+            
+
+            <a href="{% url 'academics:offering_matrix' %}"
+            class="flex items-center gap-3 px-3 py-2 text-sm rounded-lg
+                    {% if 'matrix' in request.resolver_match.url_name or 'offering' in request.resolver_match.url_name or 'task' in request.resolver_match.url_name %}bg-blue-50 text-blue-700 font-medium
+                    {% else %}text-gray-600 hover:bg-gray-50 hover:text-gray-900{% endif %}">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18M10 3v18M14 3v18"/>
+                </svg>
+                Subject Matrix
+            </a>
+            {% elif request.user.role in "hod,teacher" %}
+            <div class="pt-3">
+                <p class="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Curriculum</p>
+            </div>
+            <a href="{% url 'academics:subject_list' %}"
+            class="flex items-center gap-3 px-3 py-2 text-sm rounded-lg text-gray-600 hover:bg-gray-50 hover:text-gray-900">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                </svg>
+                Subjects
+            </a>
+            {% endif %}
+
+            {% if request.user.role in "admin,principal,hod,teacher" %}
+            <div class="pt-3">
+                <p class="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Marks</p>
+            </div>
+            <a href="{% url 'academics:marks_dashboard' %}"
+            class="flex items-center gap-3 px-3 py-2 text-sm rounded-lg
+                    {% if 'marks' in request.resolver_match.url_name %}bg-blue-50 text-blue-700 font-medium
+                    {% else %}text-gray-600 hover:bg-gray-50 hover:text-gray-900{% endif %}">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
+                </svg>
+                Mark Capture
             </a>
             {% endif %}
         </nav>

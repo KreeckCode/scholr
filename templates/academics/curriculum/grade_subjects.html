@@ -1,0 +1,83 @@
+{% extends 'academics/base.html' %}
+
+{% block academics_content %}
+<div class="flex items-center justify-between mb-6">
+    <div class="flex items-center gap-3">
+        <a href="{% url 'academics:offering_matrix' %}" class="text-gray-400 hover:text-gray-600">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+            </svg>
+        </a>
+        <div>
+            <h1 class="text-xl font-bold text-gray-900">{{ grade.name }} - Subjects</h1>
+            <p class="text-sm text-gray-500 mt-0.5">{{ grade.short_phase }}</p>
+        </div>
+    </div>
+    <a href="{% url 'academics:offering_create' grade.pk %}"
+       class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+        </svg>
+        Add Subject
+    </a>
+</div>
+
+<div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+    {% if offerings %}
+    <table class="w-full text-sm">
+        <thead class="bg-gray-50 border-b border-gray-200">
+            <tr>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Subject</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Type</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">SBA / Exam</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Pass Mark</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Required</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Tasks</th>
+                <th class="px-4 py-3"></th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+            {% for offering in offerings %}
+            <tr class="hover:bg-gray-50">
+                <td class="px-4 py-3">
+                    <div class="font-medium text-gray-900">{{ offering.subject.name }}</div>
+                    <div class="text-xs font-mono text-gray-400">{{ offering.subject.code }}</div>
+                </td>
+                <td class="px-4 py-3">
+                    <span class="inline-block px-2 py-0.5 rounded text-xs font-medium bg-{{ offering.subject.get_type_colour }}-50 text-{{ offering.subject.get_type_colour }}-700">
+                        {{ offering.subject.get_subject_type_display }}
+                    </span>
+                </td>
+                <td class="px-4 py-3 text-gray-700">{{ offering.sba_weighting }}% / {{ offering.exam_weighting }}%</td>
+                <td class="px-4 py-3 text-gray-700">{{ offering.pass_mark }}%</td>
+                <td class="px-4 py-3">
+                    {% if offering.is_compulsory %}
+                    <span class="text-xs text-green-700 font-medium">Compulsory</span>
+                    {% else %}
+                    <span class="text-xs text-gray-400">Elective</span>
+                    {% endif %}
+                </td>
+                <td class="px-4 py-3">
+                    <a href="{% url 'academics:task_list' offering.pk %}"
+                       class="text-blue-600 hover:text-blue-800 text-xs">
+                        {{ task_counts|default_if_none:0 }} tasks
+                    </a>
+                </td>
+                <td class="px-4 py-3 text-right">
+                    <a href="{% url 'academics:offering_update' offering.pk %}"
+                       class="text-blue-600 hover:text-blue-800 text-xs font-medium mr-3">Edit</a>
+                    <a href="{% url 'academics:task_list' offering.pk %}"
+                       class="text-gray-600 hover:text-gray-800 text-xs font-medium">Tasks</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="px-4 py-16 text-center">
+        <p class="text-gray-400 text-sm">No subjects configured for {{ grade.name }} yet.</p>
+        <a href="{% url 'academics:offering_create' grade.pk %}" class="mt-2 inline-block text-blue-600 text-sm hover:underline">Add the first subject</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,163 @@
+{% extends 'academics/base.html' %}
+
+{% block academics_content %}
+<!-- Header -->
+<div class="flex items-start justify-between mb-4">
+    <div class="flex items-center gap-3">
+        <a href="{% url 'academics:marks_dashboard' %}" class="text-gray-400 hover:text-gray-600">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+            </svg>
+        </a>
+        <div>
+            <h1 class="text-xl font-bold text-gray-900">{{ offering.subject.name }}</h1>
+            <p class="text-sm text-gray-500 mt-0.5">
+                {{ offering.grade.name }} - {{ stream.get_display_name }}
+                &middot; SBA {{ offering.sba_weighting }}% / Exam {{ offering.exam_weighting }}%
+            </p>
+        </div>
+    </div>
+    {% if marks_open %}
+    <span class="inline-block px-2 py-1 bg-green-50 text-green-700 text-xs font-medium rounded">Capture Open</span>
+    {% else %}
+    <span class="inline-block px-2 py-1 bg-red-50 text-red-700 text-xs font-medium rounded">Capture Closed</span>
+    {% endif %}
+</div>
+
+<!-- Term selector -->
+<div class="mb-4 flex items-center gap-2">
+    <span class="text-xs text-gray-500">Term:</span>
+    {% for term in all_terms %}
+    <a href="?term={{ term.number }}"
+       class="px-3 py-1 text-xs rounded-lg border
+              {% if term.selected %}border-blue-500 bg-blue-50 text-blue-700 font-semibold
+              {% else %}border-gray-300 text-gray-600 hover:bg-gray-50{% endif %}">
+        {{ term.label }}
+    </a>
+    {% endfor %}
+    <span class="ml-3 text-xs text-gray-400">
+        <a href="{% url 'academics:term_summary' offering.pk stream.pk %}" class="text-blue-600 hover:underline">View Term Summary</a>
+    </span>
+</div>
+
+{% if not tasks %}
+<div class="bg-white rounded-xl border border-gray-200 px-4 py-12 text-center">
+    <p class="text-gray-400 text-sm">No assessment tasks configured for Term {{ term_number }}.</p>
+    <p class="text-xs text-gray-400 mt-1">
+        Add tasks under Curriculum &rarr; {{ offering.subject.name }} &rarr; {{ offering.grade.name }} &rarr; Tasks.
+    </p>
+</div>
+
+{% elif not rows %}
+<div class="bg-white rounded-xl border border-gray-200 px-4 py-12 text-center">
+    <p class="text-gray-400 text-sm">No active learners in {{ stream.get_display_name }}.</p>
+</div>
+
+{% else %}
+<form method="post">
+    {% csrf_token %}
+    <!-- Hidden term so POST knows which term was being captured -->
+    <input type="hidden" name="term_captured" value="{{ term_number }}">
+
+    <div class="overflow-x-auto rounded-xl border border-gray-200 bg-white">
+        <table class="text-sm min-w-full">
+            <thead class="bg-gray-50 border-b border-gray-200">
+                <tr>
+                    <!-- Sticky learner name column -->
+                    <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider
+                               sticky left-0 bg-gray-50 z-10 min-w-40 border-r border-gray-200">
+                        Learner
+                    </th>
+                    {% for task in tasks %}
+                    <th class="px-3 py-3 text-center min-w-28">
+                        <div class="text-xs font-semibold text-gray-700">{{ task.name }}</div>
+                        <div class="text-xs text-gray-400 font-normal">
+                            /{{ task.max_marks }}
+                            {% if task.is_sba %}
+                            <span class="text-green-600">SBA</span>
+                            {% else %}
+                            <span class="text-indigo-600">Exam</span>
+                            {% endif %}
+                        </div>
+                    </th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+                {% for row in rows %}
+                <tr class="hover:bg-gray-50">
+                    <!-- Sticky learner column -->
+                    <td class="px-4 py-2 sticky left-0 bg-white z-10 border-r border-gray-100">
+                        <div class="font-medium text-gray-800 text-sm">
+                            {{ row.learner.last_name }}, {{ row.learner.get_display_name }}
+                        </div>
+                    </td>
+                    {% for cell in row.cells %}
+                    <td class="px-2 py-2 text-center">
+                        {% if marks_open %}
+                        <div class="flex flex-col items-center gap-1">
+                            <input
+                                type="number"
+                                name="mark_{{ cell.task.pk }}_{{ row.enrollment.pk }}"
+                                value="{% if cell.record and not cell.record.is_absent %}{{ cell.record.raw_mark }}{% endif %}"
+                                min="0"
+                                max="{{ cell.task.max_marks }}"
+                                step="0.5"
+                                {% if cell.record and cell.record.is_absent %}disabled{% endif %}
+                                class="w-20 px-2 py-1 text-center border rounded text-sm
+                                       {% if cell.record and cell.record.moderated_mark %}border-amber-400 bg-amber-50
+                                       {% elif cell.record and cell.record.is_absent %}border-gray-200 bg-gray-50
+                                       {% elif cell.record %}border-blue-200 bg-white
+                                       {% else %}border-gray-300 bg-white{% endif %}
+                                       focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-40">
+                            <label class="flex items-center gap-1 text-xs text-gray-400 cursor-pointer">
+                                <input type="checkbox"
+                                       name="absent_{{ cell.task.pk }}_{{ row.enrollment.pk }}"
+                                       {% if cell.record and cell.record.is_absent %}checked{% endif %}
+                                       class="h-3 w-3 rounded border-gray-300 text-red-500">
+                                Absent
+                            </label>
+                        </div>
+                        {% else %}
+                        <!-- Read-only when marks are closed -->
+                        <div class="text-sm text-gray-700">
+                            {% if cell.record and cell.record.is_absent %}
+                            <span class="text-red-400 text-xs">Absent</span>
+                            {% elif cell.record and cell.record.raw_mark is not None %}
+                            {{ cell.record.effective_mark }}
+                            {% if cell.record.moderated_mark %}
+                            <span class="text-amber-500 text-xs ml-1">M</span>
+                            {% endif %}
+                            {% else %}
+                            <span class="text-gray-300">-</span>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                    </td>
+                    {% endfor %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% if marks_open %}
+    <div class="mt-4 flex items-center gap-3">
+        <button type="submit"
+                class="px-6 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">
+            Save Marks
+        </button>
+        <a href="{% url 'academics:marks_dashboard' %}"
+           class="px-4 py-2.5 border border-gray-300 text-sm text-gray-700 rounded-lg hover:bg-gray-50">
+            Cancel
+        </a>
+        <span class="text-xs text-gray-400 ml-2">M = moderated mark</span>
+    </div>
+    {% else %}
+    <p class="mt-4 text-sm text-gray-400">
+        Mark capture is closed for this term. Contact the principal to re-open it.
+    </p>
+    {% endif %}
+</form>
+{% endif %}
+{% endblock %}

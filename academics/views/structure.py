@@ -32,17 +32,23 @@ class GradeListView(ManagementMixin, ListView):
         ctx["selected_year"] = selected_year
         ctx["all_years"] = AcademicYear.objects.order_by("-year")
 
-        # Attach streams for the selected year to each grade
         if selected_year:
-            streams_by_grade = {}
-            for stream in GradeStream.objects.filter(
+            streams = GradeStream.objects.filter(
                 academic_year=selected_year, is_active=True
-            ).select_related("homeroom_teacher", "grade").order_by("name"):
-                streams_by_grade.setdefault(stream.grade_id, []).append(stream)
-            ctx["streams_by_grade"] = streams_by_grade
-        else:
-            ctx["streams_by_grade"] = {}
+            ).select_related("homeroom_teacher", "grade").order_by("name")
 
+            streams_by_grade = {}
+            for stream in streams:
+                streams_by_grade.setdefault(stream.grade_id, []).append(stream)
+        else:
+            streams_by_grade = {}
+
+        # I'm building a flat list so templates can iterate without variable
+        # dict key lookups, which Django templates cannot do
+        ctx["grade_data"] = [
+            {"grade": grade, "streams": streams_by_grade.get(grade.pk, [])}
+            for grade in self.get_queryset()
+        ]
         ctx["can_manage"] = self.request.user.role in {"admin", "principal"}
         return ctx
 

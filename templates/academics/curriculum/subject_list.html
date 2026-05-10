@@ -1,0 +1,108 @@
+{% extends 'academics/base.html' %}
+
+{% block academics_content %}
+<div class="flex items-center justify-between mb-6">
+    <h1 class="text-2xl font-bold text-gray-900">School Subjects</h1>
+    <div class="flex gap-2">
+        <a href="{% url 'academics:offering_matrix' %}"
+           class="px-4 py-2 border border-gray-300 text-sm text-gray-700 rounded-lg hover:bg-gray-50">
+            Subject Matrix
+        </a>
+        {% if can_manage %}
+        <a href="{% url 'academics:subject_create' %}"
+           class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+            </svg>
+            Add Subject
+        </a>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="bg-white rounded-xl border border-gray-200 p-4 mb-6">
+    <form method="get" class="flex flex-wrap gap-3 items-end">
+        <div>
+            <label class="block text-xs font-medium text-gray-600 mb-1">Subject Type</label>
+            <select name="type" class="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="">All Types</option>
+                {% for value, label in type_choices %}
+                <option value="{{ value }}" {% if selected_type == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label class="block text-xs font-medium text-gray-600 mb-1">Curriculum</label>
+            <select name="curriculum" class="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="">All Curricula</option>
+                {% for c in curricula %}
+                <option value="{{ c.pk }}" {% if selected_curriculum == c.pk|stringformat:"s" %}selected{% endif %}>{{ c.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <button type="submit" class="px-4 py-2 bg-gray-800 text-white text-sm rounded-lg hover:bg-gray-900">Filter</button>
+        {% if selected_type or selected_curriculum %}
+        <a href="{% url 'academics:subject_list' %}" class="px-4 py-2 text-sm text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50">Clear</a>
+        {% endif %}
+    </form>
+</div>
+
+<div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+    {% if subjects %}
+    <table class="w-full text-sm">
+        <thead class="bg-gray-50 border-b border-gray-200">
+            <tr>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Code</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Subject</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Type</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Department</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">LURITS</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Default SBA/Exam</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Grades</th>
+                {% if can_manage %}<th class="px-4 py-3"></th>{% endif %}
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+            {% for subject in subjects %}
+            <tr class="hover:bg-gray-50 transition-colors">
+                <td class="px-4 py-3 font-mono font-medium text-gray-800">{{ subject.code }}</td>
+                <td class="px-4 py-3">
+                    <div class="font-medium text-gray-900">{{ subject.name }}</div>
+                    {% if subject.is_home_language %}
+                    <div class="text-xs text-gray-400">Home Language</div>
+                    {% endif %}
+                </td>
+                <td class="px-4 py-3">
+                    <span class="inline-block px-2 py-0.5 rounded text-xs font-medium
+                        bg-{{ subject.get_type_colour }}-50 text-{{ subject.get_type_colour }}-700">
+                        {{ subject.get_subject_type_display }}
+                    </span>
+                </td>
+                <td class="px-4 py-3 text-gray-600">{{ subject.department.name|default:"-" }}</td>
+                <td class="px-4 py-3 font-mono text-gray-500">{{ subject.lurits_code|default:"-" }}</td>
+                <td class="px-4 py-3 text-gray-600">{{ subject.default_sba_weighting }}% / {{ subject.default_exam_weighting }}%</td>
+                <td class="px-4 py-3 text-gray-600">{{ subject.active_offering_count }}</td>
+                {% if can_manage %}
+                <td class="px-4 py-3 text-right">
+                    <a href="{% url 'academics:subject_update' subject.pk %}"
+                       class="text-blue-600 hover:text-blue-800 text-xs font-medium">Edit</a>
+                </td>
+                {% endif %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="px-4 py-16 text-center">
+        <p class="text-gray-400 text-sm">No subjects found.</p>
+        {% if can_manage %}
+        <p class="mt-2 text-sm text-gray-400">
+            Run <code class="bg-gray-100 px-1 rounded">python manage.py seed_subjects</code> to seed CAPS subjects,
+            or <a href="{% url 'academics:subject_create' %}" class="text-blue-600 hover:underline">add one manually</a>.
+        </p>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

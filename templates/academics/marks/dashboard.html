@@ -1,0 +1,67 @@
+{% extends 'academics/base.html' %}
+
+{% block academics_content %}
+<div class="flex items-center justify-between mb-6">
+    <div>
+        <h1 class="text-2xl font-bold text-gray-900">Mark Capture</h1>
+        {% if current_term %}
+        <p class="text-sm text-gray-500 mt-0.5">
+            {{ current_term }} - {{ current_year.year }}
+            {% if current_term.marks_open %}
+            <span class="ml-2 inline-block px-2 py-0.5 bg-green-50 text-green-700 text-xs font-medium rounded">Open</span>
+            {% else %}
+            <span class="ml-2 inline-block px-2 py-0.5 bg-red-50 text-red-700 text-xs font-medium rounded">Closed</span>
+            {% endif %}
+        </p>
+        {% endif %}
+    </div>
+</div>
+
+{% if not current_year %}
+<div class="bg-amber-50 border border-amber-200 rounded-xl p-5 text-sm text-amber-800">
+    No academic year is set as current. Configure one in the admin.
+</div>
+{% elif not sessions %}
+<div class="bg-white rounded-xl border border-gray-200 px-4 py-16 text-center">
+    <p class="text-gray-400 text-sm">No mark capture sessions available.</p>
+    <p class="text-xs text-gray-400 mt-1">
+        Check that grades, streams, subjects, and assessment tasks are configured.
+    </p>
+</div>
+{% else %}
+<div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+    <table class="w-full text-sm">
+        <thead class="bg-gray-50 border-b border-gray-200">
+            <tr>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Class</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Subject</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Learners</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Tasks (Term {{ current_term.term_number }})</th>
+                <th class="px-4 py-3"></th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+            {% for session in sessions %}
+            <tr class="hover:bg-gray-50">
+                <td class="px-4 py-3 font-medium text-gray-800">
+                    {{ session.stream.get_display_name }}
+                </td>
+                <td class="px-4 py-3">
+                    <div class="font-medium text-gray-800">{{ session.offering.subject.name }}</div>
+                    <div class="text-xs text-gray-400">{{ session.offering.grade.name }}</div>
+                </td>
+                <td class="px-4 py-3 text-gray-600">{{ session.learner_count }}</td>
+                <td class="px-4 py-3 text-gray-600">{{ session.task_count }}</td>
+                <td class="px-4 py-3 text-right">
+                    <a href="{% url 'academics:marks_capture' session.offering.pk session.stream.pk %}?term={{ session.term_number }}"
+                       class="inline-block px-3 py-1.5 bg-blue-600 text-white text-xs font-medium rounded-lg hover:bg-blue-700 transition-colors">
+                        Capture Marks
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+{% endblock %}

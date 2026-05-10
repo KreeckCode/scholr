@@ -8,7 +8,7 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
             </svg>
         </a>
-        <h1 class="text-2xl font-bold text-gray-900">{{ title }}</h1>
+        <h1 class="text-xl font-bold text-gray-900">{{ title }}</h1>
     </div>
 
     <form method="post" enctype="multipart/form-data" class="space-y-6">
@@ -16,9 +16,7 @@
 
         {% if form.non_field_errors %}
         <div class="p-4 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
-            {% for error in form.non_field_errors %}
-            <p>{{ error }}</p>
-            {% endfor %}
+            {% for error in form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
         </div>
         {% endif %}
 
@@ -29,24 +27,46 @@
                 <p class="text-xs text-gray-400 mt-0.5">Legal name as on birth certificate or SA ID</p>
             </div>
             <div class="px-5 py-4 grid grid-cols-2 gap-4">
-                {% for field_name in "first_name,last_name,preferred_name,sa_id_number,birth_cert_number,admission_number,emis_learner_number"|split:"," %}
-                {% with field=form|get_item:field_name %}
-                {% if field %}
-                <div class="{% if field_name in 'preferred_name' %}col-span-2{% endif %}">
-                    <label class="block text-xs font-medium text-gray-700 mb-1">
-                        {{ field.label }}{% if field.field.required %} <span class="text-red-500">*</span>{% endif %}
-                    </label>
-                    {{ field }}
-                    {% if field.help_text %}
-                    <p class="text-xs text-gray-400 mt-0.5">{{ field.help_text }}</p>
-                    {% endif %}
-                    {% for error in field.errors %}
-                    <p class="text-xs text-red-600 mt-0.5">{{ error }}</p>
-                    {% endfor %}
+                <div>
+                    <label class="block text-xs font-medium text-gray-700 mb-1">First Name <span class="text-red-500">*</span></label>
+                    {{ form.first_name }}
+                    {% for e in form.first_name.errors %}<p class="text-xs text-red-600 mt-0.5">{{ e }}</p>{% endfor %}
                 </div>
-                {% endif %}
-                {% endwith %}
-                {% endfor %}
+                <div>
+                    <label class="block text-xs font-medium text-gray-700 mb-1">Last Name <span class="text-red-500">*</span></label>
+                    {{ form.last_name }}
+                    {% for e in form.last_name.errors %}<p class="text-xs text-red-600 mt-0.5">{{ e }}</p>{% endfor %}
+                </div>
+                <div class="col-span-2">
+                    <label class="block text-xs font-medium text-gray-700 mb-1">Preferred Name</label>
+                    {{ form.preferred_name }}
+                    <p class="text-xs text-gray-400 mt-0.5">Name learner goes by if different from legal first name</p>
+                    {% for e in form.preferred_name.errors %}<p class="text-xs text-red-600 mt-0.5">{{ e }}</p>{% endfor %}
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-700 mb-1">SA ID Number</label>
+                    {{ form.sa_id_number }}
+                    <p class="text-xs text-gray-400 mt-0.5">13 digits - auto-fills date of birth and gender</p>
+                    {% for e in form.sa_id_number.errors %}<p class="text-xs text-red-600 mt-0.5">{{ e }}</p>{% endfor %}
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-700 mb-1">Birth Certificate Number</label>
+                    {{ form.birth_cert_number }}
+                    <p class="text-xs text-gray-400 mt-0.5">Required if no SA ID number</p>
+                    {% for e in form.birth_cert_number.errors %}<p class="text-xs text-red-600 mt-0.5">{{ e }}</p>{% endfor %}
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-700 mb-1">Admission Number</label>
+                    {{ form.admission_number }}
+                    <p class="text-xs text-gray-400 mt-0.5">Leave blank - auto-generated on registration</p>
+                    {% for e in form.admission_number.errors %}<p class="text-xs text-red-600 mt-0.5">{{ e }}</p>{% endfor %}
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-700 mb-1">LURITS ULI</label>
+                    {{ form.emis_learner_number }}
+                    <p class="text-xs text-gray-400 mt-0.5">DBE Unique Learner Identifier</p>
+                    {% for e in form.emis_learner_number.errors %}<p class="text-xs text-red-600 mt-0.5">{{ e }}</p>{% endfor %}
+                </div>
             </div>
         </div>
 
@@ -56,17 +76,31 @@
                 <h2 class="text-sm font-semibold text-gray-800">Demographics</h2>
             </div>
             <div class="px-5 py-4 grid grid-cols-2 gap-4">
-                {% for field in form.date_of_birth form.gender form.home_language form.nationality form.classification %}
                 <div>
-                    <label class="block text-xs font-medium text-gray-700 mb-1">
-                        {{ field.label }}{% if field.field.required %} <span class="text-red-500">*</span>{% endif %}
-                    </label>
-                    {{ field }}
-                    {% for error in field.errors %}
-                    <p class="text-xs text-red-600 mt-0.5">{{ error }}</p>
-                    {% endfor %}
+                    <label class="block text-xs font-medium text-gray-700 mb-1">Date of Birth <span class="text-red-500">*</span></label>
+                    {{ form.date_of_birth }}
+                    {% for e in form.date_of_birth.errors %}<p class="text-xs text-red-600 mt-0.5">{{ e }}</p>{% endfor %}
                 </div>
-                {% endfor %}
+                <div>
+                    <label class="block text-xs font-medium text-gray-700 mb-1">Gender <span class="text-red-500">*</span></label>
+                    {{ form.gender }}
+                    {% for e in form.gender.errors %}<p class="text-xs text-red-600 mt-0.5">{{ e }}</p>{% endfor %}
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-700 mb-1">Home Language <span class="text-red-500">*</span></label>
+                    {{ form.home_language }}
+                    {% for e in form.home_language.errors %}<p class="text-xs text-red-600 mt-0.5">{{ e }}</p>{% endfor %}
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-700 mb-1">Nationality</label>
+                    {{ form.nationality }}
+                    {% for e in form.nationality.errors %}<p class="text-xs text-red-600 mt-0.5">{{ e }}</p>{% endfor %}
+                </div>
+                <div class="col-span-2">
+                    <label class="block text-xs font-medium text-gray-700 mb-1">Classification</label>
+                    {{ form.classification }}
+                    {% for e in form.classification.errors %}<p class="text-xs text-red-600 mt-0.5">{{ e }}</p>{% endfor %}
+                </div>
             </div>
         </div>
 
@@ -76,21 +110,35 @@
                 <h2 class="text-sm font-semibold text-gray-800">Medical Information</h2>
                 <p class="text-xs text-gray-400 mt-0.5">Sensitive - visible to school staff only</p>
             </div>
-            <div class="px-5 py-4 grid grid-cols-2 gap-4">
-                {% for field in form.allergies form.chronic_conditions form.current_medication %}
-                <div class="col-span-2">
-                    <label class="block text-xs font-medium text-gray-700 mb-1">{{ field.label }}</label>
-                    {{ field }}
-                    {% for error in field.errors %}<p class="text-xs text-red-600 mt-0.5">{{ error }}</p>{% endfor %}
-                </div>
-                {% endfor %}
-                {% for field in form.medical_aid_scheme form.medical_aid_number %}
+            <div class="px-5 py-4 space-y-4">
                 <div>
-                    <label class="block text-xs font-medium text-gray-700 mb-1">{{ field.label }}</label>
-                    {{ field }}
-                    {% for error in field.errors %}<p class="text-xs text-red-600 mt-0.5">{{ error }}</p>{% endfor %}
+                    <label class="block text-xs font-medium text-gray-700 mb-1">Allergies</label>
+                    {{ form.allergies }}
+                    {% for e in form.allergies.errors %}<p class="text-xs text-red-600 mt-0.5">{{ e }}</p>{% endfor %}
                 </div>
-                {% endfor %}
+                <div>
+                    <label class="block text-xs font-medium text-gray-700 mb-1">Chronic Conditions</label>
+                    {{ form.chronic_conditions }}
+                    {% for e in form.chronic_conditions.errors %}<p class="text-xs text-red-600 mt-0.5">{{ e }}</p>{% endfor %}
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-700 mb-1">Medication at School</label>
+                    {{ form.current_medication }}
+                    <p class="text-xs text-gray-400 mt-0.5">Include dosage and schedule</p>
+                    {% for e in form.current_medication.errors %}<p class="text-xs text-red-600 mt-0.5">{{ e }}</p>{% endfor %}
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-medium text-gray-700 mb-1">Medical Aid Scheme</label>
+                        {{ form.medical_aid_scheme }}
+                        {% for e in form.medical_aid_scheme.errors %}<p class="text-xs text-red-600 mt-0.5">{{ e }}</p>{% endfor %}
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-700 mb-1">Medical Aid Number</label>
+                        {{ form.medical_aid_number }}
+                        {% for e in form.medical_aid_number.errors %}<p class="text-xs text-red-600 mt-0.5">{{ e }}</p>{% endfor %}
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -100,13 +148,17 @@
                 <h2 class="text-sm font-semibold text-gray-800">Transport</h2>
             </div>
             <div class="px-5 py-4 grid grid-cols-2 gap-4">
-                {% for field in form.transport_mode form.transport_notes %}
                 <div>
-                    <label class="block text-xs font-medium text-gray-700 mb-1">{{ field.label }}</label>
-                    {{ field }}
-                    {% for error in field.errors %}<p class="text-xs text-red-600 mt-0.5">{{ error }}</p>{% endfor %}
+                    <label class="block text-xs font-medium text-gray-700 mb-1">Transport Mode</label>
+                    {{ form.transport_mode }}
+                    {% for e in form.transport_mode.errors %}<p class="text-xs text-red-600 mt-0.5">{{ e }}</p>{% endfor %}
                 </div>
-                {% endfor %}
+                <div>
+                    <label class="block text-xs font-medium text-gray-700 mb-1">Transport Notes</label>
+                    {{ form.transport_notes }}
+                    <p class="text-xs text-gray-400 mt-0.5">Route, stop, or pickup point</p>
+                    {% for e in form.transport_notes.errors %}<p class="text-xs text-red-600 mt-0.5">{{ e }}</p>{% endfor %}
+                </div>
             </div>
         </div>
 
@@ -115,17 +167,29 @@
             <div class="px-5 py-4 border-b border-gray-100">
                 <h2 class="text-sm font-semibold text-gray-800">Home Address</h2>
             </div>
-            <div class="px-5 py-4 grid grid-cols-2 gap-4">
-                <div class="col-span-2">
+            <div class="px-5 py-4 space-y-4">
+                <div>
                     <label class="block text-xs font-medium text-gray-700 mb-1">Street Address</label>
                     {{ form.street_address }}
+                    {% for e in form.street_address.errors %}<p class="text-xs text-red-600 mt-0.5">{{ e }}</p>{% endfor %}
                 </div>
-                {% for field in form.suburb form.city form.postal_code %}
-                <div>
-                    <label class="block text-xs font-medium text-gray-700 mb-1">{{ field.label }}</label>
-                    {{ field }}
+                <div class="grid grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-xs font-medium text-gray-700 mb-1">Suburb</label>
+                        {{ form.suburb }}
+                        {% for e in form.suburb.errors %}<p class="text-xs text-red-600 mt-0.5">{{ e }}</p>{% endfor %}
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-700 mb-1">City</label>
+                        {{ form.city }}
+                        {% for e in form.city.errors %}<p class="text-xs text-red-600 mt-0.5">{{ e }}</p>{% endfor %}
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-700 mb-1">Postal Code</label>
+                        {{ form.postal_code }}
+                        {% for e in form.postal_code.errors %}<p class="text-xs text-red-600 mt-0.5">{{ e }}</p>{% endfor %}
+                    </div>
                 </div>
-                {% endfor %}
             </div>
         </div>
 
@@ -136,6 +200,7 @@
             </div>
             <div class="px-5 py-4">
                 {{ form.photo }}
+                {% for e in form.photo.errors %}<p class="text-xs text-red-600 mt-0.5">{{ e }}</p>{% endfor %}
             </div>
         </div>
 

@@ -1,0 +1,98 @@
+{% extends 'academics/base.html' %}
+
+{% block academics_content %}
+<div class="flex items-center justify-between mb-6">
+    <div class="flex items-center gap-3">
+        <a href="{% url 'academics:grade_subjects' offering.grade.pk %}" class="text-gray-400 hover:text-gray-600">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+            </svg>
+        </a>
+        <div>
+            <h1 class="text-xl font-bold text-gray-900">{{ offering.subject.name }}</h1>
+            <p class="text-sm text-gray-500 mt-0.5">{{ offering.grade.name }} - Assessment Tasks</p>
+        </div>
+    </div>
+    {% if can_manage %}
+    <a href="{% url 'academics:task_create' offering.pk %}"
+       class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+        </svg>
+        Add Task
+    </a>
+    {% endif %}
+</div>
+
+<!-- Weighting summary -->
+<div class="grid grid-cols-3 gap-4 mb-6">
+    <div class="bg-white rounded-xl border border-gray-200 p-4 text-center">
+        <p class="text-xs text-gray-400 mb-1">SBA Weighting</p>
+        <p class="text-2xl font-bold text-blue-600">{{ offering.sba_weighting }}%</p>
+        <p class="text-xs text-gray-400 mt-0.5">{{ total_sba_marks }} total SBA marks</p>
+    </div>
+    <div class="bg-white rounded-xl border border-gray-200 p-4 text-center">
+        <p class="text-xs text-gray-400 mb-1">Exam Weighting</p>
+        <p class="text-2xl font-bold text-indigo-600">{{ offering.exam_weighting }}%</p>
+        <p class="text-xs text-gray-400 mt-0.5">{{ total_exam_marks }} total exam marks</p>
+    </div>
+    <div class="bg-white rounded-xl border border-gray-200 p-4 text-center">
+        <p class="text-xs text-gray-400 mb-1">Pass Mark</p>
+        <p class="text-2xl font-bold text-gray-800">{{ offering.pass_mark }}%</p>
+        <p class="text-xs text-gray-400 mt-0.5">Minimum to pass</p>
+    </div>
+</div>
+
+<!-- Tasks by term -->
+{% for term_num, term_tasks in tasks_by_term.items %}
+<div class="bg-white rounded-xl border border-gray-200 mb-4 overflow-hidden">
+    <div class="px-5 py-3 bg-gray-50 border-b border-gray-100">
+        <h2 class="text-sm font-semibold text-gray-800">Term {{ term_num }}</h2>
+    </div>
+    {% if term_tasks %}
+    <table class="w-full text-sm">
+        <thead class="border-b border-gray-100">
+            <tr>
+                <th class="px-4 py-2 text-left text-xs font-semibold text-gray-400 uppercase">Task</th>
+                <th class="px-4 py-2 text-left text-xs font-semibold text-gray-400 uppercase">Type</th>
+                <th class="px-4 py-2 text-left text-xs font-semibold text-gray-400 uppercase">Marks</th>
+                <th class="px-4 py-2 text-left text-xs font-semibold text-gray-400 uppercase">Component</th>
+                <th class="px-4 py-2 text-left text-xs font-semibold text-gray-400 uppercase">Timing</th>
+                {% if can_manage %}<th class="px-4 py-2"></th>{% endif %}
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-50">
+            {% for task in term_tasks %}
+            <tr class="hover:bg-gray-50">
+                <td class="px-4 py-2 font-medium text-gray-800">{{ task.name }}</td>
+                <td class="px-4 py-2 text-gray-600">{{ task.get_task_type_display }}</td>
+                <td class="px-4 py-2 text-gray-700">{{ task.max_marks }}</td>
+                <td class="px-4 py-2">
+                    {% if task.is_sba %}
+                    <span class="inline-block px-2 py-0.5 text-xs rounded bg-green-50 text-green-700 font-medium">SBA</span>
+                    {% else %}
+                    <span class="inline-block px-2 py-0.5 text-xs rounded bg-indigo-50 text-indigo-700 font-medium">Exam</span>
+                    {% endif %}
+                </td>
+                <td class="px-4 py-2 text-gray-400 text-xs">{{ task.typical_week }}</td>
+                {% if can_manage %}
+                <td class="px-4 py-2 text-right">
+                    <a href="{% url 'academics:task_update' task.pk %}"
+                       class="text-blue-600 hover:text-blue-800 text-xs font-medium mr-2">Edit</a>
+                    <form method="post" action="{% url 'academics:task_deactivate' task.pk %}" class="inline">
+                        {% csrf_token %}
+                        <button type="submit" onclick="return confirm('Remove task {{ task.name }}?')"
+                                class="text-red-500 hover:text-red-700 text-xs">Remove</button>
+                    </form>
+                </td>
+                {% endif %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p class="px-5 py-3 text-sm text-gray-400">No tasks in Term {{ term_num }}.</p>
+    {% endif %}
+</div>
+{% endfor %}
+{% endblock %}

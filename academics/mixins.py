@@ -46,6 +46,12 @@ class ManagementMixin(AcademicsAccessMixin):
     """
     allowed_roles = MANAGEMENT_ROLES
 
+class HODOrSeniorMixin(AcademicsAccessMixin):
+    """
+    HODs, Principals, and Admins.
+    For: assessment task management (HODs scoped to their department in the view).
+    """
+    allowed_roles = {"admin", "principal", "hod"}
 
 class StaffMixin(AcademicsAccessMixin):
     """

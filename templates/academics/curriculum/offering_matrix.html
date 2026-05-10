@@ -1,0 +1,86 @@
+{% extends 'academics/base.html' %}
+
+{% block academics_content %}
+<div class="flex items-center justify-between mb-6">
+    <div>
+        <h1 class="text-2xl font-bold text-gray-900">Subject-Grade Matrix</h1>
+        <p class="text-sm text-gray-500 mt-0.5">Which subjects are offered at each grade</p>
+    </div>
+    {% if can_manage %}
+    <a href="{% url 'academics:subject_create' %}"
+       class="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700">
+        Add Subject
+    </a>
+    {% endif %}
+</div>
+
+{% if matrix %}
+<div class="bg-white rounded-xl border border-gray-200 overflow-x-auto">
+    <table class="text-xs min-w-full">
+        <thead class="bg-gray-50 border-b border-gray-200">
+            <tr>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider sticky left-0 bg-gray-50 z-10 min-w-24">
+                    Grade
+                </th>
+                {% for subject in subjects %}
+                <th class="px-2 py-3 text-center font-semibold text-gray-600 whitespace-nowrap min-w-16"
+                    title="{{ subject.name }}">
+                    {{ subject.code }}
+                </th>
+                {% endfor %}
+                {% if can_manage %}
+                <th class="px-4 py-3"></th>
+                {% endif %}
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+            {% for row in matrix %}
+            <tr class="hover:bg-gray-50">
+                <td class="px-4 py-2 font-medium text-gray-800 sticky left-0 bg-white z-10 border-r border-gray-100">
+                    {{ row.grade.name }}
+                    <span class="block text-xs text-gray-400 font-normal">{{ row.grade.short_phase }}</span>
+                </td>
+                {% for cell in row.cells %}
+                <td class="px-2 py-2 text-center">
+                    {% if cell.offering %}
+                    <a href="{% url 'academics:task_list' cell.offering.pk %}"
+                       class="inline-flex items-center justify-center w-6 h-6 bg-blue-50 text-blue-600 rounded hover:bg-blue-100 transition-colors"
+                       title="{{ cell.subject.name }} - {{ row.grade.name }} | SBA {{ cell.offering.sba_weighting }}% / Exam {{ cell.offering.exam_weighting }}%">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
+                        </svg>
+                    </a>
+                    {% elif can_manage %}
+                    <a href="{% url 'academics:offering_create' row.grade.pk %}?subject={{ cell.subject.pk }}"
+                       class="inline-flex items-center justify-center w-6 h-6 text-gray-200 hover:text-blue-400 hover:bg-blue-50 rounded transition-colors"
+                       title="Add {{ cell.subject.name }} to {{ row.grade.name }}">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                        </svg>
+                    </a>
+                    {% else %}
+                    <span class="inline-block w-6 h-6"></span>
+                    {% endif %}
+                </td>
+                {% endfor %}
+                {% if can_manage %}
+                <td class="px-4 py-2">
+                    <a href="{% url 'academics:grade_subjects' row.grade.pk %}"
+                       class="text-xs text-blue-600 hover:text-blue-800 whitespace-nowrap">Manage</a>
+                </td>
+                {% endif %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+<p class="mt-3 text-xs text-gray-400">
+    Filled cells link to the assessment tasks for that subject at that grade.
+    {% if can_manage %}Click the + icon to add a subject to a grade.{% endif %}
+</p>
+{% else %}
+<div class="bg-white rounded-xl border border-gray-200 px-4 py-16 text-center">
+    <p class="text-gray-400 text-sm">No active grades or subjects configured.</p>
+</div>
+{% endif %}
+{% endblock %}
