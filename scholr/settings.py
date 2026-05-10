@@ -62,6 +62,7 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
                 'django.template.context_processors.media',
                 'academics.context_processors.school_context',
+                'scholr.context_processors.features',
             ],
         },
     },
@@ -69,6 +70,15 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'scholr.wsgi.application'
 
+
+# ==================== PRODUCT FEATURE FLAGS ====================
+# Controls which product stack is active for this deployment.
+# LMS only:  set SCHOLR_ACADEMICS_ENABLED=False in .env
+# SMS only:  set SCHOLR_LMS_ENABLED=False in .env
+# Full:      leave both True (default)
+
+SCHOLR_LMS_ENABLED = os.getenv('SCHOLR_LMS_ENABLED', 'True') == 'True'
+SCHOLR_ACADEMICS_ENABLED = os.getenv('SCHOLR_ACADEMICS_ENABLED', 'True') == 'True'
 # DATABASE
 # Use DATABASE_URL for easy configuration
 import dj_database_url

@@ -290,8 +290,18 @@ def dashboard_view(request):
         return redirect('academics:learner_list')
     elif user.role == User.DEAN:
         return redirect('accounts:dean_dashboard')
+    elif user.role == 'student':
+        if hasattr(user, 'learner_lms_account'):
+            # This is a school learner enrolled via LMS Bridge, not a commercial student
+            from scholr.features import bridge_enabled
+            if bridge_enabled():
+                return redirect('academics:learner_lms_dashboard')
+        # Fall through to the commercial LMS student dashboard
+        return redirect('shop:my_courses') 
     else:  # STUDENT
         return redirect('accounts:student_dashboard')
+    
+    
     
 
 

@@ -5,6 +5,7 @@ from .learner import (
     LearnerTransfer, LearnerDocument,
     SA_LANGUAGE_CHOICES, NATIONALITY_CHOICES,
 )
+from .lms_link import LearnerLMSAccount
 from .curriculum import Curriculum, SchoolSubject, SubjectOffering, AssessmentTask
 from .marks import SubjectEnrollment, AssessmentRecord, TermMark, FinalMark
 from .intervention import (
@@ -30,4 +31,5 @@ __all__ = [
     "ReportCardTemplate", "TeacherComment", "ConductRating", "ReportCard",
     "AbsenceReason", "AttendanceSession", "AttendanceRecord", "AttendanceSummary",
     "LURITSExport", "LURITSValidationIssue",
+    "LearnerLMSAccount",
 ]

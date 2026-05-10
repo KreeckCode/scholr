@@ -13,6 +13,11 @@ from .views.curriculum import (
     SubjectOfferingUpdateView,
     SubjectUpdateView,
 )
+from .views.lms_link import (
+    LMSAccountsView, CreateLMSAccountView, LMSAccountCredentialsView,
+    ResetLMSPasswordView, DeactivateLMSAccountView, ReactivateLMSAccountView,
+    RetryMoodleSyncView, LearnerLMSDashboardView,
+)
 from .views.analytics import (
     AnalyticsDashboardView, AcademicReportView,
     EnrollmentReportView, ExportAnalyticsExcelView,
@@ -154,4 +159,18 @@ urlpatterns = [
     path("analytics/academic/", AcademicReportView.as_view(), name="analytics_academic"),
     path("analytics/enrollment/", EnrollmentReportView.as_view(), name="analytics_enrollment"),
     path("analytics/export/", ExportAnalyticsExcelView.as_view(), name="analytics_export"),
+    
+
+
+    # Learner-facing (no staff sidebar)
+    path('my-online-learning/', LearnerLMSDashboardView.as_view(), name='learner_lms_dashboard'),
+
+    # Staff: Online Learning account management
+    path('online/accounts/', LMSAccountsView.as_view(), name='lms_accounts'),
+    path('online/accounts/<int:learner_pk>/create/', CreateLMSAccountView.as_view(), name='lms_account_create'),
+    path('online/accounts/<int:pk>/credentials/', LMSAccountCredentialsView.as_view(), name='lms_account_credentials'),
+    path('online/accounts/<int:pk>/reset-password/', ResetLMSPasswordView.as_view(), name='lms_account_reset_password'),
+    path('online/accounts/<int:pk>/deactivate/', DeactivateLMSAccountView.as_view(), name='lms_account_deactivate'),
+    path('online/accounts/<int:pk>/reactivate/', ReactivateLMSAccountView.as_view(), name='lms_account_reactivate'),
+    path('online/accounts/<int:pk>/retry-sync/', RetryMoodleSyncView.as_view(), name='lms_account_retry_sync'),
 ]
