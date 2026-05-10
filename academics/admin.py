@@ -16,6 +16,8 @@ from .models import (
     SchoolStaff,
     Term,
 )
+from .models.reports import ReportCardTemplate, TeacherComment, ConductRating, ReportCard
+
 from .models.intervention import (
     InterventionProgram, LearnerIntervention,
     PerformanceAnalysis, ProgressNote,
@@ -396,3 +398,43 @@ class ProgressNoteAdmin(admin.ModelAdmin):
     def get_subject(self, obj):
         return obj.subject_offering.subject.code if obj.subject_offering else "General"
     get_subject.short_description = "Subject"
+
+
+@admin.register(ReportCardTemplate)
+class ReportCardTemplateAdmin(admin.ModelAdmin):
+    list_display = ("name", "template_type", "is_default", "is_active")
+    list_editable = ("is_default", "is_active")
+
+    def has_delete_permission(self, request, obj=None):
+        if obj and obj.report_cards.exists():
+            return False
+        return super().has_delete_permission(request, obj)
+
+
+@admin.register(ConductRating)
+class ConductRatingAdmin(admin.ModelAdmin):
+    list_display = (
+        "get_learner", "stream", "academic_year", "term_number",
+        "effort_rating", "conduct_rating", "days_absent",
+    )
+    list_filter = ("academic_year", "term_number", "stream__grade")
+    search_fields = ("learner__first_name", "learner__last_name")
+
+    def get_learner(self, obj):
+        return obj.learner.get_full_name()
+    get_learner.short_description = "Learner"
+
+
+@admin.register(ReportCard)
+class ReportCardAdmin(admin.ModelAdmin):
+    list_display = (
+        "get_learner", "stream", "academic_year", "term_number",
+        "is_generated", "generated_at", "is_released",
+    )
+    list_filter = ("academic_year", "term_number", "is_generated", "is_released", "stream__grade")
+    search_fields = ("learner__first_name", "learner__last_name", "learner__admission_number")
+    readonly_fields = ("generated_at", "released_at", "generated_by", "released_by")
+
+    def get_learner(self, obj):
+        return obj.learner.get_full_name()
+    get_learner.short_description = "Learner"

@@ -32,6 +32,11 @@ from .views.structure import (
     GradeStreamCreateView,
     GradeStreamUpdateView,
 )
+from .views.reports import (
+    ReportsDashboardView, CommentsCaptureView, ConductCaptureView,
+    GenerateReportCardsView, ReportCardListView,
+    ReportCardPreviewView, ReportCardDownloadView,
+)
 
 app_name = "academics"
 
@@ -81,7 +86,7 @@ urlpatterns = [
         name="term_summary",
     ),
 
-    # Add inside urlpatterns:
+    # Interventions and performance analysis
     path("intervention/at-risk/", AtRiskDashboardView.as_view(), name="at_risk"),
     path("intervention/analyse/", RunAnalysisView.as_view(), name="run_analysis"),
     path("intervention/<int:learner_pk>/analyse/", RunAnalysisView.as_view(), name="run_analysis_learner"),
@@ -90,5 +95,12 @@ urlpatterns = [
     path("intervention/interventions/<int:pk>/edit/", InterventionUpdateView.as_view(), name="intervention_update"),
     path("intervention/<int:learner_pk>/notes/add/", ProgressNoteCreateView.as_view(), name="progress_note_create"),
 
-
+    # Reports
+    path("reports/", ReportsDashboardView.as_view(), name="reports_dashboard"),
+    path("reports/<int:offering_pk>/<int:stream_pk>/comments/", CommentsCaptureView.as_view(), name="comments_capture"),
+    path("reports/<int:stream_pk>/conduct/", ConductCaptureView.as_view(), name="conduct_capture"),
+    path("reports/<int:stream_pk>/generate/", GenerateReportCardsView.as_view(), name="generate_reports"),
+    path("reports/<int:stream_pk>/term/<int:term_number>/", ReportCardListView.as_view(), name="report_card_list"),
+    path("reports/preview/<int:learner_pk>/<int:term_number>/", ReportCardPreviewView.as_view(), name="report_card_preview"),
+    path("reports/download/<int:pk>/", ReportCardDownloadView.as_view(), name="report_card_download"),
 ]

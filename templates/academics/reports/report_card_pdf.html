@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: Arial, sans-serif; font-size: 9pt; color: #1a1a1a; }
+    h1 { font-size: 14pt; font-weight: bold; }
+    h2 { font-size: 11pt; font-weight: bold; }
+    h3 { font-size: 9pt; font-weight: bold; }
+    .school-header { text-align: center; border-bottom: 2px solid #1e3a8a; padding-bottom: 10px; margin-bottom: 12px; }
+    .school-name { font-size: 15pt; font-weight: bold; color: #1e3a8a; }
+    .report-title { font-size: 11pt; font-weight: bold; margin-top: 4px; color: #374151; }
+    .learner-info { border: 1px solid #d1d5db; border-radius: 4px; padding: 8px 10px; margin-bottom: 12px; display: grid; grid-template-columns: 1fr 1fr; gap: 4px 20px; }
+    .info-row { display: contents; }
+    .info-label { font-weight: bold; font-size: 8pt; color: #6b7280; text-transform: uppercase; }
+    .info-value { font-size: 9pt; }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 12px; }
+    th { background-color: #1e3a8a; color: white; padding: 5px 8px; font-size: 8pt; text-align: left; font-weight: bold; }
+    td { padding: 4px 8px; font-size: 8pt; border-bottom: 1px solid #e5e7eb; vertical-align: top; }
+    .mark-cell { text-align: center; font-weight: bold; }
+    .symbol-cell { text-align: center; font-weight: bold; font-size: 10pt; }
+    .pass { color: #166534; }
+    .fail { color: #991b1b; }
+    .section-title { font-size: 9pt; font-weight: bold; color: #1e3a8a; text-transform: uppercase; margin-bottom: 4px; border-bottom: 1px solid #1e3a8a; padding-bottom: 2px; }
+    .conduct-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+    .conduct-box { border: 1px solid #d1d5db; border-radius: 4px; padding: 8px; }
+    .comment-box { border: 1px solid #d1d5db; border-radius: 4px; padding: 8px; margin-bottom: 8px; min-height: 40px; }
+    .signature-line { border-top: 1px solid #374151; margin-top: 20px; padding-top: 4px; font-size: 8pt; color: #6b7280; }
+    .footer { text-align: center; font-size: 7pt; color: #9ca3af; margin-top: 20px; border-top: 1px solid #e5e7eb; padding-top: 8px; }
+    .rating-badge { display: inline-block; padding: 2px 6px; border-radius: 3px; font-size: 8pt; font-weight: bold; background: #f3f4f6; }
+    @page { size: A4; margin: 15mm; }
+</style>
+</head>
+<body>
+
+<!-- School Header -->
+<div class="school-header">
+    {% if school and school.logo %}
+    <img src="{{ school.logo.url }}" alt="School logo" style="height: 60px; margin-bottom: 6px;">
+    {% endif %}
+    <div class="school-name">{% if school %}{{ school.name }}{% else %}School Name{% endif %}</div>
+    <div class="report-title">PROGRESS REPORT - TERM {{ term_number }} &bull; {{ academic_year.year }}</div>
+    {% if school and school.emis_number %}
+    <div style="font-size: 7pt; color: #6b7280; margin-top: 2px;">EMIS: {{ school.emis_number }}</div>
+    {% endif %}
+</div>
+
+<!-- Learner Information -->
+<div class="learner-info">
+    <div class="info-label">Full Name</div>
+    <div class="info-value">{{ learner.get_full_name }}</div>
+    <div class="info-label">Admission Number</div>
+    <div class="info-value">{{ learner.admission_number }}</div>
+    <div class="info-label">Grade</div>
+    <div class="info-value">{% if learner_enrollment %}{{ learner_enrollment.grade.name }}{% else %}-{% endif %}</div>
+    <div class="info-label">Class</div>
+    <div class="info-value">{{ stream.get_display_name }}</div>
+    <div class="info-label">Date of Birth</div>
+    <div class="info-value">{{ learner.date_of_birth|date:"d F Y" }}</div>
+    <div class="info-label">Gender</div>
+    <div class="info-value">{{ learner.get_gender_display }}</div>
+</div>
+
+<!-- Subject Marks -->
+<p class="section-title">Academic Performance</p>
+<table>
+    <thead>
+        <tr>
+            <th style="width: 35%;">Subject</th>
+            <th class="mark-cell" style="width: 12%;">Mark (%)</th>
+            {% if template.show_caps_symbol %}
+            <th class="symbol-cell" style="width: 8%;">Level</th>
+            <th style="width: 20%;">Achievement</th>
+            {% endif %}
+            {% if template.show_subject_comments %}
+            <th style="width: 25%;">Comment</th>
+            {% endif %}
+        </tr>
+    </thead>
+    <tbody>
+        {% for row in subject_rows %}
+        <tr>
+            <td>{{ row.subject_name }}</td>
+            <td class="mark-cell {% if row.passed %}pass{% else %}{% if row.percentage is not None %}fail{% endif %}{% endif %}">
+                {% if row.percentage is not None %}{{ row.percentage|floatformat:1 }}%{% else %}-{% endif %}
+            </td>
+            {% if template.show_caps_symbol %}
+            <td class="symbol-cell {% if row.passed %}pass{% else %}{% if row.percentage is not None %}fail{% endif %}{% endif %}">
+                {% if row.symbol %}{{ row.symbol }}{% else %}-{% endif %}
+            </td>
+            <td style="font-size: 7.5pt;">{{ row.description }}</td>
+            {% endif %}
+            {% if template.show_subject_comments %}
+            <td style="font-size: 7.5pt; font-style: italic;">{{ row.teacher_comment }}</td>
+            {% endif %}
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<!-- CAPS Symbol Key -->
+{% if template.show_caps_symbol %}
+<p style="font-size: 7pt; color: #6b7280; margin-bottom: 12px;">
+    7=Outstanding (80-100%) &bull; 6=Meritorious (70-79%) &bull; 5=Substantial (60-69%) &bull;
+    4=Adequate (50-59%) &bull; 3=Moderate (40-49%) &bull; 2=Elementary (30-39%) &bull; 1=Not Achieved (0-29%)
+</p>
+{% endif %}
+
+<!-- Conduct and Attendance -->
+{% if template.show_conduct and conduct %}
+<p class="section-title">Conduct and Attendance</p>
+<div class="conduct-grid">
+    <div class="conduct-box">
+        <p style="font-size: 7.5pt; color: #6b7280; text-transform: uppercase; font-weight: bold; margin-bottom: 4px;">Effort in Class</p>
+        <p class="rating-badge">{{ conduct.get_effort_label|default:"-" }}</p>
+    </div>
+    <div class="conduct-box">
+        <p style="font-size: 7.5pt; color: #6b7280; text-transform: uppercase; font-weight: bold; margin-bottom: 4px;">Conduct and Behaviour</p>
+        <p class="rating-badge">{{ conduct.get_conduct_label|default:"-" }}</p>
+    </div>
+</div>
+{% if template.show_attendance %}
+<table style="width: auto; margin-bottom: 12px;">
+    <tr>
+        <th>Days Absent</th>
+        <th>Times Late</th>
+    </tr>
+    <tr>
+        <td class="mark-cell">{{ conduct.days_absent }}</td>
+        <td class="mark-cell">{{ conduct.days_late }}</td>
+    </tr>
+</table>
+{% endif %}
+{% endif %}
+
+<!-- Comments -->
+{% if template.show_homeroom_comment and conduct and conduct.homeroom_comment %}
+<p class="section-title">Class Teacher Comment</p>
+<div class="comment-box">
+    <p style="font-size: 8.5pt;">{{ conduct.homeroom_comment }}</p>
+</div>
+{% endif %}
+
+{% if template.show_principal_comment and conduct and conduct.principal_comment %}
+<p class="section-title">Principal's Comment</p>
+<div class="comment-box">
+    <p style="font-size: 8.5pt;">{{ conduct.principal_comment }}</p>
+</div>
+{% endif %}
+
+<!-- Signatures -->
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-top: 30px;">
+    <div>
+        <div class="signature-line">Class Teacher</div>
+    </div>
+    <div>
+        <div class="signature-line">Principal</div>
+    </div>
+</div>
+
+<!-- Footer -->
+{% if template.footer_text %}
+<div class="footer">{{ template.footer_text }}</div>
+{% endif %}
+<div class="footer">Generated {{ generated_at|date:"d F Y" }}</div>
+
+</body>
+</html>

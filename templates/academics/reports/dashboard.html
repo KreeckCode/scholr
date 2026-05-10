@@ -1,0 +1,82 @@
+{% extends 'academics/base.html' %}
+
+{% block academics_content %}
+<div class="flex items-center justify-between mb-6">
+    <div>
+        <h1 class="text-2xl font-bold text-gray-900">Report Cards</h1>
+        {% if current_year %}<p class="text-sm text-gray-500 mt-0.5">{{ current_year.year }} - Term {{ term_num }}</p>{% endif %}
+    </div>
+</div>
+
+{% if not current_year %}
+<div class="bg-amber-50 border border-amber-200 rounded-xl p-5 text-sm text-amber-800">No academic year configured.</div>
+{% else %}
+
+<!-- Stream status table -->
+<div class="bg-white rounded-xl border border-gray-200 overflow-hidden mb-6">
+    <div class="px-5 py-4 border-b border-gray-100">
+        <h2 class="text-sm font-semibold text-gray-800">Current Term Status (Term {{ term_num }})</h2>
+    </div>
+    {% if stream_stats %}
+    <table class="w-full text-sm">
+        <thead class="bg-gray-50 border-b border-gray-200">
+            <tr>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Class</th>
+                <th class="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">Learners</th>
+                <th class="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">Generated</th>
+                <th class="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">Released</th>
+                <th class="px-4 py-3"></th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+            {% for stat in stream_stats %}
+            <tr class="hover:bg-gray-50">
+                <td class="px-4 py-3 font-medium text-gray-800">{{ stat.stream.get_display_name }}</td>
+                <td class="px-4 py-3 text-center text-gray-600">{{ stat.total }}</td>
+                <td class="px-4 py-3 text-center">
+                    {% if stat.generated == stat.total and stat.total > 0 %}
+                    <span class="text-green-600 font-medium">{{ stat.generated }}/{{ stat.total }}</span>
+                    {% else %}
+                    <span class="text-gray-500">{{ stat.generated }}/{{ stat.total }}</span>
+                    {% endif %}
+                </td>
+                <td class="px-4 py-3 text-center">
+                    {% if stat.released == stat.total and stat.total > 0 %}
+                    <span class="text-blue-600 font-medium">{{ stat.released }}/{{ stat.total }}</span>
+                    {% else %}
+                    <span class="text-gray-500">{{ stat.released }}/{{ stat.total }}</span>
+                    {% endif %}
+                </td>
+                <td class="px-4 py-3 text-right">
+                    <div class="flex items-center justify-end gap-2">
+                        <a href="{% url 'academics:conduct_capture' stat.stream.pk %}?term={{ term_num }}"
+                           class="text-xs text-gray-600 hover:text-gray-800 border border-gray-300 px-2 py-1 rounded hover:bg-gray-50">
+                            Conduct
+                        </a>
+                        {% if stat.generated > 0 %}
+                        <a href="{% url 'academics:report_card_list' stat.stream.pk term_num %}"
+                           class="text-xs text-blue-600 hover:text-blue-800 border border-blue-200 px-2 py-1 rounded hover:bg-blue-50">
+                            View Cards
+                        </a>
+                        {% endif %}
+                        <form method="post" action="{% url 'academics:generate_reports' stat.stream.pk %}"
+                              onsubmit="return confirm('Generate report cards for {{ stat.stream.get_display_name }}?')">
+                            {% csrf_token %}
+                            <input type="hidden" name="term_number" value="{{ term_num }}">
+                            <button type="submit"
+                                    class="text-xs text-white bg-blue-600 hover:bg-blue-700 px-2 py-1 rounded">
+                                {% if stat.generated > 0 %}Re-generate{% else %}Generate{% endif %}
+                            </button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p class="px-4 py-10 text-center text-sm text-gray-400">No active classes found.</p>
+    {% endif %}
+</div>
+{% endif %}
+{% endblock %}

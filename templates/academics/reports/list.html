@@ -1,0 +1,81 @@
+{% extends 'academics/base.html' %}
+
+{% block academics_content %}
+<div class="flex items-center justify-between mb-6">
+    <div class="flex items-center gap-3">
+        <a href="{% url 'academics:reports_dashboard' %}" class="text-gray-400 hover:text-gray-600">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+            </svg>
+        </a>
+        <div>
+            <h1 class="text-xl font-bold text-gray-900">{{ stream.get_display_name }} - Term {{ term_number }} Reports</h1>
+            <p class="text-sm text-gray-500 mt-0.5">
+                {{ all_generated }}/{{ total }} generated &middot; {{ all_released }}/{{ total }} released
+            </p>
+        </div>
+    </div>
+    {% if all_generated > 0 and all_generated > all_released %}
+    <form method="post" onsubmit="return confirm('Release all generated reports to the parent portal?')">
+        {% csrf_token %}
+        <button type="submit"
+                class="px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700">
+            Release All to Parents
+        </button>
+    </form>
+    {% endif %}
+</div>
+
+<div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+    {% if report_cards %}
+    <table class="w-full text-sm">
+        <thead class="bg-gray-50 border-b border-gray-200">
+            <tr>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Learner</th>
+                <th class="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">Generated</th>
+                <th class="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">Released</th>
+                <th class="px-4 py-3"></th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+            {% for rc in report_cards %}
+            <tr class="hover:bg-gray-50">
+                <td class="px-4 py-3 font-medium text-gray-800">
+                    {{ rc.learner.last_name }}, {{ rc.learner.first_name }}
+                </td>
+                <td class="px-4 py-3 text-center">
+                    {% if rc.is_generated %}
+                    <span class="text-xs text-green-600">{{ rc.generated_at|date:"d M Y H:i" }}</span>
+                    {% else %}
+                    <span class="text-xs text-gray-300">Not generated</span>
+                    {% endif %}
+                </td>
+                <td class="px-4 py-3 text-center">
+                    {% if rc.is_released %}
+                    <span class="inline-block px-2 py-0.5 bg-green-50 text-green-700 text-xs rounded font-medium">Released</span>
+                    {% else %}
+                    <span class="text-xs text-gray-300">-</span>
+                    {% endif %}
+                </td>
+                <td class="px-4 py-3 text-right">
+                    <div class="flex items-center justify-end gap-2">
+                        <a href="{% url 'academics:report_card_preview' rc.learner.pk term_number %}"
+                           target="_blank"
+                           class="text-xs text-blue-600 hover:text-blue-800">Preview</a>
+                        {% if rc.is_generated %}
+                        <a href="{% url 'academics:report_card_download' rc.pk %}"
+                           class="text-xs text-gray-600 hover:text-gray-800 border border-gray-300 px-2 py-1 rounded hover:bg-gray-50">
+                            Download PDF
+                        </a>
+                        {% endif %}
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p class="px-4 py-12 text-center text-sm text-gray-400">No report cards found for this stream and term.</p>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,111 @@
+{% extends 'academics/base.html' %}
+
+{% block academics_content %}
+<div class="flex items-center gap-3 mb-4">
+    <a href="{% url 'academics:reports_dashboard' %}" class="text-gray-400 hover:text-gray-600">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+        </svg>
+    </a>
+    <div>
+        <h1 class="text-xl font-bold text-gray-900">Conduct and Effort</h1>
+        <p class="text-sm text-gray-500 mt-0.5">{{ stream.get_display_name }}</p>
+    </div>
+</div>
+
+<div class="mb-4 flex items-center gap-2">
+    <span class="text-xs text-gray-500">Term:</span>
+    {% for term in all_terms %}
+    <a href="?term={{ term.number }}"
+       class="px-3 py-1 text-xs rounded-lg border
+              {% if term.selected %}border-blue-500 bg-blue-50 text-blue-700 font-semibold
+              {% else %}border-gray-300 text-gray-600 hover:bg-gray-50{% endif %}">
+        {{ term.label }}
+    </a>
+    {% endfor %}
+</div>
+
+{% if rows %}
+<form method="post">
+    {% csrf_token %}
+    <div class="overflow-x-auto bg-white rounded-xl border border-gray-200">
+        <table class="w-full text-sm min-w-max">
+            <thead class="bg-gray-50 border-b border-gray-200">
+                <tr>
+                    <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase sticky left-0 bg-gray-50 min-w-36">Learner</th>
+                    <th class="px-3 py-3 text-center text-xs font-semibold text-gray-500 uppercase min-w-28">Effort</th>
+                    <th class="px-3 py-3 text-center text-xs font-semibold text-gray-500 uppercase min-w-28">Conduct</th>
+                    <th class="px-3 py-3 text-center text-xs font-semibold text-gray-500 uppercase min-w-16">Absent</th>
+                    <th class="px-3 py-3 text-center text-xs font-semibold text-gray-500 uppercase min-w-16">Late</th>
+                    <th class="px-3 py-3 text-left text-xs font-semibold text-gray-500 uppercase min-w-48">Class Teacher Comment</th>
+                    <th class="px-3 py-3 text-left text-xs font-semibold text-gray-500 uppercase min-w-48">Principal Comment</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+                {% for row in rows %}
+                <tr class="hover:bg-gray-50">
+                    <td class="px-4 py-2 font-medium text-gray-800 sticky left-0 bg-white align-top">
+                        {{ row.learner.last_name }}, {{ row.learner.get_display_name }}
+                    </td>
+                    <td class="px-3 py-2">
+                        <select name="effort_{{ row.learner.pk }}"
+                                class="w-full px-2 py-1.5 border border-gray-300 rounded text-xs bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="">-</option>
+                            {% for value, label in rating_choices %}
+                            <option value="{{ value }}"
+                                {% if row.conduct and row.conduct.effort_rating == value %}selected{% endif %}>
+                                {{ value }} - {{ label }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </td>
+                    <td class="px-3 py-2">
+                        <select name="conduct_{{ row.learner.pk }}"
+                                class="w-full px-2 py-1.5 border border-gray-300 rounded text-xs bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="">-</option>
+                            {% for value, label in rating_choices %}
+                            <option value="{{ value }}"
+                                {% if row.conduct and row.conduct.conduct_rating == value %}selected{% endif %}>
+                                {{ value }} - {{ label }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </td>
+                    <td class="px-3 py-2">
+                        <input type="number" name="absent_{{ row.learner.pk }}"
+                               value="{% if row.conduct %}{{ row.conduct.days_absent }}{% else %}0{% endif %}"
+                               min="0" max="100"
+                               class="w-full px-2 py-1.5 border border-gray-300 rounded text-xs text-center focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </td>
+                    <td class="px-3 py-2">
+                        <input type="number" name="late_{{ row.learner.pk }}"
+                               value="{% if row.conduct %}{{ row.conduct.days_late }}{% else %}0{% endif %}"
+                               min="0" max="100"
+                               class="w-full px-2 py-1.5 border border-gray-300 rounded text-xs text-center focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </td>
+                    <td class="px-3 py-2">
+                        <textarea name="comment_{{ row.learner.pk }}" rows="2" maxlength="300"
+                                  class="w-full px-2 py-1.5 border border-gray-300 rounded text-xs focus:outline-none focus:ring-2 focus:ring-blue-500">{% if row.conduct %}{{ row.conduct.homeroom_comment }}{% endif %}</textarea>
+                    </td>
+                    <td class="px-3 py-2">
+                        <textarea name="principal_{{ row.learner.pk }}" rows="2" maxlength="300"
+                                  class="w-full px-2 py-1.5 border border-gray-300 rounded text-xs focus:outline-none focus:ring-2 focus:ring-blue-500">{% if row.conduct %}{{ row.conduct.principal_comment }}{% endif %}</textarea>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="mt-4 flex gap-3">
+        <button type="submit"
+                class="px-6 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700">
+            Save
+        </button>
+        <a href="{% url 'academics:reports_dashboard' %}"
+           class="px-4 py-2.5 border border-gray-300 text-sm text-gray-700 rounded-lg hover:bg-gray-50">
+            Cancel
+        </a>
+    </div>
+</form>
+{% endif %}
+{% endblock %}

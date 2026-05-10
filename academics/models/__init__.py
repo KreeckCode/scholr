@@ -11,6 +11,10 @@ from .intervention import (
     PerformanceAnalysis, InterventionProgram,
     LearnerIntervention, ProgressNote,
 )
+from .reports import (
+    ReportCardTemplate, TeacherComment,
+    ConductRating, ReportCard,
+)
 
 __all__ = [
     "School", "AcademicYear", "Term", "Department", "SchoolStaff",
@@ -21,4 +25,5 @@ __all__ = [
     "Curriculum", "SchoolSubject", "SubjectOffering", "AssessmentTask",
     "SubjectEnrollment", "AssessmentRecord", "TermMark", "FinalMark",
     "PerformanceAnalysis", "InterventionProgram", "LearnerIntervention", "ProgressNote",
+    "ReportCardTemplate", "TeacherComment", "ConductRating", "ReportCard",
 ]
