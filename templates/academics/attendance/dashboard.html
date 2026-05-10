@@ -1,0 +1,92 @@
+{% extends 'academics/base.html' %}
+
+{% block academics_content %}
+<div class="flex items-center justify-between mb-6">
+    <div>
+        <h1 class="text-2xl font-bold text-gray-900">Attendance</h1>
+        <p class="text-sm text-gray-500 mt-0.5">{{ today|date:"l, d F Y" }}</p>
+    </div>
+</div>
+
+<!-- Summary cards -->
+<div class="grid grid-cols-3 gap-4 mb-6">
+    <div class="bg-white rounded-xl border border-gray-200 p-4 text-center">
+        <p class="text-2xl font-bold text-gray-800">
+            {% with done=stream_status|length %}
+            {% for s in stream_status %}{% if s.register_taken %}{% endif %}{% endfor %}
+            {{ stream_status|length }}
+            {% endwith %}
+        </p>
+        <p class="text-xs text-gray-500 mt-1">Total Classes</p>
+    </div>
+    <div class="bg-white rounded-xl border border-gray-200 p-4 text-center">
+        <p class="text-2xl font-bold text-red-600">{{ absent_today }}</p>
+        <p class="text-xs text-gray-500 mt-1">Absent Today</p>
+    </div>
+    <div class="bg-white rounded-xl border {% if at_risk_count %}border-amber-200 bg-amber-50{% else %}border-gray-200{% endif %} p-4 text-center">
+        <p class="text-2xl font-bold {% if at_risk_count %}text-amber-700{% else %}text-gray-800{% endif %}">
+            {{ at_risk_count }}
+        </p>
+        <p class="text-xs {% if at_risk_count %}text-amber-600{% else %}text-gray-500{% endif %} mt-1">
+            Below 80% This Term
+        </p>
+    </div>
+</div>
+
+<!-- Stream register status -->
+<div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+    <div class="px-5 py-4 border-b border-gray-100">
+        <h2 class="text-sm font-semibold text-gray-800">Today's Registers</h2>
+    </div>
+    {% if stream_status %}
+    <table class="w-full text-sm">
+        <thead class="bg-gray-50 border-b border-gray-200">
+            <tr>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Class</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Teacher</th>
+                <th class="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">Learners</th>
+                <th class="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">Register</th>
+                <th class="px-4 py-3"></th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+            {% for stat in stream_status %}
+            <tr class="hover:bg-gray-50">
+                <td class="px-4 py-3 font-medium text-gray-800">{{ stat.stream.get_display_name }}</td>
+                <td class="px-4 py-3 text-gray-600">
+                    {% if stat.stream.homeroom_teacher %}
+                    {{ stat.stream.homeroom_teacher.get_full_name }}
+                    {% else %}
+                    <span class="text-gray-300">Unassigned</span>
+                    {% endif %}
+                </td>
+                <td class="px-4 py-3 text-center text-gray-600">{{ stat.learner_count }}</td>
+                <td class="px-4 py-3 text-center">
+                    {% if stat.register_taken %}
+                    <span class="inline-block px-2 py-0.5 bg-green-50 text-green-700 text-xs font-medium rounded">Done</span>
+                    {% else %}
+                    <span class="inline-block px-2 py-0.5 bg-amber-50 text-amber-700 text-xs font-medium rounded">Pending</span>
+                    {% endif %}
+                </td>
+                <td class="px-4 py-3 text-right">
+                    <div class="flex items-center justify-end gap-2">
+                        <a href="{% url 'academics:attendance_summary' stat.stream.pk %}"
+                           class="text-xs text-gray-600 hover:text-gray-800 border border-gray-200 px-2 py-1 rounded hover:bg-gray-50">
+                            Summary
+                        </a>
+                        <a href="{% url 'academics:take_register' stat.stream.pk %}"
+                           class="text-xs text-white px-3 py-1 rounded font-medium
+                                  {% if stat.register_taken %}bg-gray-400 hover:bg-gray-500{% else %}bg-blue-600 hover:bg-blue-700{% endif %}">
+                            {% if stat.register_taken %}Edit{% else %}Take Register{% endif %}
+                        </a>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p class="px-4 py-12 text-center text-sm text-gray-400">No classes assigned to your account.</p>
+    {% endif %}
+</div>
+{% endblock %}

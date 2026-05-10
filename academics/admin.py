@@ -16,6 +16,8 @@ from .models import (
     SchoolStaff,
     Term,
 )
+from .models.lurits import LURITSExport, LURITSValidationIssue
+from .models.attendance import AbsenceReason, AttendanceSession, AttendanceRecord, AttendanceSummary
 from .models.reports import ReportCardTemplate, TeacherComment, ConductRating, ReportCard
 
 from .models.intervention import (
@@ -437,4 +439,58 @@ class ReportCardAdmin(admin.ModelAdmin):
 
     def get_learner(self, obj):
         return obj.learner.get_full_name()
+    get_learner.short_description = "Learner"
+
+
+
+@admin.register(AbsenceReason)
+class AbsenceReasonAdmin(admin.ModelAdmin):
+    list_display = ("name", "code", "is_excused", "requires_note", "sort_order", "is_active")
+    list_editable = ("sort_order", "is_active")
+
+
+@admin.register(AttendanceSession)
+class AttendanceSessionAdmin(admin.ModelAdmin):
+    list_display = ("__str__", "stream", "date", "session_type", "taken_by", "taken_at")
+    list_filter = ("academic_year", "session_type", "stream__grade")
+    date_hierarchy = "date"
+    raw_id_fields = ("taken_by",)
+
+
+@admin.register(AttendanceSummary)
+class AttendanceSummaryAdmin(admin.ModelAdmin):
+    list_display = (
+        "get_learner", "stream", "academic_year", "term_number",
+        "total_days", "days_absent", "attendance_percentage", "is_at_risk",
+    )
+    list_filter = ("academic_year", "term_number", "is_at_risk", "stream__grade")
+    search_fields = ("learner__first_name", "learner__last_name")
+
+    def get_learner(self, obj):
+        return obj.learner.get_full_name()
+    get_learner.short_description = "Learner"
+
+
+
+@admin.register(LURITSExport)
+class LURITSExportAdmin(admin.ModelAdmin):
+    list_display = (
+        "filename", "export_type", "academic_year", "term_number",
+        "status", "total_records", "created_by", "created_at",
+    )
+    list_filter = ("export_type", "status", "academic_year")
+    readonly_fields = ("created_at", "completed_at", "created_by")
+
+    def has_add_permission(self, request):
+        return False  # Exports are created via the LURITS views, not admin
+
+
+@admin.register(LURITSValidationIssue)
+class LURITSValidationIssueAdmin(admin.ModelAdmin):
+    list_display = ("severity", "category", "get_learner", "field", "message")
+    list_filter = ("severity", "category", "academic_year")
+    search_fields = ("learner__first_name", "learner__last_name", "message")
+
+    def get_learner(self, obj):
+        return obj.learner.get_full_name() if obj.learner else "School"
     get_learner.short_description = "Learner"

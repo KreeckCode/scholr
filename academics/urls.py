@@ -13,6 +13,10 @@ from .views.curriculum import (
     SubjectOfferingUpdateView,
     SubjectUpdateView,
 )
+from .views.lurits import (
+    LURITSDashboardView, RunValidationView,
+    ValidationResultsView, ExportDataView, ExportDownloadView,
+)
 from .views.intervention import (
     AtRiskDashboardView, RunAnalysisView, LearnerAnalysisView,
     InterventionCreateView, InterventionUpdateView, ProgressNoteCreateView,
@@ -36,6 +40,10 @@ from .views.reports import (
     ReportsDashboardView, CommentsCaptureView, ConductCaptureView,
     GenerateReportCardsView, ReportCardListView,
     ReportCardPreviewView, ReportCardDownloadView,
+)
+from .views.attendance import (
+    AttendanceDashboardView, TakeRegisterView,
+    AttendanceSummaryView, LearnerAttendanceHistoryView, AttendanceAlertView,
 )
 
 app_name = "academics"
@@ -103,4 +111,18 @@ urlpatterns = [
     path("reports/<int:stream_pk>/term/<int:term_number>/", ReportCardListView.as_view(), name="report_card_list"),
     path("reports/preview/<int:learner_pk>/<int:term_number>/", ReportCardPreviewView.as_view(), name="report_card_preview"),
     path("reports/download/<int:pk>/", ReportCardDownloadView.as_view(), name="report_card_download"),
+
+    #attendance
+    path("attendance/", AttendanceDashboardView.as_view(), name="attendance_dashboard"),
+    path("attendance/<int:stream_pk>/register/", TakeRegisterView.as_view(), name="take_register"),
+    path("attendance/<int:stream_pk>/summary/", AttendanceSummaryView.as_view(), name="attendance_summary"),
+    path("attendance/alerts/", AttendanceAlertView.as_view(), name="attendance_alerts"),
+    path("attendance/learner/<int:learner_pk>/", LearnerAttendanceHistoryView.as_view(), name="learner_attendance"),
+
+    #lurits
+    path("lurits/", LURITSDashboardView.as_view(), name="lurits_dashboard"),
+    path("lurits/validate/", RunValidationView.as_view(), name="lurits_run_validation"),
+    path("lurits/validation/", ValidationResultsView.as_view(), name="lurits_validation"),
+    path("lurits/export/", ExportDataView.as_view(), name="lurits_export"),
+    path("lurits/download/<int:pk>/", ExportDownloadView.as_view(), name="lurits_download"),
 ]

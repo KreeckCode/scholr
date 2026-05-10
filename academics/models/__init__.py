@@ -11,10 +11,12 @@ from .intervention import (
     PerformanceAnalysis, InterventionProgram,
     LearnerIntervention, ProgressNote,
 )
-from .reports import (
-    ReportCardTemplate, TeacherComment,
-    ConductRating, ReportCard,
+from .reports import ReportCardTemplate, TeacherComment, ConductRating, ReportCard
+from .attendance import (
+    AbsenceReason, AttendanceSession,
+    AttendanceRecord, AttendanceSummary,
 )
+from .lurits import LURITSExport, LURITSValidationIssue
 
 __all__ = [
     "School", "AcademicYear", "Term", "Department", "SchoolStaff",
@@ -26,4 +28,6 @@ __all__ = [
     "SubjectEnrollment", "AssessmentRecord", "TermMark", "FinalMark",
     "PerformanceAnalysis", "InterventionProgram", "LearnerIntervention", "ProgressNote",
     "ReportCardTemplate", "TeacherComment", "ConductRating", "ReportCard",
+    "AbsenceReason", "AttendanceSession", "AttendanceRecord", "AttendanceSummary",
+    "LURITSExport", "LURITSValidationIssue",
 ]
