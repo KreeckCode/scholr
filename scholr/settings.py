@@ -11,7 +11,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY SETTINGS
 # Get from environment variables - never hardcode in production
 SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-fallback-key-change-this')
-DEBUG = False
+DEBUG = True
 
 # Parse allowed hosts from comma-separated string
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '165.232.37.122,judea.uorivo.com,localhost,127.0.0.1').split(',')

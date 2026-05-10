@@ -17,7 +17,7 @@ urlpatterns = [
     path('dashboard/', include('accounts.urls')),  # User dashboards & auth
     path('courses/', include('shop.urls')),        # Student-facing shop/courses
     path('integration/', include('integration.urls')),  # Moodle sync & LMS access
-    path('academics/', include('academics.urls', namespace='academics')),  # Academic management (school profile, terms, departments)
+    path('academics/', include('academics.urls', namespace='academics')),
 ]
 
 # Serve media files in development
