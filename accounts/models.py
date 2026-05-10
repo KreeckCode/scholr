@@ -18,12 +18,32 @@ class User(AbstractUser):
     STUDENT = 'student'
     DEAN = 'dean'
     ADMIN = 'admin'
+
+    # School management roles - academics app context
+    TEACHER = 'teacher'
+    PRINCIPAL = 'principal'
+    HOD = 'hod'
+    ADMIN_CLERK = 'admin_clerk'
+    PARENT = 'parent'
+    LEARNER = 'learner'
     
     ROLE_CHOICES = [
+        # LMS roles
         (STUDENT, 'Student (Pastor)'),
         (DEAN, 'Dean (Facilitator)'),
         (ADMIN, 'System Administrator'),
+        # School roles - added in academics Stage 1
+        (TEACHER, 'Teacher'),
+        (PRINCIPAL, 'Principal'),
+        (HOD, 'Head of Department'),
+        (ADMIN_CLERK, 'Administrative Clerk'),
+        (PARENT, 'Parent / Guardian'),
+        (LEARNER, 'Learner'),
     ]
+    # Role groupings - I'm using these to avoid scattering role checks everywhere
+    LMS_ROLES = {STUDENT, DEAN, ADMIN}
+    SCHOOL_ROLES = {TEACHER, PRINCIPAL, HOD, ADMIN_CLERK, PARENT, LEARNER}
+    STAFF_ROLES = {TEACHER, PRINCIPAL, HOD, ADMIN_CLERK}
     
     # Phone validator for international format
     phone_regex = RegexValidator(
@@ -110,20 +130,28 @@ class User(AbstractUser):
         return full_name if full_name else self.username
     
     def can_verify_users(self):
-        """Check if user can verify other accounts"""
-        return self.role in [self.DEAN, self.ADMIN] and self.is_active
-    
+        """Check if user can verify other accounts - LMS deans/admins and school principals."""
+        return self.role in {self.DEAN, self.ADMIN, self.PRINCIPAL} and self.is_active
+
     def can_manage_content(self):
-        """Check if user can upload/manage course content"""
+        """Check if user can upload/manage course content - LMS admins only."""
         return self.role == self.ADMIN and self.is_active
-    
+
+    def is_school_staff(self):
+        """True for any role that works inside the school building."""
+        return self.role in self.STAFF_ROLES and self.is_active
+
+    def is_lms_user(self):
+        """True for pastoral LMS roles - determines Moodle sync eligibility."""
+        return self.role in self.LMS_ROLES
+
     def get_students(self):
         """
-        For deans: get students under their supervision
-        For admins: get all students
+        For deans: get LMS students in their region.
+        For admins: get all LMS students.
+        School learners are fetched via academics.Learner, not here.
         """
         if self.role == self.DEAN:
-            # Will be filtered by region once profile relationships are set up
             return User.objects.filter(
                 role=self.STUDENT,
                 profile__region=self.profile.region

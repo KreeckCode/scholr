@@ -1,0 +1,232 @@
+{% extends 'academics/base.html' %}
+
+{% block academics_content %}
+<!-- Header -->
+<div class="flex items-start justify-between mb-6">
+    <div class="flex items-center gap-4">
+        {% if learner.photo %}
+        <img src="{{ learner.photo.url }}" alt="{{ learner.get_full_name }}"
+             class="w-16 h-16 rounded-full object-cover border-2 border-gray-200">
+        {% else %}
+        <div class="w-16 h-16 rounded-full bg-gray-100 border-2 border-gray-200 flex items-center justify-center">
+            <span class="text-2xl font-semibold text-gray-400">{{ learner.first_name|first }}{{ learner.last_name|first }}</span>
+        </div>
+        {% endif %}
+        <div>
+            <h1 class="text-2xl font-bold text-gray-900">{{ learner.get_full_name }}</h1>
+            <p class="text-sm text-gray-500 font-mono mt-0.5">{{ learner.admission_number }}</p>
+            {% if current_enrollment %}
+            <span class="inline-block mt-1 px-2 py-0.5 bg-blue-50 text-blue-700 text-xs font-medium rounded">
+                {{ current_enrollment.grade.name }}{% if current_enrollment.stream %} {{ current_enrollment.stream.get_display_name }}{% endif %}
+            </span>
+            {% endif %}
+        </div>
+    </div>
+    <div class="flex gap-2">
+        {% if can_edit %}
+        <a href="{% url 'academics:learner_update' learner.pk %}"
+           class="px-3 py-2 border border-gray-300 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+            Edit
+        </a>
+        <a href="{% url 'academics:learner_enroll' learner.pk %}"
+           class="px-3 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">
+            Enroll
+        </a>
+        {% endif %}
+        {% if can_deactivate %}
+        <form method="post" action="{% url 'academics:learner_deactivate' learner.pk %}"
+              onsubmit="return confirm('Deactivate {{ learner.get_full_name }}? Their record will be retained.')">
+            {% csrf_token %}
+            <button type="submit"
+                    class="px-3 py-2 border border-red-200 text-red-600 text-sm rounded-lg hover:bg-red-50 transition-colors">
+                Deactivate
+            </button>
+        </form>
+        {% endif %}
+    </div>
+</div>
+
+<div class="grid grid-cols-3 gap-6">
+    <!-- Left: Personal + Medical -->
+    <div class="col-span-2 space-y-6">
+
+        <!-- Personal Information -->
+        <div class="bg-white rounded-xl border border-gray-200">
+            <div class="px-5 py-4 border-b border-gray-100">
+                <h2 class="text-sm font-semibold text-gray-800">Personal Information</h2>
+            </div>
+            <div class="px-5 py-4 grid grid-cols-2 gap-4 text-sm">
+                <div>
+                    <p class="text-xs text-gray-400 mb-0.5">Date of Birth</p>
+                    <p class="text-gray-800">{{ learner.date_of_birth|date:"d F Y" }} (age {{ learner.get_age }})</p>
+                </div>
+                <div>
+                    <p class="text-xs text-gray-400 mb-0.5">Gender</p>
+                    <p class="text-gray-800">{{ learner.get_gender_display }}</p>
+                </div>
+                <div>
+                    <p class="text-xs text-gray-400 mb-0.5">Home Language</p>
+                    <p class="text-gray-800">{{ learner.get_home_language_display }}</p>
+                </div>
+                <div>
+                    <p class="text-xs text-gray-400 mb-0.5">Nationality</p>
+                    <p class="text-gray-800">{{ learner.get_nationality_display }}</p>
+                </div>
+                {% if learner.sa_id_number %}
+                <div>
+                    <p class="text-xs text-gray-400 mb-0.5">SA ID</p>
+                    <p class="text-gray-800 font-mono">{{ learner.sa_id_number }}</p>
+                </div>
+                {% endif %}
+                {% if learner.emis_learner_number %}
+                <div>
+                    <p class="text-xs text-gray-400 mb-0.5">LURITS ULI</p>
+                    <p class="text-gray-800 font-mono">{{ learner.emis_learner_number }}</p>
+                </div>
+                {% endif %}
+                {% if learner.classification != 'mainstream' %}
+                <div class="col-span-2">
+                    <p class="text-xs text-gray-400 mb-0.5">Classification</p>
+                    <p class="text-purple-700 font-medium">{{ learner.get_classification_display }}</p>
+                </div>
+                {% endif %}
+                {% if learner.transport_mode %}
+                <div class="col-span-2">
+                    <p class="text-xs text-gray-400 mb-0.5">Transport</p>
+                    <p class="text-gray-800">{{ learner.get_transport_mode_display }}{% if learner.transport_notes %} - {{ learner.transport_notes }}{% endif %}</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Medical - staff only -->
+        {% if can_view_medical %}
+        <div class="bg-white rounded-xl border border-{% if learner.has_medical_info %}amber-200{% else %}gray-200{% endif %}">
+            <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+                <h2 class="text-sm font-semibold text-gray-800">Medical Information</h2>
+                {% if learner.has_medical_info %}
+                <span class="text-xs font-medium text-amber-600 bg-amber-50 px-2 py-0.5 rounded">Notes on file</span>
+                {% endif %}
+            </div>
+            <div class="px-5 py-4 text-sm space-y-3">
+                {% if learner.allergies %}
+                <div>
+                    <p class="text-xs text-gray-400 mb-0.5">Allergies</p>
+                    <p class="text-gray-800">{{ learner.allergies }}</p>
+                </div>
+                {% endif %}
+                {% if learner.chronic_conditions %}
+                <div>
+                    <p class="text-xs text-gray-400 mb-0.5">Chronic Conditions</p>
+                    <p class="text-gray-800">{{ learner.chronic_conditions }}</p>
+                </div>
+                {% endif %}
+                {% if learner.current_medication %}
+                <div>
+                    <p class="text-xs text-gray-400 mb-0.5">Medication at School</p>
+                    <p class="text-gray-800">{{ learner.current_medication }}</p>
+                </div>
+                {% endif %}
+                {% if learner.medical_aid_scheme %}
+                <div>
+                    <p class="text-xs text-gray-400 mb-0.5">Medical Aid</p>
+                    <p class="text-gray-800">{{ learner.medical_aid_scheme }} - {{ learner.medical_aid_number }}</p>
+                </div>
+                {% endif %}
+                {% if not learner.has_medical_info %}
+                <p class="text-gray-400">No medical notes on file.</p>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Documents -->
+        <div class="bg-white rounded-xl border border-gray-200">
+            <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+                <h2 class="text-sm font-semibold text-gray-800">Documents</h2>
+                {% if can_upload_docs %}
+                <a href="{% url 'academics:document_upload' learner.pk %}"
+                   class="text-xs text-blue-600 hover:text-blue-800">Upload</a>
+                {% endif %}
+            </div>
+            {% if learner.documents.all %}
+            <ul class="divide-y divide-gray-100">
+                {% for doc in learner.documents.all %}
+                <li class="px-5 py-3 flex items-center justify-between text-sm">
+                    <div>
+                        <p class="font-medium text-gray-800">{{ doc.name }}</p>
+                        <p class="text-xs text-gray-400">{{ doc.get_document_type_display }} - {{ doc.get_file_size }}</p>
+                    </div>
+                    <a href="{% url 'academics:document_serve' learner.pk doc.pk %}"
+                       class="text-blue-600 hover:text-blue-800 text-xs font-medium" target="_blank">View</a>
+                </li>
+                {% endfor %}
+            </ul>
+            {% else %}
+            <p class="px-5 py-4 text-sm text-gray-400">No documents uploaded.</p>
+            {% endif %}
+        </div>
+
+    </div>
+
+    <!-- Right: Guardians + Enrollment History -->
+    <div class="space-y-6">
+
+        <!-- Guardians -->
+        <div class="bg-white rounded-xl border border-gray-200">
+            <div class="px-5 py-4 border-b border-gray-100">
+                <h2 class="text-sm font-semibold text-gray-800">Guardians</h2>
+            </div>
+            {% for rel in learner.guardian_relationships.all %}
+            <div class="px-5 py-3 border-b border-gray-100 last:border-0">
+                <div class="flex items-center justify-between">
+                    <p class="text-sm font-medium text-gray-800">{{ rel.guardian.get_full_name }}</p>
+                    {% if rel.is_primary_contact %}
+                    <span class="text-xs text-blue-600">Primary</span>
+                    {% endif %}
+                </div>
+                <p class="text-xs text-gray-500 mt-0.5">{{ rel.get_relationship_display }}</p>
+                <p class="text-xs text-gray-600 mt-1">{{ rel.guardian.phone_primary }}</p>
+                {% if rel.has_court_restriction %}
+                <p class="text-xs font-semibold text-red-600 mt-1">Court restriction on file</p>
+                {% endif %}
+            </div>
+            {% empty %}
+            <p class="px-5 py-4 text-sm text-gray-400">No guardians linked.</p>
+            {% endfor %}
+        </div>
+
+        <!-- Enrollment History -->
+        <div class="bg-white rounded-xl border border-gray-200">
+            <div class="px-5 py-4 border-b border-gray-100">
+                <h2 class="text-sm font-semibold text-gray-800">Enrollment History</h2>
+            </div>
+            {% for enrollment in enrollment_history %}
+            <div class="px-5 py-3 border-b border-gray-100 last:border-0 text-sm">
+                <div class="flex items-center justify-between">
+                    <span class="font-medium text-gray-800">{{ enrollment.grade.name }}</span>
+                    <span class="text-xs text-gray-400">{{ enrollment.academic_year.year }}</span>
+                </div>
+                {% if enrollment.stream %}
+                <p class="text-xs text-gray-500 mt-0.5">{{ enrollment.stream.get_display_name }}</p>
+                {% endif %}
+                <span class="inline-block mt-1 text-xs px-1.5 py-0.5 rounded
+                    {% if enrollment.status == 'active' %}bg-green-50 text-green-700
+                    {% elif enrollment.status == 'completed' %}bg-blue-50 text-blue-700
+                    {% else %}bg-gray-100 text-gray-600{% endif %}">
+                    {{ enrollment.get_status_display }}
+                </span>
+                {% if enrollment.year_end_outcome %}
+                <span class="inline-block mt-1 ml-1 text-xs px-1.5 py-0.5 rounded bg-purple-50 text-purple-700">
+                    {{ enrollment.get_year_end_outcome_display }}
+                </span>
+                {% endif %}
+            </div>
+            {% empty %}
+            <p class="px-5 py-4 text-sm text-gray-400">No enrollment records.</p>
+            {% endfor %}
+        </div>
+
+    </div>
+</div>
+{% endblock %}

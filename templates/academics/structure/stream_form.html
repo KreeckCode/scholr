@@ -1,0 +1,39 @@
+{% extends 'academics/base.html' %}
+
+{% block academics_content %}
+<div class="max-w-lg">
+    <div class="flex items-center gap-3 mb-6">
+        <a href="{% url 'academics:grade_list' %}" class="text-gray-400 hover:text-gray-600">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+            </svg>
+        </a>
+        <h1 class="text-xl font-bold text-gray-900">{{ title }}</h1>
+    </div>
+
+    <form method="post" class="bg-white rounded-xl border border-gray-200">
+        {% csrf_token %}
+        <div class="px-5 py-5 space-y-4">
+            {% for field in form %}
+            <div>
+                <label class="block text-xs font-medium text-gray-700 mb-1">
+                    {{ field.label }}{% if field.field.required %} <span class="text-red-500">*</span>{% endif %}
+                </label>
+                {{ field }}
+                {% if field.help_text %}<p class="text-xs text-gray-400 mt-0.5">{{ field.help_text }}</p>{% endif %}
+                {% for error in field.errors %}<p class="text-xs text-red-600 mt-0.5">{{ error }}</p>{% endfor %}
+            </div>
+            {% endfor %}
+        </div>
+        <div class="px-5 py-4 border-t border-gray-100 flex gap-3">
+            <button type="submit" class="px-5 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700">
+                {{ submit_label }}
+            </button>
+            <a href="{% url 'academics:grade_list' %}"
+               class="px-4 py-2 border border-gray-300 text-sm text-gray-700 rounded-lg hover:bg-gray-50">
+                Cancel
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}

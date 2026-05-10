@@ -1,0 +1,99 @@
+{% extends 'academics/base.html' %}
+
+{% block academics_content %}
+<div class="flex items-center justify-between mb-6">
+    <h1 class="text-2xl font-bold text-gray-900">Grades and Classes</h1>
+    {% if can_manage %}
+    <a href="{% url 'academics:stream_create' %}"
+       class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+        </svg>
+        Add Class
+    </a>
+    {% endif %}
+</div>
+
+<!-- Year selector -->
+<div class="mb-6 flex items-center gap-3">
+    <span class="text-sm text-gray-500">Academic Year:</span>
+    {% for year in all_years %}
+    <a href="?year={{ year.pk }}"
+       class="px-3 py-1 text-sm rounded-lg border
+              {% if selected_year.pk == year.pk %}
+              border-blue-500 bg-blue-50 text-blue-700 font-medium
+              {% else %}
+              border-gray-300 text-gray-600 hover:bg-gray-50
+              {% endif %}">
+        {{ year.year }}
+    </a>
+    {% endfor %}
+</div>
+
+{% if not selected_year %}
+<div class="bg-amber-50 border border-amber-200 rounded-xl p-5 text-sm text-amber-800">
+    No academic year is set as current. Configure one under Academic Years in the admin.
+</div>
+{% else %}
+
+<!-- Grade grid -->
+<div class="space-y-4">
+    {% for grade in grades %}
+    {% with streams=streams_by_grade|default:{}|dictsort:grade.pk %}
+    <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        <!-- Grade header -->
+        <div class="px-5 py-3 bg-gray-50 border-b border-gray-200 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <span class="text-sm font-semibold text-gray-800">{{ grade.name }}</span>
+                <span class="text-xs text-gray-400">{{ grade.short_phase }}</span>
+            </div>
+            <span class="text-xs text-gray-400">Max {{ grade.max_learners_per_class }} per class</span>
+        </div>
+
+        <!-- Streams -->
+        <div class="divide-y divide-gray-100">
+            {% for stream in streams_by_grade|default_if_none:""|dictsort:grade.pk %}
+            {% empty %}
+            <p class="px-5 py-3 text-sm text-gray-400">No classes set up for {{ selected_year.year }}.</p>
+            {% endfor %}
+
+            {% with grade_streams=streams_by_grade %}
+            {% for stream_id, stream_list in grade_streams.items %}
+            {% if stream_id == grade.pk %}
+            {% for stream in stream_list %}
+            <div class="px-5 py-3 flex items-center justify-between">
+                <div class="flex items-center gap-4">
+                    <span class="text-sm font-medium text-gray-800 w-10">{{ stream.get_display_name }}</span>
+                    {% if stream.homeroom_teacher %}
+                    <span class="text-sm text-gray-600">{{ stream.homeroom_teacher.get_full_name }}</span>
+                    {% else %}
+                    <span class="text-sm text-gray-300">No teacher assigned</span>
+                    {% endif %}
+                    {% if stream.room_number %}
+                    <span class="text-xs text-gray-400">Room {{ stream.room_number }}</span>
+                    {% endif %}
+                </div>
+                <div class="flex items-center gap-4">
+                    <span class="text-sm text-gray-600">
+                        {{ stream.get_learner_count }}/{{ stream.capacity }}
+                        {% if stream.is_full %}
+                        <span class="text-xs text-red-500 ml-1">Full</span>
+                        {% endif %}
+                    </span>
+                    {% if can_manage %}
+                    <a href="{% url 'academics:stream_update' stream.pk %}"
+                       class="text-xs text-blue-600 hover:text-blue-800">Edit</a>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+            {% endif %}
+            {% endfor %}
+            {% endwith %}
+        </div>
+    </div>
+    {% endwith %}
+    {% endfor %}
+</div>
+{% endif %}
+{% endblock %}

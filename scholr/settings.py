@@ -32,6 +32,7 @@ INSTALLED_APPS = [
     'accounts',
     'integration.apps.IntegrationConfig',
     'shop',
+    'academics',
 ]
 
 # MIDDLEWARE
@@ -60,6 +61,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'django.template.context_processors.media',
+                'academics.context_processors.school_context',
             ],
         },
     },
@@ -123,8 +125,8 @@ LOGIN_REDIRECT_URL = 'accounts:dashboard'
 LOGOUT_REDIRECT_URL = 'accounts:login'
 
 # STATIC FILES
-STATIC_URL = '/static/'
-STATIC_ROOT = os.getenv('STATIC_ROOT', str(BASE_DIR / 'staticfiles'))
+STATIC_URL = "/static/"
+STATIC_ROOT = BASE_DIR / "staticfiles"
 
 # Only include static/ directory if it exists
 STATICFILES_DIRS = []
