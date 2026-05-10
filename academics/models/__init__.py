@@ -7,6 +7,10 @@ from .learner import (
 )
 from .curriculum import Curriculum, SchoolSubject, SubjectOffering, AssessmentTask
 from .marks import SubjectEnrollment, AssessmentRecord, TermMark, FinalMark
+from .intervention import (
+    PerformanceAnalysis, InterventionProgram,
+    LearnerIntervention, ProgressNote,
+)
 
 __all__ = [
     "School", "AcademicYear", "Term", "Department", "SchoolStaff",
@@ -16,4 +20,5 @@ __all__ = [
     "SA_LANGUAGE_CHOICES", "NATIONALITY_CHOICES",
     "Curriculum", "SchoolSubject", "SubjectOffering", "AssessmentTask",
     "SubjectEnrollment", "AssessmentRecord", "TermMark", "FinalMark",
+    "PerformanceAnalysis", "InterventionProgram", "LearnerIntervention", "ProgressNote",
 ]

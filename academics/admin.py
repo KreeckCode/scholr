@@ -16,7 +16,10 @@ from .models import (
     SchoolStaff,
     Term,
 )
-
+from .models.intervention import (
+    InterventionProgram, LearnerIntervention,
+    PerformanceAnalysis, ProgressNote,
+)
 
 # ==================== SCHOOL PROFILE ====================
 
@@ -334,4 +337,62 @@ class FinalMarkAdmin(admin.ModelAdmin):
 
     def get_subject(self, obj):
         return obj.subject_enrollment.subject_offering.subject.name
+    get_subject.short_description = "Subject"
+
+
+
+@admin.register(PerformanceAnalysis)
+class PerformanceAnalysisAdmin(admin.ModelAdmin):
+    list_display = (
+        "get_learner", "academic_year", "risk_level",
+        "risk_score", "subjects_failing", "average_percentage",
+        "trend", "analysed_at",
+    )
+    list_filter = ("academic_year", "risk_level", "trend")
+    search_fields = ("learner__first_name", "learner__last_name")
+    ordering = ("-risk_score", "learner__last_name")
+
+    def get_learner(self, obj):
+        return obj.learner.get_full_name()
+    get_learner.short_description = "Learner"
+
+
+@admin.register(InterventionProgram)
+class InterventionProgramAdmin(admin.ModelAdmin):
+    list_display = ("name", "program_type", "is_active", "sort_order")
+    list_editable = ("sort_order", "is_active")
+    ordering = ("sort_order", "name")
+
+
+@admin.register(LearnerIntervention)
+class LearnerInterventionAdmin(admin.ModelAdmin):
+    list_display = (
+        "get_learner", "program", "academic_year",
+        "get_subject", "status", "assigned_to", "start_date",
+    )
+    list_filter = ("academic_year", "status", "program__program_type")
+    search_fields = ("learner__first_name", "learner__last_name")
+    raw_id_fields = ("learner",)
+
+    def get_learner(self, obj):
+        return obj.learner.get_full_name()
+    get_learner.short_description = "Learner"
+
+    def get_subject(self, obj):
+        return obj.subject_offering.subject.code if obj.subject_offering else "-"
+    get_subject.short_description = "Subject"
+
+
+@admin.register(ProgressNote)
+class ProgressNoteAdmin(admin.ModelAdmin):
+    list_display = ("get_learner", "get_subject", "academic_year", "created_by", "created_at")
+    list_filter = ("academic_year", "share_with_parent")
+    search_fields = ("learner__first_name", "learner__last_name", "note")
+
+    def get_learner(self, obj):
+        return obj.learner.get_full_name()
+    get_learner.short_description = "Learner"
+
+    def get_subject(self, obj):
+        return obj.subject_offering.subject.code if obj.subject_offering else "General"
     get_subject.short_description = "Subject"

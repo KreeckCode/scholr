@@ -71,3 +71,4 @@ python-dotenv
 dj_database_url
 psycopg2
 psycopg
+weasyprint

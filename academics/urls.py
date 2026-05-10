@@ -13,6 +13,10 @@ from .views.curriculum import (
     SubjectOfferingUpdateView,
     SubjectUpdateView,
 )
+from .views.intervention import (
+    AtRiskDashboardView, RunAnalysisView, LearnerAnalysisView,
+    InterventionCreateView, InterventionUpdateView, ProgressNoteCreateView,
+)
 from .views.learner import (
     DocumentServeView,
     DocumentUploadView,
@@ -76,4 +80,15 @@ urlpatterns = [
         TermMarksSummaryView.as_view(),
         name="term_summary",
     ),
+
+    # Add inside urlpatterns:
+    path("intervention/at-risk/", AtRiskDashboardView.as_view(), name="at_risk"),
+    path("intervention/analyse/", RunAnalysisView.as_view(), name="run_analysis"),
+    path("intervention/<int:learner_pk>/analyse/", RunAnalysisView.as_view(), name="run_analysis_learner"),
+    path("intervention/<int:learner_pk>/", LearnerAnalysisView.as_view(), name="learner_analysis"),
+    path("intervention/<int:learner_pk>/interventions/add/", InterventionCreateView.as_view(), name="intervention_create"),
+    path("intervention/interventions/<int:pk>/edit/", InterventionUpdateView.as_view(), name="intervention_update"),
+    path("intervention/<int:learner_pk>/notes/add/", ProgressNoteCreateView.as_view(), name="progress_note_create"),
+
+
 ]
