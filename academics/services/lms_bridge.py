@@ -18,7 +18,7 @@ from dataclasses import dataclass
 from django.contrib.auth import get_user_model
 from django.db import transaction
 from django.utils import timezone
-
+from academics.models.lms_link import LearnerLMSAccount, OnlineEnrollment
 from academics.models.lms_link import LearnerLMSAccount
 from academics.models.learner import Learner
 from academics.models.school import School
@@ -102,8 +102,7 @@ class LMSBridgeService:
             is_active=True,
             is_verified=True,  # School verification — not LMS dean verification
         )
-        if learner.phone_number:
-            user.phone_number = learner.phone_number
+
         user.set_password(temp_password)
         user.save()
 
@@ -114,12 +113,14 @@ class LMSBridgeService:
             defaults={'country': 'South Africa', 'region': ''},
         )
 
-        # Create MoodleUserMapping (pending — sync happens next)
+        
         from integration.models import MoodleUserMapping
-        MoodleUserMapping.objects.create(
+        MoodleUserMapping.objects.get_or_create(
             cas_user=user,
-            moodle_username=username,
-            sync_status='pending',
+            defaults={
+                'moodle_username': username,
+                'sync_status': 'pending',
+            }
         )
 
         # Sync to Moodle — if Moodle is unavailable the account still exists
@@ -387,3 +388,294 @@ class LMSBridgeService:
 
         except Exception as exc:
             logger.error(f"Failed to unsuspend Moodle account for {user.username}: {exc}")
+
+    
+
+
+
+
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
+    # ==================== ENROLLMENT ====================
+
+    def ensure_lms_account(self, learner, enrolled_by) -> LearnerLMSAccount:
+        """
+        Get the existing LMS account for a learner, or create one silently.
+        Used internally when staff enroll a learner who doesn't have an account yet.
+        Returns the LearnerLMSAccount — the caller should check is_synced_to_moodle().
+        """
+        try:
+            return learner.lms_account
+        except LearnerLMSAccount.DoesNotExist:
+            result = self.create_lms_account(learner, enrolled_by)
+            return result.lms_account
+
+    @transaction.atomic
+    def enroll_in_course(
+        self,
+        learner,
+        course,
+        enrolled_by,
+        reason: str = '',
+        intervention=None,
+        subject=None,
+        academic_year=None,
+    ) -> OnlineEnrollment:
+        """
+        Enroll a school learner in an online course.
+
+        Steps:
+          1. Ensure LMS account exists (create silently if not)
+          2. Validate course is synced and has capacity
+          3. Short-circuit if already actively enrolled (idempotent)
+          4. Create or reactivate CourseEnrollment
+          5. Enroll in Moodle via direct MoodleClient call
+          6. Create or update OnlineEnrollment → STATUS_ACTIVE
+        """
+        from integration.models import CourseEnrollment, MoodleInstance
+        from integration.moodle_client import MoodleClient
+        from integration.exceptions import CourseNotSyncedError
+
+        if not academic_year:
+            from academics.models.school import AcademicYear
+            academic_year = AcademicYear.get_current()
+
+        if not academic_year:
+            raise ValueError('No current academic year configured.')
+
+        # Step 1: Ensure LMS account
+        lms_account = self.ensure_lms_account(learner, enrolled_by)
+
+        # Step 2a: Course must be synced to Moodle
+        if not course.moodle_course_id or course.sync_status != 'synced':
+            raise ValueError(
+                f'"{course.title}" is not synced to Moodle yet. '
+                f'Go to Integration → Sync → Courses to sync it first.'
+            )
+
+        # Step 2b: Capacity check
+        if course.enrollment_capacity:
+            enrolled_count = CourseEnrollment.objects.filter(
+                course=course, is_active=True
+            ).count()
+            if enrolled_count >= course.enrollment_capacity:
+                raise ValueError(
+                    f'"{course.title}" is full '
+                    f'({enrolled_count}/{course.enrollment_capacity} enrolled).'
+                )
+
+        # Step 3: Idempotency — return existing active enrollment unchanged
+        existing = OnlineEnrollment.objects.filter(
+            learner=learner,
+            course=course,
+            academic_year=academic_year,
+            status=OnlineEnrollment.STATUS_ACTIVE,
+        ).first()
+        if existing:
+            return existing
+
+        # Step 4: Moodle user must be synced
+        user = lms_account.user
+        try:
+            mapping = user.moodle_mapping
+        except Exception:
+            raise ValueError(
+                f'{learner.get_full_name()} has no Moodle mapping. '
+                f'Use "Retry Sync" on the LMS Accounts page.'
+            )
+
+        if not mapping.moodle_user_id:
+            raise ValueError(
+                f'{learner.get_full_name()} is not synced to Moodle yet. '
+                f'Use "Retry Sync" on the LMS Accounts page.'
+            )
+
+        # Step 5: Create or reactivate CourseEnrollment
+        course_enrollment, created = CourseEnrollment.objects.get_or_create(
+            user=user,
+            course=course,
+            defaults={
+                'is_active': True,
+                'enrolled_by': enrolled_by,
+                'sync_status': 'pending',
+            }
+        )
+        if not created and not course_enrollment.is_active:
+            course_enrollment.is_active = True
+            course_enrollment.sync_status = 'pending'
+            course_enrollment.unenrolled_at = None
+            course_enrollment.unenrolled_by = None
+            course_enrollment.save(
+                update_fields=['is_active', 'sync_status', 'unenrolled_at', 'unenrolled_by']
+            )
+
+        # Step 6: Enroll in Moodle
+        instance = MoodleInstance.objects.filter(
+            is_active=True, is_primary=True
+        ).first()
+        if not instance:
+            raise ValueError('No active Moodle instance configured.')
+
+        client = MoodleClient(instance.base_url, instance.ws_token)
+
+        try:
+            client.enrol_user(mapping.moodle_user_id, course.moodle_course_id)
+            course_enrollment.mark_synced()
+            logger.info(
+                f'Enrolled {learner.get_full_name()} in {course.short_name} '
+                f'(Moodle user {mapping.moodle_user_id}, course {course.moodle_course_id})'
+            )
+        except Exception as exc:
+            course_enrollment.mark_failed(str(exc))
+            raise ValueError(f'Moodle enrollment failed: {exc}')
+
+        # Step 7: Create or update OnlineEnrollment
+        online_enrollment, _ = OnlineEnrollment.objects.update_or_create(
+            learner=learner,
+            course=course,
+            academic_year=academic_year,
+            defaults={
+                'course_enrollment': course_enrollment,
+                'intervention': intervention,
+                'subject': subject,
+                'status': OnlineEnrollment.STATUS_ACTIVE,
+                'enrollment_reason': reason,
+                'enrolled_by': enrolled_by,
+                'withdrawn_at': None,
+                'withdrawn_by': None,
+                'progress_percentage': 0,
+            }
+        )
+
+        return online_enrollment
+
+    @transaction.atomic
+    def withdraw_enrollment(
+        self, online_enrollment: OnlineEnrollment, withdrawn_by, reason: str = ''
+    ) -> OnlineEnrollment:
+        """
+        Withdraw a learner from an online course.
+        Unenrolls from Moodle and marks both records as inactive/withdrawn.
+        """
+        from integration.models import MoodleInstance
+        from integration.moodle_client import MoodleClient
+
+        if online_enrollment.status == OnlineEnrollment.STATUS_WITHDRAWN:
+            return online_enrollment
+
+        learner = online_enrollment.learner
+        course = online_enrollment.course
+
+        # Unenroll from Moodle
+        try:
+            lms_account = learner.lms_account
+            mapping = lms_account.user.moodle_mapping
+
+            if mapping.moodle_user_id and course.moodle_course_id:
+                instance = MoodleInstance.objects.filter(
+                    is_active=True, is_primary=True
+                ).first()
+                if instance:
+                    client = MoodleClient(instance.base_url, instance.ws_token)
+                    client.unenrol_user(mapping.moodle_user_id, course.moodle_course_id)
+                    logger.info(
+                        f'Unenrolled {learner.get_full_name()} from {course.short_name}'
+                    )
+
+        except Exception as exc:
+            logger.error(f'Moodle unenrollment error for {learner}: {exc}')
+            # Continue — deactivate the local records even if Moodle call fails
+
+        # Deactivate CourseEnrollment
+        if online_enrollment.course_enrollment:
+            online_enrollment.course_enrollment.unenroll(unenrolled_by=withdrawn_by)
+
+        # Mark OnlineEnrollment as withdrawn
+        online_enrollment.status = OnlineEnrollment.STATUS_WITHDRAWN
+        online_enrollment.withdrawn_at = timezone.now()
+        online_enrollment.withdrawn_by = withdrawn_by
+        if reason:
+            online_enrollment.admin_notes = (
+                f'{online_enrollment.admin_notes}\nWithdrawn: {reason}'.strip()
+            )
+        online_enrollment.save(
+            update_fields=['status', 'withdrawn_at', 'withdrawn_by', 'admin_notes']
+        )
+
+        return online_enrollment
+
+    def get_available_courses(self, learner, academic_year):
+        """
+        Return courses available for enrollment — synced, visible, not already active.
+        Annotates each course with whether the learner is already enrolled.
+        """
+        from integration.models import Course
+
+        # Course IDs the learner is already actively enrolled in
+        enrolled_ids = OnlineEnrollment.objects.filter(
+            learner=learner,
+            academic_year=academic_year,
+            status=OnlineEnrollment.STATUS_ACTIVE,
+        ).values_list('course_id', flat=True)
+
+        return Course.objects.filter(
+            sync_status='synced',
+            visible=True,
+            moodle_course_id__isnull=False,
+        ).select_related('category').order_by('category__sort_order', 'title')
+
+    def sync_progress_for_learner(self, learner) -> dict:
+        """
+        Pull latest progress from Moodle for all active online enrollments.
+        Uses MoodleProgressService (shop) to hit the Moodle API, then caches
+        the result in each OnlineEnrollment record.
+        """
+        try:
+            lms_account = learner.lms_account
+        except LearnerLMSAccount.DoesNotExist:
+            return {'error': 'No LMS account for this learner.'}
+
+        if not lms_account.is_synced_to_moodle():
+            return {'error': 'Learner not synced to Moodle yet.'}
+
+        # Pull from Moodle via the existing progress service in shop
+        try:
+            from shop.services import MoodleProgressService
+            progress_service = MoodleProgressService()
+            result = progress_service.sync_user_progress(lms_account.user)
+        except Exception as exc:
+            logger.error(f'Progress sync failed for {learner}: {exc}')
+            return {'error': str(exc)}
+
+        # Copy updated CourseEnrollment.progress_percentage to OnlineEnrollment
+        updated = 0
+        for oe in OnlineEnrollment.objects.filter(
+            learner=learner,
+            status=OnlineEnrollment.STATUS_ACTIVE,
+            course_enrollment__isnull=False,
+        ).select_related('course_enrollment'):
+            new_pct = oe.course_enrollment.progress_percentage
+            OnlineEnrollment.objects.filter(pk=oe.pk).update(
+                progress_percentage=new_pct,
+                progress_last_synced=timezone.now(),
+            )
+            updated += 1
+
+        return {
+            'success': True,
+            'courses_synced_from_moodle': result.get('courses_synced', 0),
+            'online_enrollments_updated': updated,
+            'errors': result.get('errors', []),
+        }

@@ -106,3 +106,144 @@ class LearnerLMSAccount(models.Model):
             return self.user.moodle_mapping.moodle_user_id
         except Exception:
             return None
+        
+
+class OnlineEnrollment(models.Model):
+    """
+    Academic-side tracking record for a school learner enrolled in an online course.
+
+    This is NOT integration.CourseEnrollment — that is the Moodle sync record.
+    OnlineEnrollment is the academic decision: who enrolled whom, why, and in
+    support of which school subject or intervention.
+
+    One record per learner+course+academic_year. Re-enrollment after withdrawal
+    updates the existing record (update_or_create) rather than creating a new one.
+    Progress is cached here from CourseEnrollment to avoid cross-app joins.
+    """
+
+    STATUS_PENDING = 'pending'       # LMS account or course not yet in Moodle
+    STATUS_ACTIVE = 'active'         # Enrolled and confirmed in Moodle
+    STATUS_WITHDRAWN = 'withdrawn'   # Unenrolled from Moodle
+    STATUS_COMPLETED = 'completed'   # Learner finished the course
+
+    STATUS_CHOICES = [
+        (STATUS_PENDING, 'Pending Moodle Sync'),
+        (STATUS_ACTIVE, 'Active'),
+        (STATUS_WITHDRAWN, 'Withdrawn'),
+        (STATUS_COMPLETED, 'Completed'),
+    ]
+
+    learner = models.ForeignKey(
+        Learner,
+        on_delete=models.CASCADE,
+        related_name='online_enrollments',
+    )
+    # String reference avoids circular imports between lms_link and integration
+    course = models.ForeignKey(
+        'integration.Course',
+        on_delete=models.PROTECT,
+        related_name='academic_enrollments',
+    )
+    academic_year = models.ForeignKey(
+        AcademicYear,
+        on_delete=models.PROTECT,
+        related_name='online_enrollments',
+    )
+
+    # Link to the actual Moodle sync record in the integration app
+    course_enrollment = models.OneToOneField(
+        'integration.CourseEnrollment',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='academic_enrollment',
+    )
+
+    # Academic context — why was this enrollment created
+    intervention = models.ForeignKey(
+        'academics.LearnerIntervention',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='online_enrollments',
+        help_text='Intervention that prompted this enrollment, if any',
+    )
+    subject = models.ForeignKey(
+        'academics.SchoolSubject',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='online_enrollments',
+        help_text='School subject this online course is supporting',
+    )
+
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default=STATUS_PENDING,
+        db_index=True,
+    )
+    enrollment_reason = models.TextField(
+        blank=True,
+        help_text='Why this online enrollment was created',
+    )
+    admin_notes = models.TextField(blank=True)
+
+    enrolled_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name='online_enrollments_created',
+    )
+    enrolled_at = models.DateTimeField(auto_now_add=True)
+
+    withdrawn_at = models.DateTimeField(null=True, blank=True)
+    withdrawn_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='online_enrollments_withdrawn',
+    )
+
+    # Cached from integration.CourseEnrollment — updated by sync_progress_for_learner
+    progress_percentage = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        default=0,
+        help_text='Cached from Moodle via CourseEnrollment.progress_percentage',
+    )
+    progress_last_synced = models.DateTimeField(
+        null=True,
+        blank=True,
+    )
+
+    class Meta:
+        db_table = 'online_enrollments'
+        verbose_name = 'Online Enrollment'
+        verbose_name_plural = 'Online Enrollments'
+        unique_together = [['learner', 'course', 'academic_year']]
+        ordering = ['-enrolled_at']
+        indexes = [
+            models.Index(
+                fields=['learner', 'status'],
+                name='idx_oe_learner_status',
+            ),
+            models.Index(
+                fields=['academic_year', 'status'],
+                name='idx_oe_year_status',
+            ),
+        ]
+
+    def __str__(self):
+        return (
+            f"{self.learner.get_full_name()} → "
+            f"{self.course.short_name} ({self.status})"
+        )
+
+    def is_active(self):
+        return self.status == self.STATUS_ACTIVE
+
+    def progress_display(self):
+        """Progress as a rounded integer for template use."""
+        return int(self.progress_percentage)

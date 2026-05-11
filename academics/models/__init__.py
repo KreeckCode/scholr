@@ -18,7 +18,7 @@ from .attendance import (
     AttendanceRecord, AttendanceSummary,
 )
 from .lurits import LURITSExport, LURITSValidationIssue
-
+from .lms_link import LearnerLMSAccount, OnlineEnrollment
 __all__ = [
     "School", "AcademicYear", "Term", "Department", "SchoolStaff",
     "Grade", "GradeStream",

@@ -19,7 +19,7 @@ from decimal import Decimal
 
 from django.core.files.base import ContentFile
 from django.utils import timezone
-
+from academics.models.lms_link import LearnerLMSAccount, OnlineEnrollment
 from ..models.attendance import AttendanceSummary
 from ..models.learner import Learner, LearnerEnrollment
 from ..models.lurits import LURITSExport
