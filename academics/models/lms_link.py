@@ -247,3 +247,5 @@ class OnlineEnrollment(models.Model):
     def progress_display(self):
         """Progress as a rounded integer for template use."""
         return int(self.progress_percentage)
+    
+

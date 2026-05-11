@@ -389,25 +389,6 @@ class LMSBridgeService:
         except Exception as exc:
             logger.error(f"Failed to unsuspend Moodle account for {user.username}: {exc}")
 
-    
-
-
-
-
-
-    
-
-
-
-
-
-
-
-
-
-
-
-
     # ==================== ENROLLMENT ====================
 
     def ensure_lms_account(self, learner, enrolled_by) -> LearnerLMSAccount:

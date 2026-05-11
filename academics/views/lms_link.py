@@ -18,7 +18,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.views import View
 
 from scholr.features import bridge_enabled, lms_enabled
-from ..mixins import ManagementMixin, SeniorManagementMixin
+from ..mixins import ManagementMixin, SeniorManagementMixin, StaffMixin
 from ..models.learner import Learner, LearnerEnrollment
 from ..models.lms_link import LearnerLMSAccount
 from ..models.school import AcademicYear, Term
@@ -319,8 +319,13 @@ class LearnerLMSDashboardView(LoginRequiredMixin, View):
             except Exception as exc:
                 logger.warning(f"SSO URL failed for {request.user.username}: {exc}")
 
-        # Stage 12B will replace this with actual OnlineEnrollment query
-        online_enrollments = []
+        # Now populated from the real model
+        from academics.models.lms_link import OnlineEnrollment as _OE
+        online_enrollments = _OE.objects.filter(
+            learner=learner,
+            academic_year=current_year,
+            status=_OE.STATUS_ACTIVE,
+        ).select_related('course__category', 'subject') if current_year else []
 
         return render(request, self.template_name, {
             'lms_account': lms_account,
@@ -333,3 +338,354 @@ class LearnerLMSDashboardView(LoginRequiredMixin, View):
             'sync_status': lms_account.moodle_sync_status(),
             'online_enrollments': online_enrollments,
         })
+    
+
+
+# ==================== STAFF VIEWS — ONLINE ENROLLMENT ====================
+
+class OnlineLearningDashboardView(SeniorManagementMixin, View):
+    """
+    School-wide overview of online learning.
+    Shows LMS account counts, enrollment counts, progress distribution.
+    """
+
+    template_name = 'academics/lms/online_dashboard.html'
+
+    def get(self, request):
+        if not bridge_enabled():
+            return redirect('academics:learner_list')
+
+        current_year = AcademicYear.get_current()
+        current_term = Term.get_current()
+
+        from academics.models.lms_link import OnlineEnrollment
+        from integration.models import Course
+
+        total_accounts = LearnerLMSAccount.objects.filter(is_active=True).count()
+        synced_accounts = sum(
+            1 for acc in LearnerLMSAccount.objects.filter(is_active=True)
+            if acc.is_synced_to_moodle()
+        )
+
+        active_enrollments = OnlineEnrollment.objects.filter(
+            academic_year=current_year,
+            status=OnlineEnrollment.STATUS_ACTIVE,
+        ).count() if current_year else 0
+
+        # Average progress across all active enrollments
+        from django.db.models import Avg
+        avg_progress = OnlineEnrollment.objects.filter(
+            academic_year=current_year,
+            status=OnlineEnrollment.STATUS_ACTIVE,
+        ).aggregate(avg=Avg('progress_percentage'))['avg'] if current_year else None
+
+        if avg_progress:
+            avg_progress = round(float(avg_progress), 1)
+
+        # Per-learner enrollment rows (with progress)
+        recent = OnlineEnrollment.objects.filter(
+            academic_year=current_year,
+            status=OnlineEnrollment.STATUS_ACTIVE,
+        ).select_related(
+            'learner', 'course', 'subject', 'enrolled_by'
+        ).order_by('-enrolled_at')[:20] if current_year else []
+
+        # Available courses summary
+        available_courses = Course.objects.filter(
+            sync_status='synced', visible=True, moodle_course_id__isnull=False
+        ).count()
+
+        # Learners with LMS accounts but no current enrollments
+        enrolled_learner_ids = OnlineEnrollment.objects.filter(
+            academic_year=current_year,
+            status=OnlineEnrollment.STATUS_ACTIVE,
+        ).values_list('learner_id', flat=True) if current_year else []
+
+        accounts_without_enrollment = LearnerLMSAccount.objects.filter(
+            is_active=True,
+        ).exclude(
+            learner_id__in=enrolled_learner_ids
+        ).select_related('learner').count()
+
+        return render(request, self.template_name, {
+            'current_year': current_year,
+            'current_term': current_term,
+            'total_accounts': total_accounts,
+            'synced_accounts': synced_accounts,
+            'active_enrollments': active_enrollments,
+            'avg_progress': avg_progress,
+            'recent': recent,
+            'available_courses': available_courses,
+            'accounts_without_enrollment': accounts_without_enrollment,
+        })
+
+
+class LearnerOnlineCoursesView(StaffMixin, View):
+    """
+    All online enrollments for a specific learner.
+    Shows progress bars, status badges, and withdraw/enroll actions.
+    Linked from the Online Learning tab on the learner detail page.
+    """
+
+    template_name = 'academics/lms/learner_online.html'
+
+    def get(self, request, learner_pk):
+        learner = get_object_or_404(Learner, pk=learner_pk, is_active=True)
+        current_year = AcademicYear.get_current()
+
+        from academics.models.lms_link import OnlineEnrollment
+
+        active_enrollments = OnlineEnrollment.objects.filter(
+            learner=learner,
+            academic_year=current_year,
+            status=OnlineEnrollment.STATUS_ACTIVE,
+        ).select_related(
+            'course__category', 'subject', 'enrolled_by', 'course_enrollment'
+        ).order_by('-enrolled_at') if current_year else []
+
+        past_enrollments = OnlineEnrollment.objects.filter(
+            learner=learner,
+            status__in=[
+                OnlineEnrollment.STATUS_WITHDRAWN,
+                OnlineEnrollment.STATUS_COMPLETED,
+            ],
+        ).select_related('course', 'withdrawn_by').order_by('-withdrawn_at')[:10]
+
+        # LMS account info
+        lms_account = None
+        try:
+            lms_account = learner.lms_account
+        except LearnerLMSAccount.DoesNotExist:
+            pass
+
+        return render(request, self.template_name, {
+            'learner': learner,
+            'lms_account': lms_account,
+            'active_enrollments': active_enrollments,
+            'past_enrollments': past_enrollments,
+            'current_year': current_year,
+            'can_enroll': request.user.role in {
+                'admin', 'principal', 'admin_clerk', 'hod'
+            },
+            'can_withdraw': request.user.role in {'admin', 'principal'},
+        })
+
+
+class AvailableCoursesView(ManagementMixin, View):
+    """
+    Browse available online courses to enroll a learner in.
+    Shows all synced+visible courses with enrollment status for the learner.
+    """
+
+    template_name = 'academics/lms/available_courses.html'
+
+    def get(self, request, learner_pk):
+        learner = get_object_or_404(Learner, pk=learner_pk, is_active=True)
+        current_year = AcademicYear.get_current()
+
+        from integration.models import Course as LMSCourse
+        from academics.models.lms_link import OnlineEnrollment
+
+        # Already enrolled course IDs for this learner this year
+        enrolled_ids = set(
+            OnlineEnrollment.objects.filter(
+                learner=learner,
+                academic_year=current_year,
+                status=OnlineEnrollment.STATUS_ACTIVE,
+            ).values_list('course_id', flat=True)
+        ) if current_year else set()
+
+        # All available courses
+        courses_qs = LMSCourse.objects.filter(
+            sync_status='synced',
+            visible=True,
+            moodle_course_id__isnull=False,
+        ).select_related('category').order_by('category__sort_order', 'title')
+
+        # Search
+        search = request.GET.get('q', '').strip()
+        if search:
+            from django.db.models import Q
+            courses_qs = courses_qs.filter(
+                Q(title__icontains=search) |
+                Q(summary__icontains=search) |
+                Q(short_name__icontains=search)
+            )
+
+        # Category filter
+        category_id = request.GET.get('category', '')
+        if category_id.isdigit():
+            courses_qs = courses_qs.filter(category_id=category_id)
+
+        # Annotate with enrollment count for capacity display
+        from django.db.models import Count
+        courses_qs = courses_qs.annotate(
+            enrolled_count=Count('enrollments', filter=__import__(
+                'django.db.models', fromlist=['Q']
+            ).Q(enrollments__is_active=True))
+        )
+
+        # Build course rows with "already enrolled" flag
+        course_rows = [
+            {
+                'course': c,
+                'already_enrolled': c.pk in enrolled_ids,
+                'is_full': bool(
+                    c.enrollment_capacity
+                    and c.enrolled_count >= c.enrollment_capacity
+                ),
+            }
+            for c in courses_qs
+        ]
+
+        from integration.models import CourseCategory
+        categories = CourseCategory.objects.filter(is_active=True).order_by('sort_order')
+
+        return render(request, self.template_name, {
+            'learner': learner,
+            'course_rows': course_rows,
+            'current_year': current_year,
+            'search': search,
+            'categories': categories,
+            'selected_category': category_id,
+        })
+
+
+class EnrollConfirmView(ManagementMixin, View):
+    """
+    Enrollment confirmation form for a specific learner + course combination.
+    GET: shows course details + reason/subject form.
+    POST: calls LMSBridgeService.enroll_in_course().
+    """
+
+    template_name = 'academics/lms/enroll_confirm.html'
+
+    def _get_objects(self, learner_pk, course_pk):
+        from integration.models import Course as LMSCourse
+        learner = get_object_or_404(Learner, pk=learner_pk, is_active=True)
+        course = get_object_or_404(LMSCourse, pk=course_pk)
+        return learner, course
+
+    def get(self, request, learner_pk, course_pk):
+        learner, course = self._get_objects(learner_pk, course_pk)
+        current_year = AcademicYear.get_current()
+
+        from academics.models.curriculum import SchoolSubject
+        subjects = SchoolSubject.objects.filter(is_active=True).order_by('sort_order', 'name')
+
+        # LMS account status
+        lms_account = None
+        try:
+            lms_account = learner.lms_account
+        except LearnerLMSAccount.DoesNotExist:
+            pass
+
+        return render(request, self.template_name, {
+            'learner': learner,
+            'course': course,
+            'lms_account': lms_account,
+            'current_year': current_year,
+            'subjects': subjects,
+        })
+
+    def post(self, request, learner_pk, course_pk):
+        learner, course = self._get_objects(learner_pk, course_pk)
+        current_year = AcademicYear.get_current()
+
+        reason = request.POST.get('enrollment_reason', '').strip()
+        subject_id = request.POST.get('subject_id', '').strip()
+
+        subject = None
+        if subject_id.isdigit():
+            from academics.models.curriculum import SchoolSubject
+            subject = SchoolSubject.objects.filter(pk=subject_id).first()
+
+        service = LMSBridgeService()
+
+        try:
+            online_enrollment = service.enroll_in_course(
+                learner=learner,
+                course=course,
+                enrolled_by=request.user,
+                reason=reason,
+                subject=subject,
+                academic_year=current_year,
+            )
+            messages.success(
+                request,
+                f'{learner.get_full_name()} enrolled in "{course.title}" successfully.',
+            )
+        except ValueError as exc:
+            messages.error(request, str(exc))
+            return redirect(
+                'academics:enroll_confirm',
+                learner_pk=learner_pk,
+                course_pk=course_pk,
+            )
+        except Exception as exc:
+            logger.error(f'Enrollment error: {exc}')
+            messages.error(request, f'Enrollment failed: {exc}')
+            return redirect(
+                'academics:enroll_confirm',
+                learner_pk=learner_pk,
+                course_pk=course_pk,
+            )
+
+        return redirect('academics:learner_online_courses', learner_pk=learner_pk)
+
+
+class WithdrawEnrollmentView(SeniorManagementMixin, View):
+    """Withdraw a learner from an online course. POST only."""
+
+    def post(self, request, enrollment_pk):
+        from academics.models.lms_link import OnlineEnrollment
+        enrollment = get_object_or_404(
+            OnlineEnrollment.objects.select_related('learner', 'course'),
+            pk=enrollment_pk,
+        )
+
+        reason = request.POST.get('reason', '').strip()
+        service = LMSBridgeService()
+
+        try:
+            service.withdraw_enrollment(enrollment, withdrawn_by=request.user, reason=reason)
+            messages.success(
+                request,
+                f'{enrollment.learner.get_full_name()} withdrawn from '
+                f'"{enrollment.course.title}".',
+            )
+        except Exception as exc:
+            messages.error(request, f'Withdrawal failed: {exc}')
+
+        return redirect(
+            'academics:learner_online_courses',
+            learner_pk=enrollment.learner_id,
+        )
+
+
+class SyncProgressView(ManagementMixin, View):
+    """
+    Manually trigger progress sync from Moodle for a specific learner.
+    POST only — shows updated progress on redirect.
+    """
+
+    def post(self, request, learner_pk):
+        learner = get_object_or_404(Learner, pk=learner_pk, is_active=True)
+
+        service = LMSBridgeService()
+        result = service.sync_progress_for_learner(learner)
+
+        if result.get('success'):
+            synced = result.get('online_enrollments_updated', 0)
+            messages.success(
+                request,
+                f'Progress synced for {learner.get_full_name()}. '
+                f'{synced} course(s) updated.',
+            )
+        else:
+            messages.warning(
+                request,
+                f"Progress sync issue: {result.get('error', 'Unknown error')}",
+            )
+
+        return redirect('academics:learner_online_courses', learner_pk=learner_pk)

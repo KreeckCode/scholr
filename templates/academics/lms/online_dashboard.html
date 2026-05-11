@@ -1,0 +1,102 @@
+{% extends 'academics/base.html' %}
+
+{% block academics_content %}
+<div class="flex items-center justify-between mb-6">
+    <div>
+        <h1 class="text-2xl font-bold text-gray-900">Online Learning</h1>
+        <p class="text-sm text-gray-500 mt-0.5">
+            {{ current_year.year }} overview of school learner online enrollments
+        </p>
+    </div>
+    <a href="{% url 'academics:lms_accounts' %}"
+       class="px-4 py-2 border border-gray-300 text-sm text-gray-700 rounded-lg hover:bg-gray-50">
+        Manage LMS Accounts
+    </a>
+</div>
+
+<!-- Summary cards -->
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+    <div class="bg-white rounded-xl border border-gray-200 p-4 text-center">
+        <p class="text-2xl font-bold text-blue-700">{{ total_accounts }}</p>
+        <p class="text-xs text-gray-500 mt-1">LMS Accounts</p>
+        <p class="text-xs text-gray-400">{{ synced_accounts }} synced to Moodle</p>
+    </div>
+    <div class="bg-white rounded-xl border border-gray-200 p-4 text-center">
+        <p class="text-2xl font-bold text-green-600">{{ active_enrollments }}</p>
+        <p class="text-xs text-gray-500 mt-1">Active Enrollments</p>
+        <p class="text-xs text-gray-400">{{ current_year.year }}</p>
+    </div>
+    <div class="bg-white rounded-xl border border-gray-200 p-4 text-center">
+        <p class="text-2xl font-bold text-gray-700">
+            {% if avg_progress %}{{ avg_progress }}%{% else %}—{% endif %}
+        </p>
+        <p class="text-xs text-gray-500 mt-1">Average Progress</p>
+        <p class="text-xs text-gray-400">across active enrollments</p>
+    </div>
+    <div class="bg-white rounded-xl border {% if accounts_without_enrollment %}border-amber-200 bg-amber-50{% else %}border-gray-200{% endif %} p-4 text-center">
+        <p class="text-2xl font-bold {% if accounts_without_enrollment %}text-amber-700{% else %}text-gray-700{% endif %}">
+            {{ accounts_without_enrollment }}
+        </p>
+        <p class="text-xs {% if accounts_without_enrollment %}text-amber-600{% else %}text-gray-500{% endif %} mt-1">
+            Accounts Without Courses
+        </p>
+        <p class="text-xs text-gray-400">{{ available_courses }} courses available</p>
+    </div>
+</div>
+
+<!-- Recent enrollments -->
+{% if recent %}
+<div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+    <div class="px-5 py-4 border-b border-gray-100">
+        <h2 class="text-sm font-semibold text-gray-800">Active Enrollments</h2>
+    </div>
+    <table class="w-full text-sm">
+        <thead class="bg-gray-50 border-b border-gray-200">
+            <tr>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Learner</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Course</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Subject Context</th>
+                <th class="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">Progress</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Enrolled</th>
+                <th class="px-4 py-3"></th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+            {% for oe in recent %}
+            <tr class="hover:bg-gray-50">
+                <td class="px-4 py-3 font-medium text-gray-800">{{ oe.learner.get_full_name }}</td>
+                <td class="px-4 py-3">
+                    <p class="text-gray-800">{{ oe.course.title }}</p>
+                    <p class="text-xs text-gray-400">{{ oe.course.short_name }}</p>
+                </td>
+                <td class="px-4 py-3 text-gray-500 text-xs">
+                    {{ oe.subject.name|default:"—" }}
+                </td>
+                <td class="px-4 py-3">
+                    <div class="flex items-center gap-2">
+                        <div class="flex-1 bg-gray-100 rounded-full h-2 min-w-16">
+                            <div class="bg-blue-500 h-2 rounded-full"
+                                 style="width: {{ oe.progress_display }}%"></div>
+                        </div>
+                        <span class="text-xs text-gray-500 w-8 text-right">{{ oe.progress_display }}%</span>
+                    </div>
+                </td>
+                <td class="px-4 py-3 text-xs text-gray-400">{{ oe.enrolled_at|date:"d M Y" }}</td>
+                <td class="px-4 py-3 text-right">
+                    <a href="{% url 'academics:learner_online_courses' oe.learner.pk %}"
+                       class="text-xs text-blue-600 hover:text-blue-800">View</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="bg-white rounded-xl border border-gray-200 px-5 py-16 text-center">
+    <p class="text-gray-400 text-sm">No online enrollments yet for {{ current_year.year }}.</p>
+    <p class="text-gray-400 text-xs mt-1">
+        Go to a learner's profile → Online Learning tab → Add Course.
+    </p>
+</div>
+{% endif %}
+{% endblock %}

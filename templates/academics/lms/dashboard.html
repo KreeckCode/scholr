@@ -64,25 +64,39 @@
     </div>
 
     {% if online_enrollments %}
-    <!-- Stage 12B will populate this -->
     <div class="divide-y divide-gray-100">
         {% for oe in online_enrollments %}
-        <div class="px-6 py-4 flex items-center justify-between">
-            <div>
-                <p class="font-medium text-gray-800">{{ oe.course.title }}</p>
-                <p class="text-xs text-gray-400 mt-0.5">
-                    {{ oe.progress_percentage|floatformat:0 }}% complete
-                </p>
+        <div class="px-6 py-4">
+            <div class="flex items-center justify-between mb-2">
+                <div>
+                    <p class="font-semibold text-gray-800">{{ oe.course.title }}</p>
+                    <p class="text-xs text-gray-400 mt-0.5">
+                        {{ oe.course.category.name }}
+                        {% if oe.subject %}&middot; Supports {{ oe.subject.name }}{% endif %}
+                    </p>
+                </div>
+                <span class="text-sm font-bold {% if oe.progress_display >= 80 %}text-green-600{% elif oe.progress_display >= 40 %}text-blue-600{% else %}text-gray-500{% endif %}">
+                    {{ oe.progress_display }}%
+                </span>
             </div>
-            <div class="w-24 bg-gray-100 rounded-full h-2">
-                <div class="bg-blue-500 h-2 rounded-full"
-                     style="width: {{ oe.progress_percentage|floatformat:0 }}%">
+            <div class="w-full bg-gray-100 rounded-full h-2">
+                <div class="h-2 rounded-full
+                    {% if oe.progress_display >= 80 %}bg-green-500
+                    {% elif oe.progress_display >= 40 %}bg-blue-500
+                    {% else %}bg-gray-300{% endif %}"
+                    style="width: {{ oe.progress_display }}%">
                 </div>
             </div>
         </div>
         {% endfor %}
     </div>
     {% else %}
+    <div class="px-6 py-12 text-center">
+        <!-- existing empty state content -->
+    </div>
+    {% endif %}
+
+
     <div class="px-6 py-12 text-center">
         <div class="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
             <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">

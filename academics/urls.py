@@ -46,6 +46,16 @@ from .views.learner import (
     LearnerListView,
     LearnerUpdateView,
 )
+from .views.lms_link import (
+    # Stage 12A (already there)
+    LMSAccountsView, CreateLMSAccountView, LMSAccountCredentialsView,
+    ResetLMSPasswordView, DeactivateLMSAccountView, ReactivateLMSAccountView,
+    RetryMoodleSyncView, LearnerLMSDashboardView,
+    # Stage 12B — new
+    OnlineLearningDashboardView, LearnerOnlineCoursesView,
+    AvailableCoursesView, EnrollConfirmView,
+    WithdrawEnrollmentView, SyncProgressView,
+)
 from .views.structure import (
     GradeListView,
     GradeStreamCreateView,
@@ -173,4 +183,12 @@ urlpatterns = [
     path('online/accounts/<int:pk>/deactivate/', DeactivateLMSAccountView.as_view(), name='lms_account_deactivate'),
     path('online/accounts/<int:pk>/reactivate/', ReactivateLMSAccountView.as_view(), name='lms_account_reactivate'),
     path('online/accounts/<int:pk>/retry-sync/', RetryMoodleSyncView.as_view(), name='lms_account_retry_sync'),
+
+    # Stage 12B - new online learning management views
+    path('online/', OnlineLearningDashboardView.as_view(), name='online_learning_dashboard'),
+    path('online/learner/<int:learner_pk>/courses/', LearnerOnlineCoursesView.as_view(), name='learner_online_courses'),
+    path('online/learner/<int:learner_pk>/available/', AvailableCoursesView.as_view(), name='available_courses'),
+    path('online/learner/<int:learner_pk>/enroll/<int:course_pk>/', EnrollConfirmView.as_view(), name='enroll_confirm'),
+    path('online/enrollment/<int:enrollment_pk>/withdraw/', WithdrawEnrollmentView.as_view(), name='withdraw_online_enrollment'),
+    path('online/learner/<int:learner_pk>/sync-progress/', SyncProgressView.as_view(), name='sync_online_progress'),
 ]

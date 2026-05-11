@@ -216,6 +216,20 @@
                     LMS Accounts
                 </a>
                 {% endif %}
+                
+
+                {% if request.user.role in "admin,principal,admin_clerk" and SCHOLR_BRIDGE_ENABLED %}
+                <a href="{% url 'academics:online_learning_dashboard' %}"
+                class="flex items-center gap-3 px-3 py-2 text-sm rounded-lg
+                        {% if 'online_learning_dashboard' in request.resolver_match.url_name %}bg-blue-50 text-blue-700 font-medium
+                        {% else %}text-gray-600 hover:bg-gray-50 hover:text-gray-900{% endif %}">
+                    <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                    </svg>
+                    Dashboard
+                </a>
+                {% endif %}
         </nav>
     </aside>
 
