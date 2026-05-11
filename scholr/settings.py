@@ -11,7 +11,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY SETTINGS
 # Get from environment variables - never hardcode in production
 SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-fallback-key-change-this')
-DEBUG = True
+DEBUG = os.getenv('DEBUG', 'False') == 'True'
 
 # Parse allowed hosts from comma-separated string
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '165.232.37.122,judea.uorivo.com,localhost,127.0.0.1').split(',')
@@ -167,7 +167,13 @@ SECURE_HSTS_PRELOAD = os.getenv('SECURE_HSTS_PRELOAD', 'False') == 'True'
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https') if SECURE_SSL_REDIRECT else None
 
 # EMAIL CONFIGURATION
-EMAIL_BACKEND = os.getenv('EMAIL_BACKEND', 'django.core.mail.backends.console.EmailBackend')
+if DEBUG:
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+else:
+    EMAIL_BACKEND = os.getenv(
+        'EMAIL_BACKEND',
+        'django.core.mail.backends.smtp.EmailBackend',
+    )
 EMAIL_HOST = os.getenv('EMAIL_HOST', 'smtp.gmail.com')
 EMAIL_PORT = int(os.getenv('EMAIL_PORT', '587'))
 EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'True') == 'True'
@@ -175,7 +181,7 @@ EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', '')
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
 DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'noreply@scholr.co.za')
 SERVER_EMAIL = os.getenv('SERVER_EMAIL', 'server@scholr.co.za')
-
+SITE_URL = os.getenv('SITE_URL', 'http://localhost:8000')
 # SHOP CONFIGURATION
 CURRENCY_SYMBOL = 'R'
 CURRENCY_CODE = 'ZAR'

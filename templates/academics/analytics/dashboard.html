@@ -70,6 +70,37 @@
     </div>
 </div>
 
+{% if bridge_enabled and online_stats %}
+<!-- Online Learning summary card -->
+<div class="mt-4 bg-gradient-to-r from-indigo-50 to-blue-50 border border-indigo-200 rounded-xl p-5">
+    <div class="flex items-center justify-between mb-3">
+        <h2 class="text-sm font-semibold text-indigo-800">Online Learning</h2>
+        <a href="{% url 'academics:online_learning_report' %}"
+           class="text-xs text-indigo-600 hover:text-indigo-800">
+            Full Report
+        </a>
+    </div>
+    <div class="grid grid-cols-4 gap-4">
+        <div class="text-center">
+            <p class="text-xl font-bold text-indigo-700">{{ online_stats.total_accounts }}</p>
+            <p class="text-xs text-indigo-500 mt-0.5">LMS Accounts</p>
+        </div>
+        <div class="text-center">
+            <p class="text-xl font-bold text-blue-700">{{ online_stats.total_enrolled }}</p>
+            <p class="text-xs text-blue-500 mt-0.5">Enrolled</p>
+        </div>
+        <div class="text-center">
+            <p class="text-xl font-bold text-teal-700">{{ online_stats.avg_progress }}%</p>
+            <p class="text-xs text-teal-500 mt-0.5">Avg Progress</p>
+        </div>
+        <div class="text-center">
+            <p class="text-xl font-bold text-green-700">{{ online_stats.completed }}</p>
+            <p class="text-xs text-green-500 mt-0.5">Completed</p>
+        </div>
+    </div>
+</div>
+{% endif %}
+
 <!-- Load Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 

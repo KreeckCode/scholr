@@ -13,7 +13,7 @@ import io
 import json
 from collections import defaultdict
 from decimal import Decimal
-
+from scholr.features import bridge_enabled as _bridge_enabled
 from django.db.models import Avg, Count, Q
 from django.http import HttpResponse
 from django.shortcuts import render
@@ -163,6 +163,7 @@ class AnalyticsDashboardView(SeniorManagementMixin, View):
     """
     School-wide analytics overview.
     Computes all data in one request and passes Chart.js JSON to the template.
+    When the LMS Bridge is enabled, a fifth summary card shows online learning stats.
     """
 
     template_name = "academics/analytics/dashboard.html"
@@ -207,12 +208,33 @@ class AnalyticsDashboardView(SeniorManagementMixin, View):
             status=LearnerIntervention.STATUS_ACTIVE,
         ).count()
 
+        # ---- Online Learning stats card (bridge only) ----
+        # Computed separately so the template can conditionally render the card.
+        online_stats = None
+        if _bridge_enabled():
+            from ..models.lms_link import OnlineEnrollment, LearnerLMSAccount
+
+            _oe_qs = OnlineEnrollment.objects.filter(academic_year=current_year)
+            _active_oe = _oe_qs.filter(status=OnlineEnrollment.STATUS_ACTIVE)
+            _avg_prog = _active_oe.aggregate(avg=Avg("progress_percentage"))["avg"]
+
+            online_stats = {
+                "total_accounts": LearnerLMSAccount.objects.filter(
+                    is_active=True
+                ).count(),
+                "total_enrolled": _active_oe.count(),
+                "avg_progress": round(float(_avg_prog), 1) if _avg_prog else 0,
+                "completed": _oe_qs.filter(
+                    status=OnlineEnrollment.STATUS_COMPLETED
+                ).count(),
+            }
+
         # ---- Chart data ----
-        grade_enroll = _get_enrollment_by_grade(current_year)
-        gender_split = _get_gender_split(current_year)
-        subject_stats = _get_subject_stats(current_year)
+        grade_enroll   = _get_enrollment_by_grade(current_year)
+        gender_split   = _get_gender_split(current_year)
+        subject_stats  = _get_subject_stats(current_year)
         attendance_data = _get_attendance_by_grade(current_year, term_num)
-        risk_dist = _get_risk_distribution(current_year)
+        risk_dist      = _get_risk_distribution(current_year)
 
         # Enrollment bar chart
         enrollment_chart = json.dumps({
@@ -245,7 +267,7 @@ class AnalyticsDashboardView(SeniorManagementMixin, View):
             }],
         })
 
-        # Subject pass rates horizontal bar (top 10 by enrollment)
+        # Subject pass rates horizontal bar (top 12 by enrollment)
         top_subjects = sorted(
             [s for s in subject_stats if s["pass_rate"] is not None],
             key=lambda x: x["total"],
@@ -253,74 +275,74 @@ class AnalyticsDashboardView(SeniorManagementMixin, View):
         )[:12]
 
         subject_chart = json.dumps({
-            "labels": [f"{s['subject_code']} ({s['grade_name']})" for s in top_subjects],
-            "datasets": [
-                {
-                    "label": "Pass Rate %",
-                    "data": [s["pass_rate"] for s in top_subjects],
-                    "backgroundColor": [
-                        CHART_COLOURS["green"][0] if (s["pass_rate"] or 0) >= 60
-                        else CHART_COLOURS["amber"][0] if (s["pass_rate"] or 0) >= 40
-                        else CHART_COLOURS["red"][0]
-                        for s in top_subjects
-                    ],
-                    "borderWidth": 1,
-                },
+            "labels": [
+                f"{s['subject_code']} ({s['grade_name']})"
+                for s in top_subjects
             ],
+            "datasets": [{
+                "label": "Pass Rate %",
+                "data": [s["pass_rate"] for s in top_subjects],
+                "backgroundColor": [
+                    CHART_COLOURS["green"][0] if (s["pass_rate"] or 0) >= 60
+                    else CHART_COLOURS["amber"][0] if (s["pass_rate"] or 0) >= 40
+                    else CHART_COLOURS["red"][0]
+                    for s in top_subjects
+                ],
+                "borderWidth": 1,
+            }],
         })
 
         # Attendance bar chart
         attendance_chart = json.dumps({
             "labels": [g["grade_name"] for g in attendance_data],
-            "datasets": [
-                {
-                    "label": "Attendance %",
-                    "data": [g["average_pct"] for g in attendance_data],
-                    "backgroundColor": [
-                        CHART_COLOURS["green"][0] if g["average_pct"] >= 80
-                        else CHART_COLOURS["red"][0]
-                        for g in attendance_data
-                    ],
-                    "borderWidth": 1,
-                },
-            ],
+            "datasets": [{
+                "label": "Attendance %",
+                "data": [g["average_pct"] for g in attendance_data],
+                "backgroundColor": [
+                    CHART_COLOURS["green"][0] if g["average_pct"] >= 80
+                    else CHART_COLOURS["red"][0]
+                    for g in attendance_data
+                ],
+                "borderWidth": 1,
+            }],
         })
 
-        # Risk doughnut
+        # Risk distribution doughnut
         risk_levels = ["low", "medium", "high", "critical"]
-        risk_labels = ["Low Risk", "Medium Risk", "High Risk", "Critical"]
-        risk_colours = [
-            CHART_COLOURS["green"][0],
-            CHART_COLOURS["amber"][0],
-            CHART_COLOURS["red"][0],
-            "rgba(127, 29, 29, 0.85)",
-        ]
         risk_chart = json.dumps({
-            "labels": risk_labels,
+            "labels": ["Low Risk", "Medium Risk", "High Risk", "Critical"],
             "datasets": [{
-                "data": [risk_dist.get(level, 0) for level in risk_levels],
-                "backgroundColor": risk_colours,
+                "data": [risk_dist.get(lvl, 0) for lvl in risk_levels],
+                "backgroundColor": [
+                    CHART_COLOURS["green"][0],
+                    CHART_COLOURS["amber"][0],
+                    CHART_COLOURS["red"][0],
+                    "rgba(127, 29, 29, 0.85)",
+                ],
             }],
         })
 
         return render(request, self.template_name, {
-            "current_year": current_year,
-            "current_term": current_term,
+            "current_year":        current_year,
+            "current_term":        current_term,
             # Summary cards
-            "total_learners": total_learners,
-            "overall_pass_rate": overall_pass_rate,
-            "avg_attendance": avg_attendance,
-            "at_risk_academic": at_risk_academic,
+            "total_learners":      total_learners,
+            "overall_pass_rate":   overall_pass_rate,
+            "avg_attendance":      avg_attendance,
+            "at_risk_academic":    at_risk_academic,
             "active_interventions": active_interventions,
-            "total_finals": total_finals,
+            "total_finals":        total_finals,
+            # Online learning
+            "online_stats":        online_stats,
+            "bridge_enabled":      _bridge_enabled(),
             # Chart JSON
-            "enrollment_chart": enrollment_chart,
-            "gender_chart": gender_chart,
-            "subject_chart": subject_chart,
-            "attendance_chart": attendance_chart,
-            "risk_chart": risk_chart,
+            "enrollment_chart":    enrollment_chart,
+            "gender_chart":        gender_chart,
+            "subject_chart":       subject_chart,
+            "attendance_chart":    attendance_chart,
+            "risk_chart":          risk_chart,
             # Table data
-            "grade_enrollment": grade_enroll,
+            "grade_enrollment":    grade_enroll,
         })
 
 
@@ -481,20 +503,20 @@ class EnrollmentReportView(SeniorManagementMixin, View):
         })
 
 
+
 # ==================== EXCEL EXPORT ====================
 
 class ExportAnalyticsExcelView(SeniorManagementMixin, View):
     """
-    Export all analytics as a styled Excel workbook with four sheets:
-    Summary, Academic Performance, Attendance, and Enrollment.
+    Export all analytics as a styled Excel workbook.
+    Sheets: Summary, Academic Performance, Attendance, Enrollment.
+    When the LMS Bridge is enabled, a fifth sheet for Online Learning is appended.
     """
 
     def get(self, request):
         try:
             from openpyxl import Workbook
-            from openpyxl.styles import (
-                Alignment, Font, PatternFill, Border, Side,
-            )
+            from openpyxl.styles import Alignment, Font, PatternFill, Border, Side
             from openpyxl.utils import get_column_letter
         except ImportError:
             return HttpResponse(
@@ -512,7 +534,8 @@ class ExportAnalyticsExcelView(SeniorManagementMixin, View):
 
         wb = Workbook()
 
-        # Colour helpers
+        # ---- Style helpers (defined once, used across all sheets) ----
+
         def header_fill():
             return PatternFill("solid", fgColor="1E3A8A")
 
@@ -538,6 +561,7 @@ class ExportAnalyticsExcelView(SeniorManagementMixin, View):
             cell.font = header_font()
             cell.fill = header_fill()
             cell.alignment = Alignment(horizontal="center", vertical="center")
+            ws.row_dimensions[row].height = 22
 
         def write_subheader(ws, row, cols):
             for col_idx, col_name in enumerate(cols, 1):
@@ -562,9 +586,11 @@ class ExportAnalyticsExcelView(SeniorManagementMixin, View):
                     (len(str(cell.value)) for cell in col if cell.value),
                     default=10,
                 )
-                ws.column_dimensions[get_column_letter(col[0].column)].width = max_len + 4
+                ws.column_dimensions[
+                    get_column_letter(col[0].column)
+                ].width = max_len + 4
 
-        # ---- Sheet 1: Summary ----
+        # ==================== SHEET 1: SUMMARY ====================
         ws1 = wb.active
         ws1.title = "Summary"
         ws1.row_dimensions[1].height = 30
@@ -598,37 +624,55 @@ class ExportAnalyticsExcelView(SeniorManagementMixin, View):
         ).aggregate(avg=Avg("attendance_percentage"))["avg"]
 
         summary_rows = [
-            ("Academic Year", current_year.year),
-            ("Current Term", f"Term {term_num}"),
-            ("Total Enrolled Learners", total_learners),
+            ("Academic Year",               current_year.year),
+            ("Current Term",                f"Term {term_num}"),
+            ("Total Enrolled Learners",     total_learners),
             ("Total Subject Marks Captured", total_finals),
-            ("Overall Pass Rate", f"{round(passed_finals / total_finals * 100, 1)}%" if total_finals else "N/A"),
-            ("Average Attendance (current term)", f"{round(float(avg_att), 1)}%" if avg_att else "N/A"),
-            ("At-Risk (High/Critical)", PerformanceAnalysis.objects.filter(
-                academic_year=current_year,
-                risk_level__in=["high", "critical"],
-            ).count()),
-            ("Active Interventions", LearnerIntervention.objects.filter(
-                academic_year=current_year,
-                status="active",
-            ).count()),
+            (
+                "Overall Pass Rate",
+                f"{round(passed_finals / total_finals * 100, 1)}%"
+                if total_finals else "N/A",
+            ),
+            (
+                "Average Attendance (current term)",
+                f"{round(float(avg_att), 1)}%" if avg_att else "N/A",
+            ),
+            (
+                "At-Risk (High/Critical)",
+                PerformanceAnalysis.objects.filter(
+                    academic_year=current_year,
+                    risk_level__in=["high", "critical"],
+                ).count(),
+            ),
+            (
+                "Active Interventions",
+                LearnerIntervention.objects.filter(
+                    academic_year=current_year,
+                    status="active",
+                ).count(),
+            ),
         ]
         for i, (metric, value) in enumerate(summary_rows, start=4):
             ws1.cell(i, 1).value = metric
             ws1.cell(i, 2).value = value
             ws1.cell(i, 1).font = Font(bold=True)
 
-        ws1.column_dimensions["A"].width = 35
+        ws1.column_dimensions["A"].width = 40
         ws1.column_dimensions["B"].width = 20
 
-        # ---- Sheet 2: Academic Performance ----
+        # ==================== SHEET 2: ACADEMIC PERFORMANCE ====================
         ws2 = wb.create_sheet("Academic Performance")
-        cols2 = ["Subject", "Code", "Grade", "Learners", "Passed", "Failed", "Pass Rate %", "Average %"]
-        write_header(ws2, 1, cols2, f"Academic Performance by Subject — {current_year.year}")
+        cols2 = [
+            "Subject", "Code", "Grade",
+            "Learners", "Passed", "Failed", "Pass Rate %", "Average %",
+        ]
+        write_header(
+            ws2, 1, cols2,
+            f"Academic Performance by Subject — {current_year.year}",
+        )
         write_subheader(ws2, 2, cols2)
 
-        subject_stats = _get_subject_stats(current_year)
-        for i, stat in enumerate(subject_stats, start=3):
+        for i, stat in enumerate(_get_subject_stats(current_year), start=3):
             write_row(ws2, i, [
                 stat["subject_name"],
                 stat["subject_code"],
@@ -642,10 +686,13 @@ class ExportAnalyticsExcelView(SeniorManagementMixin, View):
 
         auto_width(ws2)
 
-        # ---- Sheet 3: Attendance ----
+        # ==================== SHEET 3: ATTENDANCE ====================
         ws3 = wb.create_sheet("Attendance")
         cols3 = ["Grade", "Learners Tracked", "Average Attendance %", "Below 80% (At-Risk)"]
-        write_header(ws3, 1, cols3, f"Attendance by Grade — {current_year.year} Term {term_num}")
+        write_header(
+            ws3, 1, cols3,
+            f"Attendance by Grade — {current_year.year} Term {term_num}",
+        )
         write_subheader(ws3, 2, cols3)
 
         att_data = _get_attendance_by_grade(current_year, term_num)
@@ -657,12 +704,16 @@ class ExportAnalyticsExcelView(SeniorManagementMixin, View):
                 row["at_risk_count"],
             ], alt=(i % 2 == 0))
 
-        # At-risk learner list
-        ws3.cell(len(att_data) + 4, 1).value = "Learners Below 80% Attendance"
-        ws3.cell(len(att_data) + 4, 1).font = Font(bold=True, color="991B1B")
+        # Learners below 80% detail block
+        detail_start = len(att_data) + 4
+        ws3.cell(detail_start, 1).value = "Learners Below 80% Attendance"
+        ws3.cell(detail_start, 1).font = Font(bold=True, color="991B1B")
 
-        at_risk_cols = ["Surname", "First Name", "Admission No.", "Grade", "Attendance %", "Days Absent"]
-        write_subheader(ws3, len(att_data) + 5, at_risk_cols)
+        at_risk_cols = [
+            "Surname", "First Name", "Admission No.",
+            "Grade", "Attendance %", "Days Absent",
+        ]
+        write_subheader(ws3, detail_start + 1, at_risk_cols)
 
         at_risk_qs = AttendanceSummary.objects.filter(
             academic_year=current_year,
@@ -670,7 +721,7 @@ class ExportAnalyticsExcelView(SeniorManagementMixin, View):
             is_at_risk=True,
         ).select_related("learner", "stream__grade").order_by("attendance_percentage")
 
-        for i, s in enumerate(at_risk_qs, start=len(att_data) + 6):
+        for i, s in enumerate(at_risk_qs, start=detail_start + 2):
             write_row(ws3, i, [
                 s.learner.last_name,
                 s.learner.first_name,
@@ -682,7 +733,7 @@ class ExportAnalyticsExcelView(SeniorManagementMixin, View):
 
         auto_width(ws3)
 
-        # ---- Sheet 4: Enrollment ----
+        # ==================== SHEET 4: ENROLLMENT ====================
         ws4 = wb.create_sheet("Enrollment")
         cols4 = ["Grade", "Total", "Male", "Female"]
         write_header(ws4, 1, cols4, f"Enrollment by Grade — {current_year.year}")
@@ -695,7 +746,69 @@ class ExportAnalyticsExcelView(SeniorManagementMixin, View):
 
         auto_width(ws4)
 
-        # ---- Serve the file ----
+        # ==================== SHEET 5: ONLINE LEARNING (bridge only) ====================
+        if _bridge_enabled():
+            from ..models.lms_link import OnlineEnrollment, LearnerLMSAccount
+
+            ws5 = wb.create_sheet("Online Learning")
+            ws5.row_dimensions[1].height = 28
+
+            ws5.cell(1, 1).value = f"Online Learning — {current_year.year}"
+            ws5.cell(1, 1).font = Font(bold=True, size=14)
+            ws5.merge_cells("A1:H1")
+
+            # Summary block
+            _oe_all = OnlineEnrollment.objects.filter(academic_year=current_year)
+            _active_oe = _oe_all.filter(status=OnlineEnrollment.STATUS_ACTIVE)
+            _avg_prog = _active_oe.aggregate(avg=Avg("progress_percentage"))["avg"]
+
+            oe_summary = [
+                ("LMS Accounts (active)", LearnerLMSAccount.objects.filter(is_active=True).count()),
+                ("Active Enrollments",    _active_oe.count()),
+                ("Completed Enrollments", _oe_all.filter(status=OnlineEnrollment.STATUS_COMPLETED).count()),
+                (
+                    "Average Progress (active)",
+                    f"{round(float(_avg_prog), 1)}%" if _avg_prog else "N/A",
+                ),
+            ]
+            for i, (metric, val) in enumerate(oe_summary, start=3):
+                ws5.cell(i, 1).value = metric
+                ws5.cell(i, 2).value = val
+                ws5.cell(i, 1).font = Font(bold=True)
+
+            # Enrollment detail
+            detail_row = len(oe_summary) + 5
+            cols5 = [
+                "Learner", "Admission No.", "Course", "Category",
+                "Subject Linked", "Progress %", "Status", "Enrolled On",
+            ]
+            write_header(ws5, detail_row, cols5, "Enrollment Detail")
+            write_subheader(ws5, detail_row + 1, cols5)
+
+            enrollments_export = _oe_all.select_related(
+                'learner', 'course__category', 'subject',
+            ).order_by('learner__last_name', 'course__title')
+
+            for i, oe in enumerate(enrollments_export, start=detail_row + 2):
+                enrolled_date = (
+                    oe.enrolled_at.strftime('%Y-%m-%d')
+                    if getattr(oe, 'enrolled_at', None)
+                    else ''
+                )
+                write_row(ws5, i, [
+                    oe.learner.get_full_name(),
+                    oe.learner.admission_number,
+                    oe.course.title,
+                    oe.course.category.name if oe.course.category else '',
+                    oe.subject.name if oe.subject else '',
+                    float(oe.progress_percentage) if oe.progress_percentage is not None else 0,
+                    oe.get_status_display(),
+                    enrolled_date,
+                ], alt=(i % 2 == 0))
+
+            auto_width(ws5)
+
+        # ==================== SERVE FILE ====================
         buffer = io.BytesIO()
         wb.save(buffer)
         buffer.seek(0)
@@ -703,7 +816,9 @@ class ExportAnalyticsExcelView(SeniorManagementMixin, View):
         filename = f"Scholr_Analytics_{current_year.year}_T{term_num}.xlsx"
         response = HttpResponse(
             buffer.read(),
-            content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            content_type=(
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            ),
         )
         response["Content-Disposition"] = f'attachment; filename="{filename}"'
         return response

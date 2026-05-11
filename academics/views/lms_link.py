@@ -689,3 +689,258 @@ class SyncProgressView(ManagementMixin, View):
             )
 
         return redirect('academics:learner_online_courses', learner_pk=learner_pk)
+    
+
+
+
+
+class OnlineLearningReportView(SeniorManagementMixin, View):
+    """
+    School-wide online learning progress report.
+
+    Provides:
+      - Summary stats (accounts, enrollments, average progress, completions)
+      - Progress band distribution (visual breakdown of how far learners have progressed)
+      - Per-learner enrollment rows with grade filter
+      - Course breakdown (enrollment count, completion count, avg progress per course)
+
+    Senior management only — same access level as the analytics dashboard.
+    """
+
+    template_name = 'academics/lms/report.html'
+
+    def get(self, request):
+        if not bridge_enabled():
+            return redirect('academics:analytics_dashboard')
+
+        current_year = AcademicYear.get_current()
+        if not current_year:
+            return render(request, self.template_name, {'no_year': True})
+
+        from academics.models.lms_link import OnlineEnrollment
+        from django.db.models import Avg, Count
+
+        # ---- Summary stats ----
+        total_accounts = LearnerLMSAccount.objects.filter(is_active=True).count()
+
+        _active_oe = OnlineEnrollment.objects.filter(
+            academic_year=current_year,
+            status=OnlineEnrollment.STATUS_ACTIVE,
+        )
+        total_enrolled = _active_oe.count()
+        avg_progress = _active_oe.aggregate(
+            avg=Avg('progress_percentage')
+        )['avg']
+        avg_progress = round(float(avg_progress), 1) if avg_progress else 0
+
+        completed = OnlineEnrollment.objects.filter(
+            academic_year=current_year,
+            status=OnlineEnrollment.STATUS_COMPLETED,
+        ).count()
+
+        # ---- Progress band distribution ----
+        # Each band gets a count + a percentage-of-total for the visual bar.
+        # The "Not started" bucket catches 0% exactly.
+        band_definitions = [
+            ('Not started', 0,   0),
+            ('1–25%',       1,   25),
+            ('26–50%',      26,  50),
+            ('51–75%',      51,  75),
+            ('76–99%',      76,  99),
+            ('Complete',    100, 100),
+        ]
+        bands = []
+        for label, lo, hi in band_definitions:
+            if lo == hi:
+                count = _active_oe.filter(progress_percentage=lo).count()
+            else:
+                count = _active_oe.filter(
+                    progress_percentage__gte=lo,
+                    progress_percentage__lte=hi,
+                ).count()
+            bands.append({
+                'label':        label,
+                'count':        count,
+                'pct_of_total': round(count / total_enrolled * 100) if total_enrolled else 0,
+            })
+
+        # ---- Grade filter ----
+        grade_id = request.GET.get('grade', '')
+        learner_rows = OnlineEnrollment.objects.filter(
+            academic_year=current_year,
+        ).select_related(
+            'learner', 'course__category', 'subject',
+        ).order_by('learner__last_name', 'learner__first_name', 'course__title')
+
+        if grade_id.isdigit():
+            _grade_learner_ids = LearnerEnrollment.objects.filter(
+                academic_year=current_year,
+                grade_id=grade_id,
+                is_active=True,
+            ).values_list('learner_id', flat=True)
+            learner_rows = learner_rows.filter(learner_id__in=_grade_learner_ids)
+
+        # ---- Course breakdown ----
+        # Aggregated per course: total, active, completed, withdrawn, avg progress.
+        course_breakdown = OnlineEnrollment.objects.filter(
+            academic_year=current_year,
+        ).values(
+            'course__pk', 'course__title', 'course__short_name',
+        ).annotate(
+            enrollment_count=Count('id'),
+            avg_progress=Avg('progress_percentage'),
+            active_count=Count(
+                'id', filter=Q(status=OnlineEnrollment.STATUS_ACTIVE)
+            ),
+            completed_count=Count(
+                'id', filter=Q(status=OnlineEnrollment.STATUS_COMPLETED)
+            ),
+            withdrawn_count=Count(
+                'id', filter=Q(status=OnlineEnrollment.STATUS_WITHDRAWN)
+            ),
+        ).order_by('-enrollment_count')
+
+        from ..models.structure import Grade
+        grades = Grade.objects.filter(is_active=True).order_by('grade_number')
+
+        return render(request, self.template_name, {
+            'current_year':     current_year,
+            # Summary
+            'total_accounts':   total_accounts,
+            'total_enrolled':   total_enrolled,
+            'avg_progress':     avg_progress,
+            'completed':        completed,
+            # Distribution
+            'bands':            bands,
+            # Tables
+            'learner_rows':     learner_rows,
+            'course_breakdown': course_breakdown,
+            # Filters
+            'grades':           grades,
+            'selected_grade':   grade_id,
+        })
+
+
+class ClassOnlineStatusView(StaffMixin, View):
+    """
+    Homeroom class x online learning status grid.
+
+    Shows every learner in the selected stream alongside:
+      - Whether they have an LMS account (and if it is Moodle-synced)
+      - Number of active online course enrollments
+      - Average progress across those courses
+
+    This gives homeroom teachers a quick support triage view:
+    who is enrolled, who has started, who is stuck at 0%.
+
+    Access:
+      - Teachers: locked to their own homeroom stream.
+      - Admin / HOD / Principal: dropdown to select any stream.
+    """
+
+    template_name = 'academics/lms/class_online_status.html'
+
+    def get(self, request):
+        if not bridge_enabled():
+            return redirect('academics:learner_list')
+
+        current_year = AcademicYear.get_current()
+        user = request.user
+
+        from ..models.structure import GradeStream
+        from academics.models.lms_link import OnlineEnrollment
+        from django.db.models import Avg, Count
+
+        # ---- Determine available streams ----
+        if user.role == 'teacher':
+            # Teachers see only their homeroom; no stream selector rendered.
+            streams = GradeStream.objects.filter(
+                homeroom_teacher=user,
+                academic_year=current_year,
+                is_active=True,
+            ).select_related('grade')
+            selected_stream = streams.first()
+        else:
+            streams = GradeStream.objects.filter(
+                academic_year=current_year,
+                is_active=True,
+            ).select_related('grade').order_by(
+                'grade__grade_number', 'stream_name'
+            )
+            stream_id = request.GET.get('stream', '')
+            if stream_id.isdigit():
+                selected_stream = streams.filter(pk=stream_id).first()
+            else:
+                # Default to first stream so the page renders something useful.
+                selected_stream = streams.first()
+
+        # ---- Learner rows ----
+        learner_rows = []
+        if selected_stream and current_year:
+            from ..models.marks import SubjectEnrollment
+
+            # All distinct learners enrolled in any subject in this stream
+            learner_ids = list(
+                SubjectEnrollment.objects.filter(
+                    stream=selected_stream,
+                    academic_year=current_year,
+                    is_active=True,
+                ).values_list('learner_id', flat=True).distinct()
+            )
+
+            learners = Learner.objects.filter(
+                pk__in=learner_ids, is_active=True,
+            ).order_by('last_name', 'first_name')
+
+            # Set of learner PKs that have an active LMS account
+            has_account_ids = set(
+                LearnerLMSAccount.objects.filter(
+                    learner_id__in=learner_ids,
+                    is_active=True,
+                ).values_list('learner_id', flat=True)
+            )
+
+            # Set of learner PKs whose account is synced to Moodle.
+            # is_synced_to_moodle() inspects the moodle_mapping relation,
+            # so we load accounts once and evaluate in Python.
+            synced_ids = set(
+                acc.learner_id
+                for acc in LearnerLMSAccount.objects.filter(
+                    learner_id__in=learner_ids,
+                    is_active=True,
+                ).select_related('user__moodle_mapping')
+                if acc.is_synced_to_moodle()
+            )
+
+            # Aggregate active online enrollment data per learner (single query)
+            enrollment_agg = {
+                row['learner_id']: row
+                for row in OnlineEnrollment.objects.filter(
+                    learner_id__in=learner_ids,
+                    academic_year=current_year,
+                    status=OnlineEnrollment.STATUS_ACTIVE,
+                ).values('learner_id').annotate(
+                    course_count=Count('id'),
+                    avg_progress=Avg('progress_percentage'),
+                )
+            }
+
+            for learner in learners:
+                agg = enrollment_agg.get(learner.pk, {})
+                learner_rows.append({
+                    'learner':      learner,
+                    'has_account':  learner.pk in has_account_ids,
+                    'is_synced':    learner.pk in synced_ids,
+                    'course_count': agg.get('course_count', 0),
+                    'avg_progress': round(float(agg.get('avg_progress') or 0), 1),
+                })
+
+        return render(request, self.template_name, {
+            'streams':          streams,
+            'selected_stream':  selected_stream,
+            'learner_rows':     learner_rows,
+            'current_year':     current_year,
+            'can_enroll':       user.role in {'admin', 'principal', 'admin_clerk', 'hod'},
+            'can_create_account': user.role in {'admin', 'principal', 'admin_clerk'},
+        })
+    

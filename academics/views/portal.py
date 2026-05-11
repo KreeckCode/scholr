@@ -160,6 +160,22 @@ class PortalChildOverviewView(ParentPortalMixin, View):
 
     template_name = "academics/portal/child_overview.html"
 
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     def get(self, request, learner_pk):
         learner = self._get_child(learner_pk)
         current_year = AcademicYear.get_current()
@@ -182,47 +198,75 @@ class PortalChildOverviewView(ParentPortalMixin, View):
                 term_number=current_term.term_number,
             ).first()
 
-        # Published final marks - parents only see published results
+        # Published final marks — parents only see published results
         marks_summary = self._get_marks_summary(learner, current_year)
 
         # Released report cards
-        report_cards = ReportCard.objects.filter(
-            learner=learner,
-            is_released=True,
-        ).order_by("-academic_year__year", "term_number") if current_year else []
+        report_cards = (
+            ReportCard.objects.filter(
+                learner=learner,
+                is_released=True,
+            ).order_by("-academic_year__year", "term_number")
+            if current_year else []
+        )
 
-        # Shared progress notes
-        notes = ProgressNote.objects.filter(
-            learner=learner,
-            academic_year=current_year,
-            share_with_parent=True,
-        ).select_related("created_by", "subject_offering__subject").order_by(
-            "-created_at"
-        )[:5] if current_year else []
+        # Progress notes shared with parent
+        notes = (
+            ProgressNote.objects.filter(
+                learner=learner,
+                academic_year=current_year,
+                share_with_parent=True,
+            ).select_related("created_by", "subject_offering__subject")
+            .order_by("-created_at")[:5]
+            if current_year else []
+        )
 
-        # Active interventions - parents benefit from knowing what support is in place
-        interventions = LearnerIntervention.objects.filter(
-            learner=learner,
-            academic_year=current_year,
-            status=LearnerIntervention.STATUS_ACTIVE,
-        ).select_related("program") if current_year else []
+        # Active interventions (parents benefit from knowing what support is in place)
+        interventions = (
+            LearnerIntervention.objects.filter(
+                learner=learner,
+                academic_year=current_year,
+                status=LearnerIntervention.STATUS_ACTIVE,
+            ).select_related("program")
+            if current_year else []
+        )
 
         passing = sum(1 for m in marks_summary if m.get("passed"))
         failing = sum(1 for m in marks_summary if m.get("passed") is False)
 
+        # ---- Online learning (bridge only) ----
+        # Parents can see their child's active online courses and progress.
+        # This is intentionally read-only — no enroll/withdraw actions in the portal.
+        from scholr.features import bridge_enabled as _bridge_enabled
+        _bridge = _bridge_enabled()
+        portal_online_enrollments = []
+        if _bridge and current_year:
+            from ..models.lms_link import OnlineEnrollment
+            portal_online_enrollments = list(
+                OnlineEnrollment.objects.filter(
+                    learner=learner,
+                    academic_year=current_year,
+                    status=OnlineEnrollment.STATUS_ACTIVE,
+                ).select_related('course__category', 'subject')
+            )
+
         return render(request, self.template_name, {
-            "learner": learner,
-            "enrollment": enrollment,
-            "attendance": attendance,
-            "marks_summary": marks_summary,
-            "report_cards": report_cards,
-            "notes": notes,
-            "interventions": interventions,
-            "current_year": current_year,
-            "current_term": current_term,
+            "learner":         learner,
+            "enrollment":      enrollment,
+            "attendance":      attendance,
+            "marks_summary":   marks_summary,
+            "report_cards":    report_cards,
+            "notes":           notes,
+            "interventions":   interventions,
+            "current_year":    current_year,
+            "current_term":    current_term,
             "subjects_passing": passing,
             "subjects_failing": failing,
+            # Bridge
+            "bridge_enabled":             _bridge,
+            "portal_online_enrollments":  portal_online_enrollments,
         })
+
 
     def _get_marks_summary(self, learner, academic_year):
         """

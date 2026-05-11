@@ -16,7 +16,8 @@ from .views.curriculum import (
 from .views.lms_link import (
     LMSAccountsView, CreateLMSAccountView, LMSAccountCredentialsView,
     ResetLMSPasswordView, DeactivateLMSAccountView, ReactivateLMSAccountView,
-    RetryMoodleSyncView, LearnerLMSDashboardView,
+    RetryMoodleSyncView, LearnerLMSDashboardView,OnlineLearningReportView,
+    ClassOnlineStatusView,
 )
 from .views.analytics import (
     AnalyticsDashboardView, AcademicReportView,
@@ -191,4 +192,15 @@ urlpatterns = [
     path('online/learner/<int:learner_pk>/enroll/<int:course_pk>/', EnrollConfirmView.as_view(), name='enroll_confirm'),
     path('online/enrollment/<int:enrollment_pk>/withdraw/', WithdrawEnrollmentView.as_view(), name='withdraw_online_enrollment'),
     path('online/learner/<int:learner_pk>/sync-progress/', SyncProgressView.as_view(), name='sync_online_progress'),
+
+    path(
+        'online/report/',
+        OnlineLearningReportView.as_view(),
+        name='online_learning_report',
+    ),
+    path(
+        'online/class-status/',
+        ClassOnlineStatusView.as_view(),
+        name='class_online_status',
+    ),
 ]
