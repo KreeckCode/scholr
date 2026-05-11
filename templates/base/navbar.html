@@ -1,310 +1,667 @@
+
 <nav class="sticky top-0 z-50 border-b border-slate-200/70 bg-white/80 backdrop-blur-xl shadow-sm">
-    <!-- top accent line -->
-    <div class="h-px w-full bg-gradient-to-r from-transparent via-blue-500/60 to-transparent"></div>
+    <!-- Top accent line -->
+    <div class="h-px w-full bg-gradient-to-r from-transparent via-blue-500/50 to-transparent"></div>
 
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div class="flex h-16 items-center justify-between">
-            <!-- Left: Brand + Primary navigation -->
-            <div class="flex items-center gap-10">
-                <!-- Brand -->
-                <a href="{% url 'accounts:dashboard' %}" class="flex items-center gap-3 group">
-                    <div class="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-600 shadow-sm ring-1 ring-blue-600/10 transition-transform duration-200 group-hover:scale-105">
+
+            <!-- ===== LEFT: Brand + primary nav ===== -->
+            <div class="flex items-center gap-8">
+
+                <!-- Brand mark -->
+                <a href="{% url 'accounts:dashboard' %}"
+                   class="flex items-center gap-2.5 group shrink-0">
+                    <div class="flex h-9 w-9 items-center justify-center rounded-xl
+                                bg-gradient-to-br from-blue-600 to-indigo-600 shadow-sm
+                                ring-1 ring-blue-600/10 transition-transform duration-200
+                                group-hover:scale-105">
                         <svg class="h-5 w-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                  d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+                                  d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
                         </svg>
                     </div>
-                    <div class="leading-tight">
-                        <span class="block text-lg font-semibold tracking-tight text-slate-900">APA</span>
-                        <span class="block text-xs text-slate-500">Learning platform</span>
+                    <div class="leading-none">
+                        <span class="block text-[15px] font-bold tracking-tight text-slate-900">Scholr</span>
+                        <span class="block text-[10px] text-slate-400 font-medium mt-px">
+                            {% if user.is_authenticated %}
+                                {% if user.role in 'teacher,hod,principal,admin_clerk,parent,learner' %}
+                                    School Platform
+                                {% else %}
+                                    Learning Platform
+                                {% endif %}
+                            {% else %}
+                                Learning Platform
+                            {% endif %}
+                        </span>
                     </div>
                 </a>
 
-                <!-- Desktop nav -->
-                <div class="hidden lg:flex items-center gap-1">
+                <!-- ===== DESKTOP NAV — role-specific ===== -->
+                <div class="hidden lg:flex items-center gap-0.5">
+
+                    {% if user.is_authenticated %}
+
+                    {# -------- COMMERCIAL STUDENT -------- #}
                     {% if user.role == 'student' %}
-                        <a href="{% url 'accounts:dashboard' %}"
-                           class="rounded-full px-4 py-2 text-sm font-medium transition-all duration-200
-                           {% if request.resolver_match.url_name == 'student_dashboard' or request.resolver_match.url_name == 'dashboard' %}
-                               bg-blue-50 text-blue-700 ring-1 ring-blue-600/10
-                           {% else %}
-                               text-slate-600 hover:bg-slate-100 hover:text-slate-900
-                           {% endif %}">
-                            Dashboard
-                        </a>
-                        <a href="{% url 'shop:catalog' %}"
-                           class="rounded-full px-4 py-2 text-sm font-medium transition-all duration-200
-                           {% if 'shop' in request.path and 'my-courses' not in request.path and 'orders' not in request.path %}
-                               bg-blue-50 text-blue-700 ring-1 ring-blue-600/10
-                           {% else %}
-                               text-slate-600 hover:bg-slate-100 hover:text-slate-900
-                           {% endif %}">
-                            Browse Courses
-                        </a>
-                        <a href="{% url 'shop:my_courses' %}"
-                           class="rounded-full px-4 py-2 text-sm font-medium transition-all duration-200
-                           {% if 'my-courses' in request.path %}
-                               bg-blue-50 text-blue-700 ring-1 ring-blue-600/10
-                           {% else %}
-                               text-slate-600 hover:bg-slate-100 hover:text-slate-900
-                           {% endif %}">
-                            My Learning
-                        </a>
-                        <a href="{% url 'shop:order_list' %}"
-                           class="rounded-full px-4 py-2 text-sm font-medium transition-all duration-200
-                           {% if 'orders' in request.path %}
-                               bg-blue-50 text-blue-700 ring-1 ring-blue-600/10
-                           {% else %}
-                               text-slate-600 hover:bg-slate-100 hover:text-slate-900
-                           {% endif %}">
-                            Orders
-                        </a>
+                        {% include 'base/nav/_nav_link.html' with url='accounts:dashboard' label='Dashboard' active_paths='dashboard' %}
+                        {% if SCHOLR_LMS_ENABLED %}
+                        {% include 'base/nav/_nav_link.html' with url='shop:catalog' label='Browse Courses' active_paths='catalog' %}
+                        {% include 'base/nav/_nav_link.html' with url='shop:my_courses' label='My Learning' active_paths='my-courses' %}
+                        {% include 'base/nav/_nav_link.html' with url='shop:order_list' label='Orders' active_paths='orders' %}
+                        {% endif %}
 
+                    {# -------- COMMERCIAL DEAN -------- #}
                     {% elif user.role == 'dean' %}
-                        <a href="{% url 'accounts:dashboard' %}"
-                           class="rounded-full px-4 py-2 text-sm font-medium transition-all duration-200
-                           {% if request.resolver_match.url_name == 'dean_dashboard' or request.resolver_match.url_name == 'dashboard' %}
-                               bg-blue-50 text-blue-700 ring-1 ring-blue-600/10
-                           {% else %}
-                               text-slate-600 hover:bg-slate-100 hover:text-slate-900
-                           {% endif %}">
-                            Dashboard
-                        </a>
-                        <a href="{% url 'accounts:student_list' %}"
-                           class="rounded-full px-4 py-2 text-sm font-medium transition-all duration-200
-                           {% if 'students' in request.path %}
-                               bg-blue-50 text-blue-700 ring-1 ring-blue-600/10
-                           {% else %}
-                               text-slate-600 hover:bg-slate-100 hover:text-slate-900
-                           {% endif %}">
-                            Learners
-                        </a>
+                        {% include 'base/nav/_nav_link.html' with url='accounts:dashboard' label='Dashboard' active_paths='dashboard' %}
+                        {% include 'base/nav/_nav_link.html' with url='accounts:student_list' label='Learners' active_paths='students' %}
 
+                    {# -------- COMMERCIAL ADMIN -------- #}
                     {% elif user.role == 'admin' %}
-                        <a href="{% url 'accounts:dashboard' %}"
-                           class="rounded-full px-4 py-2 text-sm font-medium transition-all duration-200
-                           {% if request.resolver_match.url_name == 'admin_dashboard' or request.resolver_match.url_name == 'dashboard' %}
-                               bg-blue-50 text-blue-700 ring-1 ring-blue-600/10
-                           {% else %}
-                               text-slate-600 hover:bg-slate-100 hover:text-slate-900
-                           {% endif %}">
-                            Dashboard
-                        </a>
-                        <a href="{% url 'integration:course_list' %}"
-                           class="rounded-full px-4 py-2 text-sm font-medium transition-all duration-200
-                           {% if 'integration/courses' in request.path %}
-                               bg-blue-50 text-blue-700 ring-1 ring-blue-600/10
-                           {% else %}
-                               text-slate-600 hover:bg-slate-100 hover:text-slate-900
-                           {% endif %}">
-                            Courses
-                        </a>
-                        <a href="{% url 'accounts:student_list' %}"
-                           class="rounded-full px-4 py-2 text-sm font-medium transition-all duration-200
-                           {% if 'students' in request.path %}
-                               bg-blue-50 text-blue-700 ring-1 ring-blue-600/10
-                           {% else %}
-                               text-slate-600 hover:bg-slate-100 hover:text-slate-900
-                           {% endif %}">
-                            Learners
-                        </a>
-                        <a href="{% url 'integration:sync_dashboard' %}"
-                           class="rounded-full px-4 py-2 text-sm font-medium transition-all duration-200
-                           {% if 'sync' in request.path %}
-                               bg-blue-50 text-blue-700 ring-1 ring-blue-600/10
-                           {% else %}
-                               text-slate-600 hover:bg-slate-100 hover:text-slate-900
-                           {% endif %}">
-                            Sync
-                        </a>
-                        <a href="{% url 'integration:dashboard' %}"
-                           class="rounded-full px-4 py-2 text-sm font-medium transition-all duration-200
-                           {% if 'sync' in request.path %}
-                               bg-blue-50 text-blue-700 ring-1 ring-blue-600/10
-                           {% else %}
-                               text-slate-600 hover:bg-slate-100 hover:text-slate-900
-                           {% endif %}">
-                            Integration
-                        </a>
-                        <a href="{% url 'shop:bundle_list' %}" 
-                            class="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors">
-                                <svg class="w-5 h-5 mr-3 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+                        {% include 'base/nav/_nav_link.html' with url='accounts:dashboard' label='Dashboard' active_paths='dashboard' %}
+
+                        {% if SCHOLR_LMS_ENABLED %}
+                        <!-- Manage dropdown -->
+                        <div class="relative" x-data="{ open: false }">
+                            <button @click="open = !open" @keydown.escape.window="open = false" type="button"
+                                    class="flex items-center gap-1 rounded-full px-4 py-2 text-sm font-medium
+                                           transition-all duration-200
+                                           {% if 'students' in request.path or 'analytics' in request.path %}
+                                               bg-blue-50 text-blue-700 ring-1 ring-blue-600/10
+                                           {% else %}
+                                               text-slate-600 hover:bg-slate-100 hover:text-slate-900
+                                           {% endif %}">
+                                Manage
+                                <svg class="h-3.5 w-3.5 transition-transform duration-200 opacity-60"
+                                     :class="{ 'rotate-180': open }"
+                                     fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/>
                                 </svg>
-                                Bundle Management
-                            </a>
+                            </button>
+                            <div x-show="open" @click.away="open = false"
+                                 x-transition:enter="transition ease-out duration-150"
+                                 x-transition:enter-start="opacity-0 scale-95 -translate-y-1"
+                                 x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+                                 x-transition:leave="transition ease-in duration-100"
+                                 x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+                                 x-transition:leave-end="opacity-0 scale-95 -translate-y-1"
+                                 class="absolute left-0 top-full mt-2 w-52 rounded-2xl border border-slate-200
+                                        bg-white shadow-xl ring-1 ring-black/5 z-50 overflow-hidden">
+                                <div class="px-4 py-2 text-xs font-semibold text-slate-400 uppercase tracking-wider border-b border-slate-100">Users</div>
+                                <a href="{% url 'accounts:student_list' %}" class="flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition-colors">
+                                    <svg class="h-4 w-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197"/></svg>
+                                    All Learners
+                                </a>
+                                <a href="{% url 'accounts:analytics' %}" class="flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition-colors">
+                                    <svg class="h-4 w-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                                    Analytics
+                                </a>
+                            </div>
+                        </div>
 
+                        <!-- Courses & Shop dropdown -->
+                        <div class="relative" x-data="{ open: false }">
+                            <button @click="open = !open" @keydown.escape.window="open = false" type="button"
+                                    class="flex items-center gap-1 rounded-full px-4 py-2 text-sm font-medium
+                                           transition-all duration-200
+                                           {% if 'integration/courses' in request.path or 'bundle' in request.path or 'shop' in request.path %}
+                                               bg-blue-50 text-blue-700 ring-1 ring-blue-600/10
+                                           {% else %}
+                                               text-slate-600 hover:bg-slate-100 hover:text-slate-900
+                                           {% endif %}">
+                                Courses
+                                <svg class="h-3.5 w-3.5 transition-transform duration-200 opacity-60"
+                                     :class="{ 'rotate-180': open }"
+                                     fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/>
+                                </svg>
+                            </button>
+                            <div x-show="open" @click.away="open = false"
+                                 x-transition:enter="transition ease-out duration-150"
+                                 x-transition:enter-start="opacity-0 scale-95 -translate-y-1"
+                                 x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+                                 x-transition:leave="transition ease-in duration-100"
+                                 x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+                                 x-transition:leave-end="opacity-0 scale-95 -translate-y-1"
+                                 class="absolute left-0 top-full mt-2 w-52 rounded-2xl border border-slate-200
+                                        bg-white shadow-xl ring-1 ring-black/5 z-50 overflow-hidden">
+                                <div class="px-4 py-2 text-xs font-semibold text-slate-400 uppercase tracking-wider border-b border-slate-100">Catalogue</div>
+                                <a href="{% url 'integration:course_list' %}" class="flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition-colors">
+                                    <svg class="h-4 w-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+                                    Course List
+                                </a>
+                                <a href="{% url 'shop:bundle_list' %}" class="flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition-colors">
+                                    <svg class="h-4 w-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+                                    Bundles
+                                </a>
+                                <a href="{% url 'shop:catalog' %}" class="flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition-colors">
+                                    <svg class="h-4 w-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                                    Shop Front
+                                </a>
+                            </div>
+                        </div>
 
-                        
-                        <a href="{% url 'shop:catalog' %}"
-                           class="rounded-full px-4 py-2 text-sm font-medium transition-all duration-200
-                           {% if 'shop' in request.path %}
-                               bg-blue-50 text-blue-700 ring-1 ring-blue-600/10
-                           {% else %}
-                               text-slate-600 hover:bg-slate-100 hover:text-slate-900
-                           {% endif %}">
-                            Shop
-                        </a>
-                        <a href="{% url 'accounts:analytics' %}"
-                           class="rounded-full px-4 py-2 text-sm font-medium transition-all duration-200
-                           {% if request.resolver_match.url_name == 'analytics' %}
-                               bg-blue-50 text-blue-700 ring-1 ring-blue-600/10
-                           {% else %}
-                               text-slate-600 hover:bg-slate-100 hover:text-slate-900
-                           {% endif %}">
-                            Analytics
-                        </a>
+                        <!-- System dropdown -->
+                        <div class="relative" x-data="{ open: false }">
+                            <button @click="open = !open" @keydown.escape.window="open = false" type="button"
+                                    class="flex items-center gap-1 rounded-full px-4 py-2 text-sm font-medium
+                                           transition-all duration-200
+                                           {% if 'integration' in request.path and 'courses' not in request.path %}
+                                               bg-blue-50 text-blue-700 ring-1 ring-blue-600/10
+                                           {% else %}
+                                               text-slate-600 hover:bg-slate-100 hover:text-slate-900
+                                           {% endif %}">
+                                System
+                                <svg class="h-3.5 w-3.5 transition-transform duration-200 opacity-60"
+                                     :class="{ 'rotate-180': open }"
+                                     fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/>
+                                </svg>
+                            </button>
+                            <div x-show="open" @click.away="open = false"
+                                 x-transition:enter="transition ease-out duration-150"
+                                 x-transition:enter-start="opacity-0 scale-95 -translate-y-1"
+                                 x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+                                 x-transition:leave="transition ease-in duration-100"
+                                 x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+                                 x-transition:leave-end="opacity-0 scale-95 -translate-y-1"
+                                 class="absolute left-0 top-full mt-2 w-52 rounded-2xl border border-slate-200
+                                        bg-white shadow-xl ring-1 ring-black/5 z-50 overflow-hidden">
+                                <div class="px-4 py-2 text-xs font-semibold text-slate-400 uppercase tracking-wider border-b border-slate-100">Moodle</div>
+                                <a href="{% url 'integration:dashboard' %}" class="flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition-colors">
+                                    <svg class="h-4 w-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                                    Integration
+                                </a>
+                                <a href="{% url 'integration:sync_dashboard' %}" class="flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition-colors">
+                                    <svg class="h-4 w-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                                    Sync Dashboard
+                                </a>
+                            </div>
+                        </div>
+                        {% endif %}{# SCHOLR_LMS_ENABLED #}
+
+                        {% if SCHOLR_ACADEMICS_ENABLED %}
+                        <!-- School dropdown for admin -->
+                        <div class="relative" x-data="{ open: false }">
+                            <button @click="open = !open" @keydown.escape.window="open = false" type="button"
+                                    class="flex items-center gap-1 rounded-full px-4 py-2 text-sm font-medium
+                                           transition-all duration-200
+                                           {% if 'academics' in request.path %}
+                                               bg-blue-50 text-blue-700 ring-1 ring-blue-600/10
+                                           {% else %}
+                                               text-slate-600 hover:bg-slate-100 hover:text-slate-900
+                                           {% endif %}">
+                                School
+                                <svg class="h-3.5 w-3.5 transition-transform duration-200 opacity-60"
+                                     :class="{ 'rotate-180': open }"
+                                     fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/>
+                                </svg>
+                            </button>
+                            <div x-show="open" @click.away="open = false"
+                                 x-transition:enter="transition ease-out duration-150"
+                                 x-transition:enter-start="opacity-0 scale-95 -translate-y-1"
+                                 x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+                                 x-transition:leave="transition ease-in duration-100"
+                                 x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+                                 x-transition:leave-end="opacity-0 scale-95 -translate-y-1"
+                                 class="absolute left-0 top-full mt-2 w-52 rounded-2xl border border-slate-200
+                                        bg-white shadow-xl ring-1 ring-black/5 z-50 overflow-hidden">
+                                <div class="px-4 py-2 text-xs font-semibold text-slate-400 uppercase tracking-wider border-b border-slate-100">School Management</div>
+                                <a href="{% url 'academics:learner_list' %}" class="flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition-colors">
+                                    <svg class="h-4 w-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                                    Learners
+                                </a>
+                                <a href="{% url 'academics:at_risk' %}" class="flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition-colors">
+                                    <svg class="h-4 w-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                                    At-Risk
+                                </a>
+                                <a href="{% url 'academics:analytics_dashboard' %}" class="flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition-colors">
+                                    <svg class="h-4 w-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                                    Analytics
+                                </a>
+                                {% if SCHOLR_BRIDGE_ENABLED %}
+                                <div class="border-t border-slate-100 mt-1 pt-1">
+                                    <a href="{% url 'academics:lms_accounts' %}" class="flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition-colors">
+                                        <svg class="h-4 w-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9"/></svg>
+                                        Online Learning
+                                    </a>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endif %}{# SCHOLR_ACADEMICS_ENABLED #}
+
+                    {# -------- SCHOOL TEACHER -------- #}
+                    {% elif user.role == 'teacher' %}
+                        {% include 'base/nav/_nav_link.html' with url='accounts:dashboard' label='Dashboard' active_paths='dashboard' %}
+
+                        <!-- School dropdown -->
+                        <div class="relative" x-data="{ open: false }">
+                            <button @click="open = !open" @keydown.escape.window="open = false" type="button"
+                                    class="flex items-center gap-1 rounded-full px-4 py-2 text-sm font-medium transition-all duration-200
+                                           {% if 'academics' in request.path and 'at-risk' not in request.path %}bg-blue-50 text-blue-700 ring-1 ring-blue-600/10{% else %}text-slate-600 hover:bg-slate-100 hover:text-slate-900{% endif %}">
+                                School
+                                <svg class="h-3.5 w-3.5 transition-transform duration-200 opacity-60" :class="{ 'rotate-180': open }" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/></svg>
+                            </button>
+                            <div x-show="open" @click.away="open = false"
+                                 x-transition:enter="transition ease-out duration-150" x-transition:enter-start="opacity-0 scale-95 -translate-y-1" x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+                                 x-transition:leave="transition ease-in duration-100" x-transition:leave-start="opacity-100 scale-100 translate-y-0" x-transition:leave-end="opacity-0 scale-95 -translate-y-1"
+                                 class="absolute left-0 top-full mt-2 w-52 rounded-2xl border border-slate-200 bg-white shadow-xl ring-1 ring-black/5 z-50 overflow-hidden">
+                                <a href="{% url 'academics:learner_list' %}" class="flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition-colors">
+                                    <svg class="h-4 w-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                                    My Learners
+                                </a>
+                                <a href="{% url 'academics:at_risk' %}" class="flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition-colors">
+                                    <svg class="h-4 w-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                                    At-Risk Learners
+                                </a>
+                                {% if SCHOLR_BRIDGE_ENABLED %}
+                                <a href="{% url 'academics:class_online_status' %}" class="flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition-colors">
+                                    <svg class="h-4 w-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9"/></svg>
+                                    Class Online Status
+                                </a>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                    {# -------- HOD -------- #}
+                    {% elif user.role == 'hod' %}
+                        {% include 'base/nav/_nav_link.html' with url='accounts:dashboard' label='Dashboard' active_paths='dashboard' %}
+
+                        <div class="relative" x-data="{ open: false }">
+                            <button @click="open = !open" @keydown.escape.window="open = false" type="button"
+                                    class="flex items-center gap-1 rounded-full px-4 py-2 text-sm font-medium transition-all duration-200
+                                           {% if 'academics' in request.path %}bg-blue-50 text-blue-700 ring-1 ring-blue-600/10{% else %}text-slate-600 hover:bg-slate-100 hover:text-slate-900{% endif %}">
+                                School
+                                <svg class="h-3.5 w-3.5 transition-transform duration-200 opacity-60" :class="{ 'rotate-180': open }" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/></svg>
+                            </button>
+                            <div x-show="open" @click.away="open = false"
+                                 x-transition:enter="transition ease-out duration-150" x-transition:enter-start="opacity-0 scale-95 -translate-y-1" x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+                                 x-transition:leave="transition ease-in duration-100" x-transition:leave-start="opacity-100 scale-100 translate-y-0" x-transition:leave-end="opacity-0 scale-95 -translate-y-1"
+                                 class="absolute left-0 top-full mt-2 w-52 rounded-2xl border border-slate-200 bg-white shadow-xl ring-1 ring-black/5 z-50 overflow-hidden">
+                                <a href="{% url 'academics:learner_list' %}" class="flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition-colors">
+                                    <svg class="h-4 w-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                                    Learners
+                                </a>
+                                <a href="{% url 'academics:at_risk' %}" class="flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition-colors">
+                                    <svg class="h-4 w-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                                    At-Risk
+                                </a>
+                                {% if SCHOLR_BRIDGE_ENABLED %}
+                                <a href="{% url 'academics:class_online_status' %}" class="flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition-colors">
+                                    <svg class="h-4 w-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3"/></svg>
+                                    Class Online Status
+                                </a>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                    {# -------- PRINCIPAL / ADMIN_CLERK -------- #}
+                    {% elif user.role == 'principal' or user.role == 'admin_clerk' %}
+                        {% include 'base/nav/_nav_link.html' with url='accounts:dashboard' label='Dashboard' active_paths='dashboard' %}
+
+                        <!-- School dropdown -->
+                        <div class="relative" x-data="{ open: false }">
+                            <button @click="open = !open" @keydown.escape.window="open = false" type="button"
+                                    class="flex items-center gap-1 rounded-full px-4 py-2 text-sm font-medium transition-all duration-200
+                                           {% if 'academics' in request.path and 'analytics' not in request.path and 'online' not in request.path and 'lms' not in request.path %}bg-blue-50 text-blue-700 ring-1 ring-blue-600/10{% else %}text-slate-600 hover:bg-slate-100 hover:text-slate-900{% endif %}">
+                                School
+                                <svg class="h-3.5 w-3.5 transition-transform duration-200 opacity-60" :class="{ 'rotate-180': open }" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/></svg>
+                            </button>
+                            <div x-show="open" @click.away="open = false"
+                                 x-transition:enter="transition ease-out duration-150" x-transition:enter-start="opacity-0 scale-95 -translate-y-1" x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+                                 x-transition:leave="transition ease-in duration-100" x-transition:leave-start="opacity-100 scale-100 translate-y-0" x-transition:leave-end="opacity-0 scale-95 -translate-y-1"
+                                 class="absolute left-0 top-full mt-2 w-56 rounded-2xl border border-slate-200 bg-white shadow-xl ring-1 ring-black/5 z-50 overflow-hidden">
+                                <div class="px-4 py-2 text-xs font-semibold text-slate-400 uppercase tracking-wider border-b border-slate-100">Management</div>
+                                <a href="{% url 'academics:learner_list' %}" class="flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition-colors">
+                                    <svg class="h-4 w-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0"/></svg>
+                                    All Learners
+                                </a>
+                                <a href="{% url 'academics:at_risk' %}" class="flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition-colors">
+                                    <svg class="h-4 w-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                                    At-Risk Learners
+                                </a>
+                            </div>
+                        </div>
+
+                        <!-- Analytics dropdown -->
+                        <div class="relative" x-data="{ open: false }">
+                            <button @click="open = !open" @keydown.escape.window="open = false" type="button"
+                                    class="flex items-center gap-1 rounded-full px-4 py-2 text-sm font-medium transition-all duration-200
+                                           {% if 'analytics' in request.path or 'report' in request.path %}bg-blue-50 text-blue-700 ring-1 ring-blue-600/10{% else %}text-slate-600 hover:bg-slate-100 hover:text-slate-900{% endif %}">
+                                Reports
+                                <svg class="h-3.5 w-3.5 transition-transform duration-200 opacity-60" :class="{ 'rotate-180': open }" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/></svg>
+                            </button>
+                            <div x-show="open" @click.away="open = false"
+                                 x-transition:enter="transition ease-out duration-150" x-transition:enter-start="opacity-0 scale-95 -translate-y-1" x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+                                 x-transition:leave="transition ease-in duration-100" x-transition:leave-start="opacity-100 scale-100 translate-y-0" x-transition:leave-end="opacity-0 scale-95 -translate-y-1"
+                                 class="absolute left-0 top-full mt-2 w-56 rounded-2xl border border-slate-200 bg-white shadow-xl ring-1 ring-black/5 z-50 overflow-hidden">
+                                <a href="{% url 'academics:analytics_dashboard' %}" class="flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition-colors">
+                                    <svg class="h-4 w-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                                    Analytics Overview
+                                </a>
+                                <a href="{% url 'academics:academic_report' %}" class="flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition-colors">
+                                    <svg class="h-4 w-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                    Academic Report
+                                </a>
+                                <a href="{% url 'academics:enrollment_report' %}" class="flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition-colors">
+                                    <svg class="h-4 w-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0"/></svg>
+                                    Enrollment Report
+                                </a>
+                            </div>
+                        </div>
+
+                        {% if SCHOLR_BRIDGE_ENABLED %}
+                        <!-- Online Learning dropdown -->
+                        <div class="relative" x-data="{ open: false }">
+                            <button @click="open = !open" @keydown.escape.window="open = false" type="button"
+                                    class="flex items-center gap-1 rounded-full px-4 py-2 text-sm font-medium transition-all duration-200
+                                           {% if 'online' in request.path or 'lms' in request.path %}bg-blue-50 text-blue-700 ring-1 ring-blue-600/10{% else %}text-slate-600 hover:bg-slate-100 hover:text-slate-900{% endif %}">
+                                Online
+                                <svg class="h-3.5 w-3.5 transition-transform duration-200 opacity-60" :class="{ 'rotate-180': open }" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/></svg>
+                            </button>
+                            <div x-show="open" @click.away="open = false"
+                                 x-transition:enter="transition ease-out duration-150" x-transition:enter-start="opacity-0 scale-95 -translate-y-1" x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+                                 x-transition:leave="transition ease-in duration-100" x-transition:leave-start="opacity-100 scale-100 translate-y-0" x-transition:leave-end="opacity-0 scale-95 -translate-y-1"
+                                 class="absolute left-0 top-full mt-2 w-56 rounded-2xl border border-slate-200 bg-white shadow-xl ring-1 ring-black/5 z-50 overflow-hidden">
+                                <a href="{% url 'academics:online_learning_dashboard' %}" class="flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition-colors">
+                                    <svg class="h-4 w-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9"/></svg>
+                                    Overview
+                                </a>
+                                <a href="{% url 'academics:lms_accounts' %}" class="flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition-colors">
+                                    <svg class="h-4 w-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/></svg>
+                                    LMS Accounts
+                                </a>
+                                <a href="{% url 'academics:online_learning_report' %}" class="flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition-colors">
+                                    <svg class="h-4 w-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                    Progress Report
+                                </a>
+                                <a href="{% url 'academics:bulk_create_accounts' %}" class="flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition-colors">
+                                    <svg class="h-4 w-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
+                                    Bulk Operations
+                                </a>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                    {# -------- PARENT PORTAL -------- #}
+                    {% elif user.role == 'parent' %}
+                        {% include 'base/nav/_nav_link.html' with url='accounts:dashboard' label='Dashboard' active_paths='dashboard' %}
+                        {% if SCHOLR_ACADEMICS_ENABLED %}
+                        {% include 'base/nav/_nav_link.html' with url='academics:portal_dashboard' label='My Children' active_paths='portal' %}
+                        {% endif %}
+
+                    {# -------- SCHOOL LEARNER -------- #}
+                    {% elif user.role == 'learner' %}
+                        {% include 'base/nav/_nav_link.html' with url='accounts:dashboard' label='Dashboard' active_paths='dashboard' %}
+                        {% if SCHOLR_BRIDGE_ENABLED %}
+                        {% include 'base/nav/_nav_link.html' with url='academics:learner_lms_dashboard' label='My Online Courses' active_paths='lms' %}
+                        {% endif %}
+
+                    {% endif %}{# end role checks #}
+
+                    {% else %}
+                    {# ===== GUEST links ===== #}
+                    {% if SCHOLR_LMS_ENABLED %}
+                    {% include 'base/nav/_nav_link.html' with url='shop:catalog' label='Browse Courses' active_paths='catalog' %}
                     {% endif %}
+                    {% endif %}{# end is_authenticated #}
+
                 </div>
             </div>
 
-            <!-- Right side -->
-            <div class="flex items-center gap-3">
+            <!-- ===== RIGHT: Cart + Profile ===== -->
+            <div class="flex items-center gap-2">
+
                 {% if user.is_authenticated %}
-                    {# Authenticated user navigation #}
-                    {% if user.role == 'student' %}
-                        <a href="{% url 'shop:cart_detail' %}"
-                        class="relative inline-flex h-10 w-10 items-center justify-center rounded-full text-slate-600 transition-all duration-200 hover:bg-slate-100 hover:text-slate-900">
-                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path>
-                            </svg>
-                            <span id="cart-count"
-                                class="absolute -right-1 -top-1 inline-flex min-h-5 min-w-5 items-center justify-center rounded-full bg-blue-600 px-1.5 text-[11px] font-bold text-white ring-2 ring-white">
-                                0
-                            </span>
-                        </a>
+
+                    <!-- Cart icon (commercial students only) -->
+                    {% if user.role == 'student' and SCHOLR_LMS_ENABLED %}
+                    <a href="{% url 'shop:cart_detail' %}"
+                       class="relative inline-flex h-9 w-9 items-center justify-center rounded-full
+                              text-slate-500 transition-all hover:bg-slate-100 hover:text-slate-900">
+                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/>
+                        </svg>
+                        <span id="cart-count"
+                              class="absolute -right-0.5 -top-0.5 inline-flex min-h-[18px] min-w-[18px]
+                                     items-center justify-center rounded-full bg-blue-600 px-1
+                                     text-[10px] font-bold text-white ring-2 ring-white">0</span>
+                    </a>
                     {% endif %}
 
-                    <!-- Profile dropdown (existing code stays) -->
+                    <!-- Profile dropdown -->
                     <div class="relative" x-data="{ open: false }">
                         <button @click="open = !open" type="button"
-                                class="flex items-center gap-3 rounded-full border border-slate-200 bg-white px-2 py-1.5 shadow-sm transition-all duration-200 hover:border-slate-300 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500/30">
-                            <div class="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-indigo-600 text-sm font-semibold text-white shadow-sm">
+                                class="flex items-center gap-2.5 rounded-full border border-slate-200 bg-white
+                                       px-2 py-1.5 shadow-sm transition-all hover:border-slate-300
+                                       hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500/30">
+                            <!-- Avatar -->
+                            <div class="flex h-7 w-7 items-center justify-center rounded-full
+                                        bg-gradient-to-br from-blue-600 to-indigo-600
+                                        text-xs font-bold text-white shadow-sm">
                                 {{ user.first_name.0|default:user.username.0|upper }}{{ user.last_name.0|default:''|upper }}
                             </div>
-                            <span class="hidden md:block max-w-40 truncate text-sm font-medium text-slate-700">
+                            <span class="hidden md:block max-w-36 truncate text-sm font-medium text-slate-700">
                                 {{ user.get_full_name|default:user.username }}
                             </span>
-                            <svg class="h-4 w-4 text-slate-400 transition-transform duration-200"
-                                :class="{ 'rotate-180': open }"
-                                fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                            <!-- Role badge -->
+                            <span class="hidden md:inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5
+                                         text-[10px] font-semibold text-slate-500 capitalize">
+                                {{ user.role }}
+                            </span>
+                            <svg class="h-3.5 w-3.5 text-slate-400 transition-transform duration-200"
+                                 :class="{ 'rotate-180': open }"
+                                 fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                             </svg>
                         </button>
 
+                        <!-- Profile panel -->
                         <div x-show="open"
-                            @click.away="open = false"
-                            x-transition:enter="transition ease-out duration-150"
-                            x-transition:enter-start="transform opacity-0 scale-95 translate-y-1"
-                            x-transition:enter-end="transform opacity-100 scale-100 translate-y-0"
-                            x-transition:leave="transition ease-in duration-100"
-                            x-transition:leave-start="transform opacity-100 scale-100 translate-y-0"
-                            x-transition:leave-end="transform opacity-0 scale-95 translate-y-1"
-                            class="absolute right-0 mt-3 w-56 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl ring-1 ring-black/5 z-50">
+                             @click.away="open = false"
+                             x-transition:enter="transition ease-out duration-150"
+                             x-transition:enter-start="transform opacity-0 scale-95 translate-y-1"
+                             x-transition:enter-end="transform opacity-100 scale-100 translate-y-0"
+                             x-transition:leave="transition ease-in duration-100"
+                             x-transition:leave-start="transform opacity-100 scale-100 translate-y-0"
+                             x-transition:leave-end="transform opacity-0 scale-95 translate-y-1"
+                             class="absolute right-0 mt-3 w-60 overflow-hidden rounded-2xl border border-slate-200
+                                    bg-white shadow-xl ring-1 ring-black/5 z-50">
+                            <!-- User info -->
                             <div class="px-4 py-3 border-b border-slate-100">
-                                <p class="text-sm font-semibold text-slate-900">{{ user.get_full_name|default:user.username }}</p>
-                                <p class="text-xs text-slate-500 capitalize">{{ user.role }}</p>
+                                <p class="text-sm font-semibold text-slate-900 truncate">
+                                    {{ user.get_full_name|default:user.username }}
+                                </p>
+                                <p class="text-xs text-slate-500 capitalize mt-0.5">{{ user.role }}</p>
+                                {% if user.email %}
+                                <p class="text-xs text-slate-400 truncate mt-0.5">{{ user.email }}</p>
+                                {% endif %}
                             </div>
-                            <div class="py-2">
+                            <!-- Links -->
+                            <div class="py-1.5">
                                 <a href="{% url 'accounts:profile' %}"
-                                class="block px-4 py-2.5 text-sm text-slate-700 transition-colors hover:bg-slate-50">
+                                   class="flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 transition-colors hover:bg-slate-50">
+                                    <svg class="h-4 w-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
                                     Your Profile
                                 </a>
                                 <a href="{% url 'accounts:profile_edit' %}"
-                                class="block px-4 py-2.5 text-sm text-slate-700 transition-colors hover:bg-slate-50">
+                                   class="flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 transition-colors hover:bg-slate-50">
+                                    <svg class="h-4 w-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                                     Settings
                                 </a>
                             </div>
-                            <div class="border-t border-slate-100"></div>
-                            <div class="py-2">
+                            <div class="border-t border-slate-100 py-1.5">
                                 <a href="{% url 'accounts:logout' %}"
-                                class="block px-4 py-2.5 text-sm font-medium text-red-600 transition-colors hover:bg-red-50">
+                                   class="flex items-center gap-2.5 px-4 py-2.5 text-sm font-medium text-red-600 transition-colors hover:bg-red-50">
+                                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
                                     Sign out
                                 </a>
                             </div>
                         </div>
                     </div>
-                
+
                 {% else %}
-                    {# Guest user navigation #}
+                    <!-- Guest right rail -->
+                    {% if SCHOLR_LMS_ENABLED %}
                     <a href="{% url 'shop:catalog' %}"
-                    class="hidden sm:inline-flex items-center rounded-full px-4 py-2 text-sm font-medium text-slate-600 transition-all duration-200 hover:bg-slate-100 hover:text-slate-900">
+                       class="hidden sm:inline-flex rounded-full px-4 py-2 text-sm font-medium
+                              text-slate-600 transition-all hover:bg-slate-100 hover:text-slate-900">
                         Browse Courses
                     </a>
-                    
+                    {% endif %}
                     <a href="{% url 'accounts:login' %}"
-                    class="inline-flex items-center rounded-full px-4 py-2 text-sm font-medium text-slate-600 transition-all duration-200 hover:bg-slate-100 hover:text-slate-900">
-                        Log In
+                       class="inline-flex rounded-full px-4 py-2 text-sm font-medium
+                              text-slate-600 transition-all hover:bg-slate-100 hover:text-slate-900">
+                        Log in
                     </a>
-                    
+                    {% if SCHOLR_LMS_ENABLED %}
                     <a href="{% url 'accounts:register' %}"
-                    class="inline-flex items-center rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 px-5 py-2 text-sm font-semibold text-white shadow-sm transition-all duration-200 hover:from-blue-700 hover:to-indigo-700 hover:shadow-md">
+                       class="inline-flex rounded-full bg-gradient-to-r from-blue-600 to-indigo-600
+                              px-5 py-2 text-sm font-semibold text-white shadow-sm transition-all
+                              hover:from-blue-700 hover:to-indigo-700 hover:shadow-md">
                         Sign Up Free
                     </a>
+                    {% endif %}
                 {% endif %}
+
             </div>
         </div>
     </div>
 
-    <!-- Mobile bar -->
-    <div class="lg:hidden border-t border-slate-200/70 bg-white/90 backdrop-blur-xl" x-data="{ mobileOpen: false }">
-        <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div class="flex h-14 items-center justify-between">
-                <span class="text-sm font-medium text-slate-600">Menu</span>
-                <button @click="mobileOpen = !mobileOpen"
-                        class="inline-flex h-10 w-10 items-center justify-center rounded-full text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/30">
-                    <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+    <!-- ===== MOBILE MENU ===== -->
+    <div class="lg:hidden border-t border-slate-200/70 bg-white/90 backdrop-blur-xl"
+         x-data="{ open: false }">
+        <div class="mx-auto max-w-7xl px-4 sm:px-6">
+            <div class="flex h-12 items-center justify-between">
+                <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Navigation</span>
+                <button @click="open = !open" type="button"
+                        class="inline-flex h-9 w-9 items-center justify-center rounded-full
+                               text-slate-600 transition-colors hover:bg-slate-100">
+                    <svg x-show="!open" class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                    </svg>
+                    <svg x-show="open" class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                     </svg>
                 </button>
             </div>
         </div>
 
-        <div x-show="mobileOpen"
-            @click.away="mobileOpen = false"
-            x-transition:enter="transition ease-out duration-200"
-            x-transition:enter-start="opacity-0 -translate-y-2"
-            x-transition:enter-end="opacity-100 translate-y-0"
-            x-transition:leave="transition ease-in duration-150"
-            x-transition:leave-start="opacity-100 translate-y-0"
-            x-transition:leave-end="opacity-0 -translate-y-2"
-            class="border-t border-slate-200 bg-white shadow-lg">
-            <div class="mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8">
-                <div class="grid gap-2">
-                    {% if user.is_authenticated %}
-                        {# Authenticated mobile menu #}
-                        {% if user.role == 'student' %}
-                            <a href="{% url 'accounts:dashboard' %}" class="rounded-xl px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-100">Dashboard</a>
-                            <a href="{% url 'shop:catalog' %}" class="rounded-xl px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-100">Browse Courses</a>
-                            <a href="{% url 'shop:my_courses' %}" class="rounded-xl px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-100">My Learning</a>
-                            <a href="{% url 'shop:order_list' %}" class="rounded-xl px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-100">Orders</a>
+        <div x-show="open"
+             x-transition:enter="transition ease-out duration-200"
+             x-transition:enter-start="opacity-0 -translate-y-2"
+             x-transition:enter-end="opacity-100 translate-y-0"
+             x-transition:leave="transition ease-in duration-150"
+             x-transition:leave-start="opacity-100 translate-y-0"
+             x-transition:leave-end="opacity-0 -translate-y-2"
+             class="border-t border-slate-200 bg-white shadow-lg">
+            <div class="mx-auto max-w-7xl px-4 py-3 sm:px-6 space-y-0.5">
 
-                        {% elif user.role == 'dean' %}
-                            <a href="{% url 'accounts:dashboard' %}" class="rounded-xl px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-100">Dashboard</a>
-                            <a href="{% url 'accounts:student_list' %}" class="rounded-xl px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-100">Learners</a>
+                {% if user.is_authenticated %}
 
-                        {% elif user.role == 'admin' %}
-                            <a href="{% url 'accounts:dashboard' %}" class="rounded-xl px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-100">Dashboard</a>
-                            <a href="{% url 'integration:course_list' %}" class="rounded-xl px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-100">Courses</a>
-                            <a href="{% url 'accounts:student_list' %}" class="rounded-xl px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-100">Learners</a>
-                            <a href="{% url 'integration:dashboard' %}" class="rounded-xl px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-100">Integration</a>
-                            <a href="{% url 'integration:sync_dashboard' %}" class="rounded-xl px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-100">Sync</a>
-                            <a href="{% url 'shop:catalog' %}" class="rounded-xl px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-100">Shop</a>
-                            <a href="{% url 'accounts:analytics' %}" class="rounded-xl px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-100">Analytics</a>
-                        {% endif %}
-                    {% else %}
-                        {# Guest mobile menu #}
-                        <a href="{% url 'shop:catalog' %}" class="rounded-xl px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-100">Browse Courses</a>
-                        <a href="{% url 'accounts:login' %}" class="rounded-xl px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-100">Log In</a>
-                        <a href="{% url 'accounts:register' %}" class="rounded-xl px-4 py-3 text-sm font-medium bg-blue-50 text-blue-700 hover:bg-blue-100">Sign Up Free</a>
-                    {% endif %}
+                <!-- User info strip -->
+                <div class="flex items-center gap-3 px-3 py-3 mb-2 bg-slate-50 rounded-xl">
+                    <div class="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-indigo-600 text-xs font-bold text-white">
+                        {{ user.first_name.0|default:user.username.0|upper }}{{ user.last_name.0|default:''|upper }}
+                    </div>
+                    <div>
+                        <p class="text-sm font-semibold text-slate-800">{{ user.get_full_name|default:user.username }}</p>
+                        <p class="text-xs text-slate-400 capitalize">{{ user.role }}</p>
+                    </div>
                 </div>
+
+                <!-- Role-specific mobile links (flat, grouped by section label) -->
+                {% if user.role == 'student' %}
+                    <a href="{% url 'accounts:dashboard' %}" class="block rounded-xl px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-100">Dashboard</a>
+                    {% if SCHOLR_LMS_ENABLED %}
+                    <a href="{% url 'shop:catalog' %}" class="block rounded-xl px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-100">Browse Courses</a>
+                    <a href="{% url 'shop:my_courses' %}" class="block rounded-xl px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-100">My Learning</a>
+                    <a href="{% url 'shop:order_list' %}" class="block rounded-xl px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-100">Orders</a>
+                    {% endif %}
+
+                {% elif user.role == 'dean' %}
+                    <a href="{% url 'accounts:dashboard' %}" class="block rounded-xl px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-100">Dashboard</a>
+                    <a href="{% url 'accounts:student_list' %}" class="block rounded-xl px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-100">Learners</a>
+
+                {% elif user.role == 'admin' %}
+                    <a href="{% url 'accounts:dashboard' %}" class="block rounded-xl px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-100">Dashboard</a>
+                    {% if SCHOLR_LMS_ENABLED %}
+                    <p class="px-4 pt-3 pb-1 text-xs font-semibold text-slate-400 uppercase tracking-wider">LMS</p>
+                    <a href="{% url 'accounts:student_list' %}" class="block rounded-xl px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-100">Learners</a>
+                    <a href="{% url 'integration:course_list' %}" class="block rounded-xl px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-100">Courses</a>
+                    <a href="{% url 'shop:bundle_list' %}" class="block rounded-xl px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-100">Bundles</a>
+                    <a href="{% url 'shop:catalog' %}" class="block rounded-xl px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-100">Shop</a>
+                    <a href="{% url 'integration:dashboard' %}" class="block rounded-xl px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-100">Integration</a>
+                    <a href="{% url 'integration:sync_dashboard' %}" class="block rounded-xl px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-100">Sync</a>
+                    <a href="{% url 'accounts:analytics' %}" class="block rounded-xl px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-100">Analytics</a>
+                    {% endif %}
+                    {% if SCHOLR_ACADEMICS_ENABLED %}
+                    <p class="px-4 pt-3 pb-1 text-xs font-semibold text-slate-400 uppercase tracking-wider">School</p>
+                    <a href="{% url 'academics:learner_list' %}" class="block rounded-xl px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-100">Learners</a>
+                    <a href="{% url 'academics:at_risk' %}" class="block rounded-xl px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-100">At-Risk</a>
+                    <a href="{% url 'academics:analytics_dashboard' %}" class="block rounded-xl px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-100">School Analytics</a>
+                    {% endif %}
+                    {% if SCHOLR_BRIDGE_ENABLED %}
+                    <a href="{% url 'academics:lms_accounts' %}" class="block rounded-xl px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-100">Online Learning</a>
+                    {% endif %}
+
+                {% elif user.role == 'teacher' or user.role == 'hod' %}
+                    <a href="{% url 'accounts:dashboard' %}" class="block rounded-xl px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-100">Dashboard</a>
+                    <a href="{% url 'academics:learner_list' %}" class="block rounded-xl px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-100">Learners</a>
+                    <a href="{% url 'academics:at_risk' %}" class="block rounded-xl px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-100">At-Risk</a>
+                    {% if SCHOLR_BRIDGE_ENABLED %}
+                    <a href="{% url 'academics:class_online_status' %}" class="block rounded-xl px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-100">Class Online Status</a>
+                    {% endif %}
+
+                {% elif user.role == 'principal' or user.role == 'admin_clerk' %}
+                    <a href="{% url 'accounts:dashboard' %}" class="block rounded-xl px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-100">Dashboard</a>
+                    <a href="{% url 'academics:learner_list' %}" class="block rounded-xl px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-100">Learners</a>
+                    <a href="{% url 'academics:at_risk' %}" class="block rounded-xl px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-100">At-Risk</a>
+                    <p class="px-4 pt-3 pb-1 text-xs font-semibold text-slate-400 uppercase tracking-wider">Reports</p>
+                    <a href="{% url 'academics:analytics_dashboard' %}" class="block rounded-xl px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-100">Analytics</a>
+                    <a href="{% url 'academics:academic_report' %}" class="block rounded-xl px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-100">Academic Report</a>
+                    <a href="{% url 'academics:enrollment_report' %}" class="block rounded-xl px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-100">Enrollment Report</a>
+                    {% if SCHOLR_BRIDGE_ENABLED %}
+                    <p class="px-4 pt-3 pb-1 text-xs font-semibold text-slate-400 uppercase tracking-wider">Online Learning</p>
+                    <a href="{% url 'academics:online_learning_dashboard' %}" class="block rounded-xl px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-100">Overview</a>
+                    <a href="{% url 'academics:lms_accounts' %}" class="block rounded-xl px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-100">LMS Accounts</a>
+                    <a href="{% url 'academics:online_learning_report' %}" class="block rounded-xl px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-100">Progress Report</a>
+                    {% endif %}
+
+                {% elif user.role == 'parent' %}
+                    <a href="{% url 'accounts:dashboard' %}" class="block rounded-xl px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-100">Dashboard</a>
+                    {% if SCHOLR_ACADEMICS_ENABLED %}
+                    <a href="{% url 'academics:portal_dashboard' %}" class="block rounded-xl px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-100">My Children</a>
+                    {% endif %}
+
+                {% elif user.role == 'learner' %}
+                    <a href="{% url 'accounts:dashboard' %}" class="block rounded-xl px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-100">Dashboard</a>
+                    {% if SCHOLR_BRIDGE_ENABLED %}
+                    <a href="{% url 'academics:learner_lms_dashboard' %}" class="block rounded-xl px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-100">Online Courses</a>
+                    {% endif %}
+                {% endif %}
+
+                <!-- Common mobile links -->
+                <div class="border-t border-slate-100 mt-2 pt-2">
+                    <a href="{% url 'accounts:profile' %}" class="block rounded-xl px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-100">Profile</a>
+                    <a href="{% url 'accounts:logout' %}" class="block rounded-xl px-4 py-3 text-sm font-medium text-red-600 hover:bg-red-50">Sign out</a>
+                </div>
+
+                {% else %}
+                <!-- Guest mobile -->
+                {% if SCHOLR_LMS_ENABLED %}
+                <a href="{% url 'shop:catalog' %}" class="block rounded-xl px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-100">Browse Courses</a>
+                {% endif %}
+                <a href="{% url 'accounts:login' %}" class="block rounded-xl px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-100">Log in</a>
+                {% if SCHOLR_LMS_ENABLED %}
+                <a href="{% url 'accounts:register' %}" class="block rounded-xl px-4 py-3 text-sm font-medium bg-blue-50 text-blue-700 hover:bg-blue-100">Sign Up Free</a>
+                {% endif %}
+                {% endif %}
+
             </div>
         </div>
-
-
     </div>
 </nav>
-
-<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>

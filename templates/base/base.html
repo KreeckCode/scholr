@@ -1,72 +1,153 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}scholr{% endblock %}</title>
-    
-    <!-- Tailwind CSS -->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+    <!-- ==================== PRIMARY SEO ==================== -->
+    <title>{% block title %}Scholr{% endblock %} — {% block title_suffix %}Learning Management Platform{% endblock %}</title>
+
+    <meta name="description"
+          content="{% block meta_description %}Scholr is a modern learning management platform for African educational institutions — combining school management, theological education, and online learning in one place.{% endblock %}">
+
+    <meta name="keywords"
+          content="{% block meta_keywords %}online learning, LMS, school management system, Africa, South Africa, theological education, e-learning, Moodle{% endblock %}">
+
+    <meta name="author" content="Scholr">
+    <meta name="robots" content="{% block robots %}index, follow{% endblock %}">
+    <meta name="theme-color" content="#2563eb">
+
+    <!-- Canonical URL -->
+    <link rel="canonical" href="{% block canonical %}{{ request.build_absolute_uri }}{% endblock %}">
+
+    <!-- ==================== OPEN GRAPH ==================== -->
+    <meta property="og:type"        content="{% block og_type %}website{% endblock %}">
+    <meta property="og:site_name"   content="Scholr">
+    <meta property="og:url"         content="{{ request.build_absolute_uri }}">
+    <meta property="og:title"       content="{% block og_title %}{% block title_og %}Scholr{% endblock %} — Learning Management Platform{% endblock %}">
+    <meta property="og:description" content="{% block og_description %}Modern learning management for African educational institutions.{% endblock %}">
+    <meta property="og:image"       content="{% block og_image %}{{ request.scheme }}://{{ request.get_host }}/static/images/scholr-og.png{% endblock %}">
+    <meta property="og:image:width"  content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:locale"      content="en_ZA">
+
+    <!-- ==================== TWITTER / X ==================== -->
+    <meta name="twitter:card"        content="summary_large_image">
+    <meta name="twitter:site"        content="@scholrlearn">
+    <meta name="twitter:title"       content="{% block twitter_title %}Scholr — Learning Management Platform{% endblock %}">
+    <meta name="twitter:description" content="{% block twitter_description %}Modern learning management for African educational institutions.{% endblock %}">
+    <meta name="twitter:image"       content="{% block twitter_image %}{{ request.scheme }}://{{ request.get_host }}/static/images/scholr-og.png{% endblock %}">
+
+    <!-- ==================== STRUCTURED DATA ==================== -->
+    {% block structured_data %}
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "EducationalOrganization",
+      "name": "Scholr",
+      "description": "Modern learning management platform for African educational institutions",
+      "url": "{{ request.scheme }}://{{ request.get_host }}",
+      "sameAs": []
+    }
+    </script>
+    {% endblock %}
+
+    <!-- ==================== FAVICON ==================== -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%232563eb' stroke-width='2'><path stroke-linecap='round' stroke-linejoin='round' d='M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253'/></svg>">
+
+    <!-- ==================== STYLES ==================== -->
     <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Alpine.js for interactions -->
+
+    <!-- Alpine.js — loaded once here, not in navbar -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    
+
     {% block extra_head %}{% endblock %}
 </head>
-<body class="bg-gray-50">
-    {% if user.is_authenticated %}
-        {% include 'base/navbar.html' %}
-    {% endif %}
-    
-    <!-- Messages -->
+<body class="bg-slate-50 antialiased min-h-screen flex flex-col">
+
+    <!-- Navbar — shown to everyone (guest nav is handled inside) -->
+    {% include 'base/navbar.html' %}
+
+    <!-- ==================== FLASH MESSAGES ==================== -->
     {% if messages %}
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
+    <div class="mx-auto w-full max-w-3xl px-4 sm:px-6 pt-4 pb-0 space-y-2 z-40 relative"
+         id="messages-container">
         {% for message in messages %}
-        <div class="rounded-md p-4 mb-4 {% if message.tags == 'error' %}bg-red-50 border border-red-200{% elif message.tags == 'warning' %}bg-yellow-50 border border-yellow-200{% elif message.tags == 'success' %}bg-green-50 border border-green-200{% else %}bg-blue-50 border border-blue-200{% endif %}">
-            <div class="flex">
-                <div class="flex-shrink-0">
-                    {% if message.tags == 'error' %}
-                    <svg class="h-5 w-5 text-red-400" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
-                    </svg>
-                    {% elif message.tags == 'success' %}
-                    <svg class="h-5 w-5 text-green-400" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-                    </svg>
-                    {% elif message.tags == 'warning' %}
-                    <svg class="h-5 w-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
-                    </svg>
-                    {% else %}
-                    <svg class="h-5 w-5 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
-                    </svg>
-                    {% endif %}
-                </div>
-                <div class="ml-3">
-                    <p class="text-sm {% if message.tags == 'error' %}text-red-800{% elif message.tags == 'warning' %}text-yellow-800{% elif message.tags == 'success' %}text-green-800{% else %}text-blue-800{% endif %}">
-                        {{ message }}
-                    </p>
-                </div>
+        <div x-data="{ visible: true }"
+             x-show="visible"
+             x-init="setTimeout(() => visible = false, 5000)"
+             x-transition:enter="transition ease-out duration-300"
+             x-transition:enter-start="opacity-0 -translate-y-2"
+             x-transition:enter-end="opacity-100 translate-y-0"
+             x-transition:leave="transition ease-in duration-200"
+             x-transition:leave-start="opacity-100 translate-y-0"
+             x-transition:leave-end="opacity-0 -translate-y-2"
+             class="flex items-start gap-3 rounded-xl border px-4 py-3 shadow-sm
+             {% if message.tags == 'error' %}bg-red-50 border-red-200
+             {% elif message.tags == 'warning' %}bg-amber-50 border-amber-200
+             {% elif message.tags == 'success' %}bg-green-50 border-green-200
+             {% else %}bg-blue-50 border-blue-200{% endif %}">
+
+            <!-- Icon -->
+            <div class="shrink-0 mt-0.5">
+                {% if message.tags == 'error' %}
+                <svg class="h-4 w-4 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                </svg>
+                {% elif message.tags == 'success' %}
+                <svg class="h-4 w-4 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                </svg>
+                {% elif message.tags == 'warning' %}
+                <svg class="h-4 w-4 text-amber-500" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                </svg>
+                {% else %}
+                <svg class="h-4 w-4 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                </svg>
+                {% endif %}
             </div>
+
+            <!-- Text -->
+            <p class="flex-1 text-sm font-medium
+                {% if message.tags == 'error' %}text-red-800
+                {% elif message.tags == 'warning' %}text-amber-800
+                {% elif message.tags == 'success' %}text-green-800
+                {% else %}text-blue-800{% endif %}">
+                {{ message }}
+            </p>
+
+            <!-- Dismiss button -->
+            <button @click="visible = false"
+                    class="shrink-0 rounded-full p-0.5 transition-colors
+                    {% if message.tags == 'error' %}text-red-400 hover:bg-red-100
+                    {% elif message.tags == 'warning' %}text-amber-400 hover:bg-amber-100
+                    {% elif message.tags == 'success' %}text-green-400 hover:bg-green-100
+                    {% else %}text-blue-400 hover:bg-blue-100{% endif %}">
+                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
         </div>
         {% endfor %}
     </div>
     {% endif %}
-    
-    <!-- Main Content -->
-    <main>
+
+    <!-- ==================== MAIN CONTENT ==================== -->
+    <main class="flex-1">
         {% block content %}{% endblock %}
     </main>
-    {% if user.is_authenticated %}
-        {% include 'base/footer.html' %}
-    {% endif %}
-    
+
+    <!-- Footer -->
+    {% include 'base/footer.html' %}
+
+    <!-- Cart counter (commercial LMS students only) -->
     {% if user.is_authenticated and user.role == 'student' %}
         {% include 'base/cart_counter.html' %}
     {% endif %}
-    
-    
+
     {% block extra_scripts %}{% endblock %}
 </body>
 </html>
