@@ -33,6 +33,9 @@ INSTALLED_APPS = [
     'integration.apps.IntegrationConfig',
     'shop',
     'academics',
+    'main',
+    'debug_toolbar',
+
 ]
 
 # MIDDLEWARE

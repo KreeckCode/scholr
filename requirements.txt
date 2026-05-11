@@ -73,3 +73,4 @@ psycopg2
 psycopg
 weasyprint
 openpyxl
+django-debug-toolbar

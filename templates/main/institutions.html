@@ -1,0 +1,131 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Institutions{% endblock %}
+{% block title_suffix %}Partner Institutions & Testimonials — Scholr{% endblock %}
+{% load scholr_extras %}
+{% block content %}
+
+<!-- Hero -->
+<section class="bg-slate-950 relative pt-24 pb-20 overflow-hidden"
+         style="background-image: radial-gradient(circle at 1px 1px, rgba(99,102,241,0.1) 1px, transparent 0); background-size:32px 32px;">
+    <div class="absolute inset-0 bg-gradient-to-b from-transparent to-slate-950 pointer-events-none"></div>
+    <div class="relative max-w-4xl mx-auto px-4 sm:px-6 text-center">
+        <span class="inline-block px-3 py-1 rounded-full text-xs font-semibold
+                     bg-indigo-900/40 border border-indigo-500/30 text-indigo-400 mb-6">
+            Real institutions. Real results.
+        </span>
+        <h1 class="text-4xl sm:text-5xl font-bold text-white mb-5">
+            Trusted across Africa
+        </h1>
+        <p class="text-lg text-slate-400 max-w-2xl mx-auto">
+            From small Bible study groups to 800-learner universities — Scholr scales with your institution.
+        </p>
+    </div>
+</section>
+
+<!-- Stats bar -->
+<div class="bg-slate-900 border-y border-slate-800/60 py-10">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+        {% for stat in stats %}
+        <div>
+            <p class="text-3xl font-bold text-white">{{ stat.value }}</p>
+            <p class="text-sm font-medium text-indigo-400 mt-0.5">{{ stat.label }}</p>
+            <p class="text-xs text-slate-500 mt-0.5">{{ stat.detail }}</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Video testimonials -->
+<section class="bg-slate-950 py-24">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h2 class="text-3xl font-bold text-white mb-3">Hear from our institutions</h2>
+        <p class="text-slate-400 mb-12">Real leaders talking about real results.</p>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {% for t in video_testimonials %}
+            <div class="bg-slate-900 rounded-2xl overflow-hidden border border-slate-800/60
+                        hover:-translate-y-1 transition-transform">
+                <!-- YouTube embed -->
+                <div class="relative pb-[56.25%]">
+                    <iframe class="absolute inset-0 w-full h-full"
+                            src="https://www.youtube.com/embed/{{ t.youtube_id }}"
+                            title="{{ t.name }} testimonial"
+                            frameborder="0"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowfullscreen>
+                    </iframe>
+                </div>
+                <div class="p-5">
+                    <div class="flex items-center gap-2 mb-3">
+                        <span class="inline-block px-2 py-0.5 bg-indigo-900/40 border border-indigo-500/20
+                                     text-indigo-400 text-xs rounded font-medium">
+                            {{ t.country }}
+                        </span>
+                        <span class="text-xs text-slate-500">{{ t.learners }} learners</span>
+                    </div>
+                    <h3 class="font-bold text-white text-sm mb-1">{{ t.name }}</h3>
+                    <p class="text-xs text-slate-400 mb-3">{{ t.contact }} · {{ t.role }}</p>
+                    <p class="text-slate-300 text-sm italic">"{{ t.quote }}"</p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- Written testimonials -->
+<section class="bg-slate-900 py-24 border-t border-slate-800/40">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h2 class="text-3xl font-bold text-white mb-12">What learners say</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {% for t in written_testimonials %}
+            <div class="bg-slate-950/60 rounded-2xl border border-slate-800/60 p-6
+                        hover:border-indigo-500/20 transition-colors">
+                <!-- Stars -->
+                <div class="flex gap-0.5 mb-4">
+                    {% for _ in '1,2,3,4,5'|split:"," %}
+                    <svg class="w-4 h-4 text-amber-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                    </svg>
+                    {% endfor %}
+                </div>
+                <p class="text-slate-300 text-sm leading-relaxed italic mb-5">"{{ t.quote }}"</p>
+                <div class="flex items-center gap-3">
+                    <img src="{{ t.image }}" alt="{{ t.name }}"
+                         class="w-10 h-10 rounded-full object-cover border border-slate-700">
+                    <div>
+                        <p class="text-sm font-semibold text-white">{{ t.name }}</p>
+                        <p class="text-xs text-slate-500">{{ t.role }} · {{ t.institution }}</p>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- Partnership CTA -->
+<section class="bg-slate-950 py-24 border-t border-slate-800/40">
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 text-center">
+        <h2 class="text-3xl font-bold text-white mb-4">Ready to join them?</h2>
+        <p class="text-slate-400 mb-8">
+            Book a 30-minute demo and we'll show you how Scholr fits your institution — with a free 30-day trial to follow.
+        </p>
+        <div class="flex flex-wrap justify-center gap-4">
+            <a href="{% url 'main:demo' %}"
+               class="inline-flex items-center gap-2 px-7 py-3.5 bg-indigo-600 hover:bg-indigo-500
+                      text-white font-semibold rounded-xl transition-all hover:-translate-y-0.5">
+                Book a demo
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
+            </a>
+            <a href="{% url 'main:contact' %}"
+               class="inline-flex items-center gap-2 px-7 py-3.5 border border-slate-700
+                      text-slate-300 font-semibold rounded-xl hover:border-slate-500 transition-all">
+                Contact us
+            </a>
+        </div>
+    </div>
+</section>
+
+{% endblock %}
