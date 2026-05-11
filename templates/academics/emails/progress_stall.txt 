@@ -1,0 +1,24 @@
+{{ school_name }} — Online Learning Alert
+==========================================
+
+{% if alert_type == 'not_started' %}LEARNER HAS NOT STARTED
+{% else %}PROGRESS STALLED
+{% endif %}
+------------------------------------------
+Learner:  {{ learner.get_full_name }} ({{ learner.admission_number }})
+Course:   {{ course.title }}{% if course.category %} ({{ course.category.name }}){% endif %}
+
+{% if alert_type == 'not_started' %}{{ learner.first_name }} enrolled {{ days }} day{{ days|pluralize }} ago but has not started this course yet.
+Current progress: 0%
+{% else %}{{ learner.first_name }}'s progress has not moved in {{ days }} day{{ days|pluralize }}.
+Current progress: {{ progress|floatformat:0 }}%
+{% endif %}
+This alert fires after {{ threshold }} day{{ threshold|pluralize }} without activity.
+No further alerts will be sent for this course for {{ threshold }} days.
+
+View learner profile:
+{{ learner_url }}
+
+------------------------------------------
+Sent by {{ school_name }} (Scholr Academic Management)
+This is an automated notification. Do not reply to this email.

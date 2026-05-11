@@ -1,83 +1,118 @@
 """
 Celery tasks for the academics module.
 
-Separated from shop/tasks.py because academics tasks are SMS-specific
-and should not run on LMS-only deployments where academics is disabled.
+Task schedule (defined in settings.CELERY_BEAT_SCHEDULE):
+  04:00 — sync_online_learning_progress_task   (pull Moodle progress)
+  06:00 — send_stall_notifications_task        (email stall alerts)
+
+The 2-hour gap ensures progress data is fresh before alerts fire.
+Both tasks are no-ops when the LMS Bridge feature flag is off.
 """
+import logging
 
 from celery import shared_task
-from celery.utils.log import get_task_logger
 
-logger = get_task_logger(__name__)
+logger = logging.getLogger(__name__)
 
 
-@shared_task
-def sync_online_learning_progress_task():
+@shared_task(bind=True, max_retries=3, default_retry_delay=300)
+def sync_online_learning_progress_task(self):
     """
-    Pull Moodle progress for all active online enrollments and cache it
-    in OnlineEnrollment.progress_percentage.
-
-    Scheduled daily at 4 AM via Celery Beat.
-    Groups by learner to avoid duplicate API calls when a learner has
-    multiple active enrollments — one MoodleProgressService call per
-    learner covers all their courses.
+    Pull Moodle progress for every learner with an active online enrollment.
+    Groups enrollments by learner to minimise Moodle API round-trips.
+    Runs nightly at 04:00 via Celery Beat.
     """
+    from scholr.features import bridge_enabled
+
+    if not bridge_enabled():
+        logger.info('sync_online_learning_progress_task: bridge disabled, skipping.')
+        return {'skipped': True}
+
     from academics.models.lms_link import OnlineEnrollment
-    from academics.models.school import AcademicYear
-    from academics.services.lms_bridge import LMSBridgeService
     from academics.models.learner import Learner
+    from academics.services.lms_bridge import LMSBridgeService
 
-    current_year = AcademicYear.get_current()
-    if not current_year:
-        logger.warning('No current academic year — skipping online learning progress sync')
-        return {'skipped': True, 'reason': 'No current year'}
-
-    # Get distinct learner IDs with at least one active online enrollment
-    learner_ids = (
-        OnlineEnrollment.objects
-        .filter(
+    learner_ids = list(
+        OnlineEnrollment.objects.filter(
             status=OnlineEnrollment.STATUS_ACTIVE,
-            academic_year=current_year,
-            course_enrollment__isnull=False,
-        )
-        .values_list('learner_id', flat=True)
-        .distinct()
+        ).values_list('learner_id', flat=True).distinct()
     )
-
-    if not learner_ids:
-        logger.info('No active online enrollments to sync')
-        return {'learners_processed': 0, 'enrollments_updated': 0, 'errors': 0}
 
     service = LMSBridgeService()
-    total_updated = 0
-    total_errors = 0
+    results = {
+        'total_learners': len(learner_ids),
+        'synced':         0,
+        'failed':         0,
+    }
 
-    for learner in Learner.objects.filter(pk__in=learner_ids, is_active=True):
+    for learner_id in learner_ids:
         try:
+            learner = Learner.objects.get(pk=learner_id)
             result = service.sync_progress_for_learner(learner)
             if result.get('success'):
-                total_updated += result.get('online_enrollments_updated', 0)
-                logger.info(
-                    f'Synced online progress for {learner.get_full_name()}: '
-                    f'{result.get("online_enrollments_updated", 0)} courses updated'
-                )
+                results['synced'] += 1
             else:
-                total_errors += 1
+                results['failed'] += 1
                 logger.warning(
-                    f'Progress sync skipped for {learner.get_full_name()}: '
-                    f'{result.get("error")}'
+                    f'Progress sync returned non-success for learner '
+                    f'{learner_id}: {result.get("error")}'
                 )
+        except Learner.DoesNotExist:
+            logger.error(f'Learner {learner_id} not found during progress sync.')
+            results['failed'] += 1
         except Exception as exc:
-            total_errors += 1
-            logger.error(f'Progress sync error for {learner}: {exc}')
+            logger.error(f'Progress sync failed for learner {learner_id}: {exc}')
+            results['failed'] += 1
+            # Retry the whole task on unexpected errors (up to max_retries)
+            try:
+                raise self.retry(exc=exc)
+            except self.MaxRetriesExceededError:
+                pass
 
     logger.info(
-        f'Online learning progress sync complete: '
-        f'{len(learner_ids)} learners, {total_updated} enrollments updated, '
-        f'{total_errors} errors'
+        f'sync_online_learning_progress_task complete: '
+        f'{results["synced"]} synced, {results["failed"]} failed '
+        f'of {results["total_learners"]} learners.'
     )
-    return {
-        'learners_processed': len(learner_ids),
-        'enrollments_updated': total_updated,
-        'errors': total_errors,
-    }
+    return results
+
+
+@shared_task(bind=True, max_retries=2, default_retry_delay=600)
+def send_stall_notifications_task(self):
+    """
+    Detect online course progress that has stalled or never started,
+    and email the relevant homeroom teachers.
+
+    Runs nightly at 06:00 via Celery Beat — after the sync task at 04:00
+    so the progress data it reads is as fresh as possible.
+
+    Thresholds (overridable via .env):
+      PROGRESS_STALL_DAYS=7         — days without movement to count as stalled
+      PROGRESS_NOT_STARTED_DAYS=3   — days after enrollment before alerting
+      PROGRESS_ALERT_COOLDOWN_DAYS=7 — minimum gap between alerts per learner+course
+    """
+    from scholr.features import bridge_enabled
+
+    if not bridge_enabled():
+        logger.info('send_stall_notifications_task: bridge disabled, skipping.')
+        return {'skipped': True}
+
+    try:
+        from academics.emails import ProgressStallEmailService
+        service = ProgressStallEmailService()
+        result = service.detect_and_send()
+    except Exception as exc:
+        logger.error(f'send_stall_notifications_task failed: {exc}')
+        try:
+            raise self.retry(exc=exc)
+        except self.MaxRetriesExceededError:
+            return {'error': str(exc)}
+
+    logger.info(
+        f'send_stall_notifications_task complete: '
+        f'{result["stalled"]} stalled, '
+        f'{result["not_started"]} not started, '
+        f'{result["emails_sent"]} emails sent, '
+        f'{result["skipped_no_recipients"]} skipped (no recipients).'
+    )
+    return result

@@ -329,24 +329,27 @@ LOGGING = {
     },
 }
 
-
-
-
 from celery.schedules import crontab
 
 CELERY_BEAT_SCHEDULE = {
-    # Existing shop tasks
+    # Shop: clean up expired enrollments
     'cleanup-expired-enrollments': {
         'task': 'shop.tasks.cleanup_expired_enrollments',
         'schedule': crontab(hour=2, minute=0),
     },
+    # Shop: sync commercial LMS progress
     'sync-all-user-progress': {
         'task': 'shop.tasks.sync_all_user_progress',
         'schedule': crontab(hour=3, minute=0),
     },
-    # Academics: sync Moodle progress for school learners
+    # Academics: pull Moodle progress for school learners (runs first)
     'sync-online-learning-progress': {
         'task': 'academics.tasks.sync_online_learning_progress_task',
         'schedule': crontab(hour=4, minute=0),
+    },
+    # Academics: email stall alerts (runs 2 hours after sync so data is fresh)
+    'send-progress-stall-notifications': {
+        'task': 'academics.tasks.send_stall_notifications_task',
+        'schedule': crontab(hour=6, minute=0),
     },
 }

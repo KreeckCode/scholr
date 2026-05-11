@@ -249,3 +249,49 @@ class OnlineEnrollment(models.Model):
         return int(self.progress_percentage)
     
 
+class OnlineProgressAlert(models.Model):
+    """
+    Audit record for every stall notification sent to staff.
+    The sent_at timestamp enforces a cooldown window so the same
+    learner+course pair isn't alerted more than once per period.
+    """
+
+    ALERT_STALL       = 'stall'
+    ALERT_NOT_STARTED = 'not_started'
+    ALERT_TYPES = [
+        (ALERT_STALL,       'Progress Stalled'),
+        (ALERT_NOT_STARTED, 'Not Started'),
+    ]
+
+    learner = models.ForeignKey(
+        'academics.Learner',
+        on_delete=models.CASCADE,
+        related_name='progress_alerts',
+    )
+    course = models.ForeignKey(
+        'integration.Course',
+        on_delete=models.CASCADE,
+        related_name='progress_alerts',
+    )
+    alert_type = models.CharField(max_length=20, choices=ALERT_TYPES)
+    sent_at = models.DateTimeField(auto_now_add=True)
+    days_stalled = models.PositiveIntegerField(default=0)
+    # Snapshot of progress at the moment the alert fired
+    progress_at_send = models.DecimalField(
+        max_digits=5, decimal_places=2, null=True, blank=True,
+    )
+    # Comma-separated list of addresses the alert was dispatched to
+    sent_to_emails = models.TextField(blank=True)
+
+    class Meta:
+        ordering = ['-sent_at']
+        indexes = [
+            models.Index(fields=['learner', 'course', 'sent_at']),
+        ]
+
+    def __str__(self):
+        return (
+            f'{self.learner} / {self.course} '
+            f'({self.get_alert_type_display()}) '
+            f'{self.sent_at.date()}'
+        )
