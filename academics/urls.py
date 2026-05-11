@@ -13,6 +13,7 @@ from .views.curriculum import (
     SubjectOfferingUpdateView,
     SubjectUpdateView,
 )
+from .views.lms_bulk import BulkCreateAccountsView, BulkEnrollView
 from .views.lms_link import (
     LMSAccountsView, CreateLMSAccountView, LMSAccountCredentialsView,
     ResetLMSPasswordView, DeactivateLMSAccountView, ReactivateLMSAccountView,
@@ -184,6 +185,18 @@ urlpatterns = [
     path('online/accounts/<int:pk>/deactivate/', DeactivateLMSAccountView.as_view(), name='lms_account_deactivate'),
     path('online/accounts/<int:pk>/reactivate/', ReactivateLMSAccountView.as_view(), name='lms_account_reactivate'),
     path('online/accounts/<int:pk>/retry-sync/', RetryMoodleSyncView.as_view(), name='lms_account_retry_sync'),
+
+    # Stage 12A - bulk account creation and enrollment
+    path(
+        'online/bulk/create-accounts/',
+        BulkCreateAccountsView.as_view(),
+        name='bulk_create_accounts',
+    ),
+    path(
+        'online/bulk/enroll/',
+        BulkEnrollView.as_view(),
+        name='bulk_enroll',
+    ),
 
     # Stage 12B - new online learning management views
     path('online/', OnlineLearningDashboardView.as_view(), name='online_learning_dashboard'),
