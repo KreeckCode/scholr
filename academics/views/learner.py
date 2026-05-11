@@ -163,17 +163,69 @@ class LearnerDetailView(StaffMixin, DetailView):
         else:
             raise PermissionDenied
 
+    
+
+
+
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
         user = self.request.user
+
+        # Permission flags
         ctx["can_edit"] = user.role in {"admin", "principal", "admin_clerk"}
         ctx["can_deactivate"] = user.role in {"admin", "principal"}
-        ctx["can_view_medical"] = user.role in {"admin", "principal", "admin_clerk", "teacher", "hod"}
+        ctx["can_view_medical"] = user.role in {
+            "admin", "principal", "admin_clerk", "teacher", "hod"
+        }
         ctx["can_upload_docs"] = user.role in {"admin", "principal", "admin_clerk"}
+
+        # Enrollment data
         ctx["current_enrollment"] = self.object.get_current_enrollment()
-        ctx["enrollment_history"] = self.object.enrollments.order_by(
-            "-academic_year__year"
-        ).select_related("grade", "stream", "academic_year")
+        ctx["enrollment_history"] = (
+            self.object.enrollments
+            .order_by("-academic_year__year")
+            .select_related("grade", "stream", "academic_year")
+        )
+
+        # ---- Online Learning (LMS Bridge) ----
+        # bridge_enabled is already in the template context via the features
+        # context processor, but we also need the data objects here.
+        from scholr.features import bridge_enabled as _bridge_enabled
+
+        ctx["bridge_enabled"] = _bridge_enabled()
+        ctx["lms_account"] = None
+        ctx["online_enrollments"] = []
+        ctx["can_manage_lms"] = False
+        ctx["can_enroll_online"] = False
+
+        if _bridge_enabled():
+            from ..models.lms_link import LearnerLMSAccount, OnlineEnrollment
+
+            ctx["can_manage_lms"] = user.role in {"admin", "principal", "admin_clerk"}
+            ctx["can_enroll_online"] = user.role in {
+                "admin", "principal", "admin_clerk", "hod"
+            }
+
+            # LMS account — None if the learner has not been given online access
+            try:
+                ctx["lms_account"] = self.object.lms_account
+            except LearnerLMSAccount.DoesNotExist:
+                pass
+
+            # Active online enrollments for the current year (capped at 5 for the sidebar)
+            current_year = AcademicYear.get_current()
+            if current_year:
+                ctx["online_enrollments"] = (
+                    OnlineEnrollment.objects
+                    .filter(
+                        learner=self.object,
+                        academic_year=current_year,
+                        status=OnlineEnrollment.STATUS_ACTIVE,
+                    )
+                    .select_related("course__category", "subject")
+                    .order_by("-enrolled_at")[:5]
+                )
+
         return ctx
 
 

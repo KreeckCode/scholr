@@ -620,8 +620,7 @@ class LMSBridgeService:
     def sync_progress_for_learner(self, learner) -> dict:
         """
         Pull latest progress from Moodle for all active online enrollments.
-        Uses MoodleProgressService (shop) to hit the Moodle API, then caches
-        the result in each OnlineEnrollment record.
+        Always clears the cache first so manual sync gives fresh data.
         """
         try:
             lms_account = learner.lms_account
@@ -631,7 +630,10 @@ class LMSBridgeService:
         if not lms_account.is_synced_to_moodle():
             return {'error': 'Learner not synced to Moodle yet.'}
 
-        # Pull from Moodle via the existing progress service in shop
+        # Clear the Moodle progress cache for this learner so we always
+        # get fresh API data on a manual sync — not a 10-minute-old snapshot.
+        self._clear_moodle_cache(lms_account)
+
         try:
             from shop.services import MoodleProgressService
             progress_service = MoodleProgressService()
@@ -640,7 +642,7 @@ class LMSBridgeService:
             logger.error(f'Progress sync failed for {learner}: {exc}')
             return {'error': str(exc)}
 
-        # Copy updated CourseEnrollment.progress_percentage to OnlineEnrollment
+        # Copy updated CourseEnrollment.progress_percentage into OnlineEnrollment
         updated = 0
         for oe in OnlineEnrollment.objects.filter(
             learner=learner,
@@ -660,3 +662,33 @@ class LMSBridgeService:
             'online_enrollments_updated': updated,
             'errors': result.get('errors', []),
         }
+
+    def _clear_moodle_cache(self, lms_account: LearnerLMSAccount) -> None:
+        """
+        Delete all cached Moodle progress entries for this learner's LMS account.
+        Called before any manual sync to force a live API call.
+        """
+        try:
+            from django.core.cache import cache
+            from integration.models import CourseEnrollment
+
+            mapping = lms_account.user.moodle_mapping
+            if not mapping.moodle_user_id:
+                return
+
+            course_ids = CourseEnrollment.objects.filter(
+                user=lms_account.user, is_active=True
+            ).values_list('course__moodle_course_id', flat=True)
+
+            for moodle_course_id in course_ids:
+                cache_key = (
+                    f'moodle_progress:{mapping.moodle_user_id}:{moodle_course_id}'
+                )
+                cache.delete(cache_key)
+                logger.debug(
+                    f'Cleared progress cache: user {mapping.moodle_user_id}, '
+                    f'course {moodle_course_id}'
+                )
+
+        except Exception as exc:
+            logger.warning(f'Cache clear failed for {lms_account}: {exc}')
