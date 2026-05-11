@@ -4,12 +4,15 @@
 <div class="flex items-center justify-between mb-6">
     <div>
         <h1 class="text-2xl font-bold text-gray-900">At-Risk Learners</h1>
-        {% if current_year %}<p class="text-sm text-gray-500 mt-0.5">{{ current_year.year }} Academic Year</p>{% endif %}
+        {% if current_year %}
+        <p class="text-sm text-gray-500 mt-0.5">{{ current_year.year }} Academic Year</p>
+        {% endif %}
     </div>
     {% if can_run_analysis %}
     <form method="post" action="{% url 'academics:run_analysis' %}">
         {% csrf_token %}
-        <button type="submit" onclick="return confirm('Run analysis for all learners? This may take a moment.')"
+        <button type="submit"
+                onclick="return confirm('Run analysis for all learners? This may take a moment.')"
                 class="px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700">
             Analyse All Learners
         </button>
@@ -42,25 +45,39 @@
     <form method="get" class="flex flex-wrap gap-3 items-end">
         <div>
             <label class="block text-xs font-medium text-gray-600 mb-1">Grade</label>
-            <select name="grade" class="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <select name="grade"
+                    class="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
                 <option value="">All Grades</option>
                 {% for grade in grades %}
-                <option value="{{ grade.pk }}" {% if selected_grade == grade.pk|stringformat:"s" %}selected{% endif %}>{{ grade.name }}</option>
+                <option value="{{ grade.pk }}"
+                        {% if selected_grade == grade.pk|stringformat:"s" %}selected{% endif %}>
+                    {{ grade.name }}
+                </option>
                 {% endfor %}
             </select>
         </div>
         <div>
             <label class="block text-xs font-medium text-gray-600 mb-1">Risk Level</label>
-            <select name="risk" class="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <select name="risk"
+                    class="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
                 <option value="">All Levels</option>
                 {% for value, label in risk_choices %}
-                <option value="{{ value }}" {% if selected_risk == value %}selected{% endif %}>{{ label }}</option>
+                <option value="{{ value }}"
+                        {% if selected_risk == value %}selected{% endif %}>
+                    {{ label }}
+                </option>
                 {% endfor %}
             </select>
         </div>
-        <button type="submit" class="px-4 py-2 bg-gray-800 text-white text-sm rounded-lg hover:bg-gray-900">Filter</button>
+        <button type="submit"
+                class="px-4 py-2 bg-gray-800 text-white text-sm rounded-lg hover:bg-gray-900">
+            Filter
+        </button>
         {% if selected_grade or selected_risk %}
-        <a href="{% url 'academics:at_risk' %}" class="px-4 py-2 text-sm text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50">Clear</a>
+        <a href="{% url 'academics:at_risk' %}"
+           class="px-4 py-2 text-sm text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50">
+            Clear
+        </a>
         {% endif %}
     </form>
 </div>
@@ -77,19 +94,27 @@
                 <th class="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">Average</th>
                 <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Trend</th>
                 <th class="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">Interventions</th>
+                {% if bridge_enabled %}
+                <th class="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">Online</th>
+                {% endif %}
                 <th class="px-4 py-3"></th>
             </tr>
         </thead>
         <tbody class="divide-y divide-gray-100">
             {% for analysis in analyses %}
-            <tr class="hover:bg-gray-50
-                {% if analysis.risk_level == 'critical' %}bg-red-50{% endif %}">
+            <tr class="hover:bg-gray-50 {% if analysis.risk_level == 'critical' %}bg-red-50{% endif %}">
+
+                <!-- Learner -->
                 <td class="px-4 py-3">
                     <div class="font-medium text-gray-900">
                         {{ analysis.learner.last_name }}, {{ analysis.learner.first_name }}
                     </div>
-                    <div class="text-xs text-gray-400 font-mono">{{ analysis.learner.admission_number }}</div>
+                    <div class="text-xs text-gray-400 font-mono">
+                        {{ analysis.learner.admission_number }}
+                    </div>
                 </td>
+
+                <!-- Risk badge -->
                 <td class="px-4 py-3">
                     <span class="inline-block px-2 py-0.5 text-xs font-semibold rounded
                         {% if analysis.risk_level == 'critical' %}bg-red-100 text-red-800
@@ -99,19 +124,27 @@
                         {{ analysis.get_risk_level_display }}
                     </span>
                 </td>
+
+                <!-- Failing subjects -->
                 <td class="px-4 py-3 text-center">
                     {% if analysis.subjects_failing %}
                     <span class="text-red-600 font-semibold">{{ analysis.subjects_failing }}</span>
                     <span class="text-gray-400">/{{ analysis.subjects_total }}</span>
                     {% else %}
-                    <span class="text-gray-300">-</span>
+                    <span class="text-gray-300">—</span>
                     {% endif %}
                 </td>
+
+                <!-- Average -->
                 <td class="px-4 py-3 text-center text-gray-700">
                     {% if analysis.average_percentage is not None %}
                     {{ analysis.average_percentage|floatformat:1 }}%
-                    {% else %}<span class="text-gray-300">-</span>{% endif %}
+                    {% else %}
+                    <span class="text-gray-300">—</span>
+                    {% endif %}
                 </td>
+
+                <!-- Trend -->
                 <td class="px-4 py-3">
                     <span class="text-xs
                         {% if analysis.trend == 'improving' %}text-green-600
@@ -120,9 +153,11 @@
                         {% if analysis.trend == 'improving' %}Improving
                         {% elif analysis.trend == 'declining' %}Declining
                         {% elif analysis.trend == 'stable' %}Stable
-                        {% else %}-{% endif %}
+                        {% else %}—{% endif %}
                     </span>
                 </td>
+
+                <!-- Interventions -->
                 <td class="px-4 py-3 text-center">
                     {% if analysis.intervention_count %}
                     <span class="inline-block px-2 py-0.5 bg-blue-50 text-blue-700 text-xs rounded font-medium">
@@ -132,10 +167,35 @@
                     <span class="text-gray-300 text-xs">None</span>
                     {% endif %}
                 </td>
+
+                <!-- Online status (bridge only) — column matches header position -->
+                {% if bridge_enabled %}
+                <td class="px-4 py-3 text-center">
+                    {% if analysis.learner.pk in online_enrolled_ids %}
+                    <span class="inline-block px-2 py-0.5 bg-green-50 text-green-700 text-xs rounded font-medium">
+                        Enrolled
+                    </span>
+                    {% else %}
+                    {% if can_enroll_online %}
+                    <a href="{% url 'academics:available_courses' analysis.learner.pk %}"
+                       class="text-xs text-gray-400 hover:text-blue-600">
+                        + Add
+                    </a>
+                    {% else %}
+                    <span class="text-gray-200 text-xs">—</span>
+                    {% endif %}
+                    {% endif %}
+                </td>
+                {% endif %}
+
+                <!-- View button — always last column -->
                 <td class="px-4 py-3 text-right">
                     <a href="{% url 'academics:learner_analysis' analysis.learner.pk %}"
-                       class="text-blue-600 hover:text-blue-800 text-xs font-medium">View</a>
+                       class="text-blue-600 hover:text-blue-800 text-xs font-medium">
+                        View
+                    </a>
                 </td>
+
             </tr>
             {% endfor %}
         </tbody>
@@ -143,8 +203,11 @@
     {% else %}
     <div class="px-4 py-16 text-center">
         <p class="text-gray-400 text-sm">
-            {% if not current_year %}No academic year set.
-            {% else %}No analysis data. Click "Analyse All Learners" to run the analysis.{% endif %}
+            {% if not current_year %}
+            No academic year is configured.
+            {% else %}
+            No analysis data yet. Click "Analyse All Learners" to run the analysis.
+            {% endif %}
         </p>
     </div>
     {% endif %}

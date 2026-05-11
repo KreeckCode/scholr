@@ -33,6 +33,45 @@
             </div>
             {% endfor %}
         </div>
+        
+
+        {% if bridge_enabled %}
+        <div class="mt-4 pt-4 border-t border-gray-100">
+            <div class="flex items-center gap-2 mb-2">
+                <h3 class="text-sm font-medium text-gray-700">Online Learning (optional)</h3>
+                <span class="text-xs text-gray-400">
+                    Enrol this learner in an online course at the same time
+                </span>
+            </div>
+
+            {% if not lms_account %}
+            <p class="text-xs text-amber-600 py-2">
+                This learner has no LMS account yet.
+                <a href="{% url 'academics:lms_account_create' learner.pk %}"
+                class="underline">Create one first</a>
+                to enable online enrollment.
+            </p>
+            {% elif not lms_account.is_synced_to_moodle %}
+            <p class="text-xs text-amber-600 py-2">
+                LMS account not yet synced to Moodle. Online enrollment is unavailable.
+            </p>
+            {% else %}
+            <select name="enroll_course_id"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="">— Do not enrol online at this time —</option>
+                {% for course in available_courses %}
+                <option value="{{ course.pk }}">{{ course.title }} ({{ course.category.name }})</option>
+                {% endfor %}
+            </select>
+            <p class="text-xs text-gray-400 mt-1">
+                If selected, the learner will be enrolled in this course and the intervention will be linked to the enrollment.
+            </p>
+            {% endif %}
+        </div>
+        {% endif %}
+
+
+
         <div class="px-5 py-4 border-t border-gray-100 flex gap-3">
             <button type="submit" class="px-5 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700">
                 {{ submit_label }}

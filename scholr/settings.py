@@ -72,10 +72,6 @@ WSGI_APPLICATION = 'scholr.wsgi.application'
 
 
 # ==================== PRODUCT FEATURE FLAGS ====================
-# Controls which product stack is active for this deployment.
-# LMS only:  set SCHOLR_ACADEMICS_ENABLED=False in .env
-# SMS only:  set SCHOLR_LMS_ENABLED=False in .env
-# Full:      leave both True (default)
 
 SCHOLR_LMS_ENABLED = os.getenv('SCHOLR_LMS_ENABLED', 'True') == 'True'
 SCHOLR_ACADEMICS_ENABLED = os.getenv('SCHOLR_ACADEMICS_ENABLED', 'True') == 'True'
@@ -324,5 +320,27 @@ LOGGING = {
             'level': 'INFO',
             'propagate': False,
         },
+    },
+}
+
+
+
+
+from celery.schedules import crontab
+
+CELERY_BEAT_SCHEDULE = {
+    # Existing shop tasks
+    'cleanup-expired-enrollments': {
+        'task': 'shop.tasks.cleanup_expired_enrollments',
+        'schedule': crontab(hour=2, minute=0),
+    },
+    'sync-all-user-progress': {
+        'task': 'shop.tasks.sync_all_user_progress',
+        'schedule': crontab(hour=3, minute=0),
+    },
+    # Academics: sync Moodle progress for school learners
+    'sync-online-learning-progress': {
+        'task': 'academics.tasks.sync_online_learning_progress_task',
+        'schedule': crontab(hour=4, minute=0),
     },
 }

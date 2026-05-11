@@ -6,7 +6,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
 from django.views import View
 from django.views.generic import CreateView, UpdateView
-
+from scholr.features import bridge_enabled as _bridge_enabled
 from ..forms.intervention import LearnerInterventionForm, ProgressNoteForm
 from ..mixins import HODOrSeniorMixin, StaffMixin
 from ..models.intervention import (
@@ -47,13 +47,15 @@ class AtRiskDashboardView(StaffMixin, View):
                     is_active=True,
                 )
                 from ..models.marks import SubjectEnrollment
-                learner_ids = SubjectEnrollment.objects.filter(
-                    stream__in=streams,
-                    academic_year=current_year,
-                ).values_list("learner_id", flat=True).distinct()
+                learner_ids = (
+                    SubjectEnrollment.objects
+                    .filter(stream__in=streams, academic_year=current_year)
+                    .values_list("learner_id", flat=True)
+                    .distinct()
+                )
                 analyses = analyses.filter(learner_id__in=learner_ids)
 
-        # Filter by grade
+        # Grade filter
         grade_id = request.GET.get("grade", "")
         if grade_id:
             from ..models.learner import LearnerEnrollment
@@ -64,33 +66,28 @@ class AtRiskDashboardView(StaffMixin, View):
             ).values_list("learner_id", flat=True)
             analyses = analyses.filter(learner_id__in=learner_ids)
 
-        # Filter by risk level
+        # Risk level filter
         risk_filter = request.GET.get("risk", "")
         if risk_filter:
             analyses = analyses.filter(risk_level=risk_filter)
 
-        # Summary counts (before filtering, but after teacher scoping)
-        all_analyses = PerformanceAnalysis.objects.filter(
-            academic_year=current_year
-        ) if current_year else PerformanceAnalysis.objects.none()
-
+        # Summary counts (before filtering, after teacher scoping)
+        all_analyses = (
+            PerformanceAnalysis.objects.filter(academic_year=current_year)
+            if current_year
+            else PerformanceAnalysis.objects.none()
+        )
         summary = {
-            "total": all_analyses.count(),
+            "total":    all_analyses.count(),
             "critical": all_analyses.filter(risk_level=PerformanceAnalysis.RISK_CRITICAL).count(),
-            "high": all_analyses.filter(risk_level=PerformanceAnalysis.RISK_HIGH).count(),
-            "medium": all_analyses.filter(risk_level=PerformanceAnalysis.RISK_MEDIUM).count(),
-            "low": all_analyses.filter(risk_level=PerformanceAnalysis.RISK_LOW).count(),
+            "high":     all_analyses.filter(risk_level=PerformanceAnalysis.RISK_HIGH).count(),
+            "medium":   all_analyses.filter(risk_level=PerformanceAnalysis.RISK_MEDIUM).count(),
+            "low":      all_analyses.filter(risk_level=PerformanceAnalysis.RISK_LOW).count(),
         }
 
-        # Add active intervention counts per learner
+        # Active intervention counts per learner
+        active_interventions = {}
         if current_year:
-            active_interventions = {
-                li.learner_id: 0
-                for li in LearnerIntervention.objects.filter(
-                    academic_year=current_year,
-                    status=LearnerIntervention.STATUS_ACTIVE,
-                )
-            }
             for li in LearnerIntervention.objects.filter(
                 academic_year=current_year,
                 status=LearnerIntervention.STATUS_ACTIVE,
@@ -98,25 +95,36 @@ class AtRiskDashboardView(StaffMixin, View):
                 active_interventions[li.learner_id] = (
                     active_interventions.get(li.learner_id, 0) + 1
                 )
-        else:
-            active_interventions = {}
 
-        # Attach intervention count to analyses for the template
         analyses_list = list(analyses.order_by("-risk_score", "learner__last_name"))
         for a in analyses_list:
             a.intervention_count = active_interventions.get(a.learner_id, 0)
 
-        return render(request, self.template_name, {
-            "analyses": analyses_list,
-            "summary": summary,
-            "current_year": current_year,
-            "grades": Grade.objects.filter(is_active=True).order_by("grade_number"),
-            "risk_choices": PerformanceAnalysis.RISK_CHOICES,
-            "selected_grade": grade_id,
-            "selected_risk": risk_filter,
-            "can_run_analysis": user.role in {"admin", "principal", "hod"},
-        })
+        # Online enrollment status per learner (LMS Bridge)
+        online_enrolled_ids = set()
+        if _bridge_enabled() and current_year:
+            from ..models.lms_link import OnlineEnrollment
+            online_enrolled_ids = set(
+                OnlineEnrollment.objects.filter(
+                    academic_year=current_year,
+                    status=OnlineEnrollment.STATUS_ACTIVE,
+                ).values_list("learner_id", flat=True)
+            )
 
+        return render(request, self.template_name, {
+            "analyses":          analyses_list,
+            "summary":           summary,
+            "current_year":      current_year,
+            "grades":            Grade.objects.filter(is_active=True).order_by("grade_number"),
+            "risk_choices":      PerformanceAnalysis.RISK_CHOICES,
+            "selected_grade":    grade_id,
+            "selected_risk":     risk_filter,
+            "can_run_analysis":  user.role in {"admin", "principal", "hod"},
+            "can_enroll_online": user.role in {"admin", "principal", "admin_clerk", "hod"},
+            # Bridge
+            "bridge_enabled":      _bridge_enabled(),
+            "online_enrolled_ids": online_enrolled_ids,
+        })
 
 class RunAnalysisView(HODOrSeniorMixin, View):
     """
@@ -154,8 +162,8 @@ class RunAnalysisView(HODOrSeniorMixin, View):
 class LearnerAnalysisView(StaffMixin, View):
     """
     Detailed performance analysis for one learner.
-    Shows per-subject performance, risk flags, interventions, and notes.
-    Access is scoped the same way as LearnerDetailView.
+    Shows per-subject performance, risk flags, interventions, notes,
+    and (when the LMS Bridge is enabled) online learning status.
     """
 
     template_name = "academics/intervention/learner_analysis.html"
@@ -198,7 +206,7 @@ class LearnerAnalysisView(StaffMixin, View):
         current_year = AcademicYear.get_current()
         current_term = Term.get_current()
 
-        # Get or compute analysis
+        # Performance analysis — compute if not yet run
         analysis = None
         subject_results = []
         if current_year:
@@ -206,15 +214,13 @@ class LearnerAnalysisView(StaffMixin, View):
                 learner=learner, academic_year=current_year
             ).first()
 
-            # If no analysis exists, run one now
+            analyzer = PerformanceAnalyzerService()
             if not analysis:
-                analyzer = PerformanceAnalyzerService()
                 analysis, subject_results = analyzer.analyze_learner(
                     learner, current_year, current_term
                 )
             else:
-                # Re-build subject_results from existing data for display
-                analyzer = PerformanceAnalyzerService()
+                # Rebuild subject_results for display without re-persisting
                 _, subject_results = analyzer.analyze_learner(
                     learner, current_year, current_term
                 )
@@ -222,24 +228,76 @@ class LearnerAnalysisView(StaffMixin, View):
         interventions = []
         notes = []
         if current_year:
-            interventions = LearnerIntervention.objects.filter(
-                learner=learner, academic_year=current_year
-            ).select_related("program", "assigned_to").order_by("-created_at")
+            interventions = (
+                LearnerIntervention.objects
+                .filter(learner=learner, academic_year=current_year)
+                .select_related("program", "assigned_to")
+                .order_by("-created_at")
+            )
+            notes = (
+                ProgressNote.objects
+                .filter(learner=learner, academic_year=current_year)
+                .select_related("created_by", "subject_offering__subject")
+                .order_by("-created_at")
+            )
 
-            notes = ProgressNote.objects.filter(
-                learner=learner, academic_year=current_year
-            ).select_related("created_by", "subject_offering__subject").order_by("-created_at")
-
-        return render(request, self.template_name, {
-            "learner": learner,
-            "analysis": analysis,
+        context = {
+            "learner":         learner,
+            "analysis":        analysis,
             "subject_results": subject_results,
-            "interventions": interventions,
-            "notes": notes,
-            "current_year": current_year,
-            "can_manage": request.user.role in {"admin", "principal", "hod", "teacher"},
-        })
+            "interventions":   interventions,
+            "notes":           notes,
+            "current_year":    current_year,
+            "can_manage":      request.user.role in {
+                "admin", "principal", "hod", "teacher"
+            },
+        }
 
+        # ---- Online Learning (LMS Bridge) ----
+        context["bridge_enabled"] = _bridge_enabled()
+
+        if _bridge_enabled():
+            from ..models.lms_link import OnlineEnrollment, LearnerLMSAccount
+            from ..services.lms_bridge import LMSBridgeService
+
+            # LMS account
+            lms_account = None
+            try:
+                lms_account = learner.lms_account
+            except LearnerLMSAccount.DoesNotExist:
+                pass
+            context["lms_account"] = lms_account
+
+            # Active online enrollments this year
+            context["online_enrollments"] = (
+                OnlineEnrollment.objects.filter(
+                    learner=learner,
+                    academic_year=current_year,
+                    status=OnlineEnrollment.STATUS_ACTIVE,
+                ).select_related("course__category", "subject")
+                if current_year else []
+            )
+
+            # Suggested available courses (only when account is synced)
+            suggested = []
+            if lms_account and lms_account.is_synced_to_moodle():
+                try:
+                    service = LMSBridgeService()
+                    suggested = list(
+                        service.get_available_courses(learner, current_year)[:6]
+                    )
+                except Exception:
+                    pass
+            context["suggested_courses"] = suggested
+
+            context["can_enroll_online"] = request.user.role in {
+                "admin", "principal", "admin_clerk", "hod"
+            }
+            context["can_manage_lms"] = request.user.role in {
+                "admin", "principal", "admin_clerk"
+            }
+
+        return render(request, self.template_name, context)
 
 class InterventionCreateView(HODOrSeniorMixin, SuccessMessageMixin, CreateView):
     """Add an intervention for a learner."""
@@ -258,11 +316,43 @@ class InterventionCreateView(HODOrSeniorMixin, SuccessMessageMixin, CreateView):
         return kwargs
 
     def form_valid(self, form):
-        current_year = AcademicYear.get_current()
         form.instance.learner = self._get_learner()
-        form.instance.academic_year = current_year
+        form.instance.academic_year = AcademicYear.get_current()
         form.instance.created_by = self.request.user
-        return super().form_valid(form)
+        response = super().form_valid(form)
+
+        # Optional: simultaneously enroll in an online course if staff selected one
+        course_id = self.request.POST.get('enroll_course_id', '').strip()
+        if course_id and _bridge_enabled():
+            try:
+                from integration.models import Course as LMSCourse
+                from ..services.lms_bridge import LMSBridgeService
+
+                course = LMSCourse.objects.filter(
+                    pk=course_id, sync_status='synced',
+                ).first()
+
+                if course:
+                    service = LMSBridgeService()
+                    service.enroll_in_course(
+                        learner=form.instance.learner,
+                        course=course,
+                        enrolled_by=self.request.user,
+                        reason=f'Linked to intervention: {form.instance.program.name}',
+                        intervention=form.instance,
+                        academic_year=form.instance.academic_year,
+                    )
+                    messages.success(
+                        self.request,
+                        f'Also enrolled in "{course.title}" online.',
+                    )
+            except Exception as exc:
+                messages.warning(
+                    self.request,
+                    f'Intervention created but online enrollment failed: {exc}',
+                )
+
+        return response
 
     def get_success_url(self):
         return reverse_lazy(
@@ -272,9 +362,39 @@ class InterventionCreateView(HODOrSeniorMixin, SuccessMessageMixin, CreateView):
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
-        ctx["learner"] = self._get_learner()
+        learner = self._get_learner()
+        ctx['learner'] = learner
         ctx["title"] = "Add Intervention"
         ctx["submit_label"] = "Add Intervention"
+
+        # Online learning context for optional course enrollment
+        from scholr.features import bridge_enabled as _bridge_enabled
+        ctx['bridge_enabled'] = _bridge_enabled()
+
+        if _bridge_enabled():
+            from ..models.lms_link import LearnerLMSAccount
+            from ..services.lms_bridge import LMSBridgeService
+            from ..models.school import AcademicYear
+
+            lms_account = None
+            try:
+                lms_account = learner.lms_account
+            except LearnerLMSAccount.DoesNotExist:
+                pass
+
+            ctx['lms_account'] = lms_account
+            ctx['available_courses'] = []
+
+            if lms_account and lms_account.is_synced_to_moodle():
+                try:
+                    current_year = AcademicYear.get_current()
+                    service = LMSBridgeService()
+                    ctx['available_courses'] = list(
+                        service.get_available_courses(learner, current_year)
+                    )
+                except Exception:
+                    pass
+
         return ctx
 
 

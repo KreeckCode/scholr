@@ -204,5 +204,151 @@
         </div>
 
     </div>
+
+    
+
+
+
+
+
+
+
+    {% if bridge_enabled %}
+    <!-- Online Learning Support -->
+    <div class="mt-6">
+        <div class="flex items-center justify-between mb-3">
+            <h2 class="text-base font-semibold text-gray-800">Online Learning Support</h2>
+            {% if can_enroll_online %}
+            <a href="{% url 'academics:learner_online_courses' learner.pk %}"
+            class="text-xs text-blue-600 hover:text-blue-800">
+                Manage All Courses
+            </a>
+            {% endif %}
+        </div>
+
+        {% if not lms_account %}
+        <!-- No LMS account -->
+        <div class="bg-white rounded-xl border border-gray-200 px-5 py-5">
+            <p class="text-sm text-gray-500 mb-3">
+                This learner does not have an online learning account.
+            </p>
+            {% if can_manage_lms %}
+            <a href="{% url 'academics:lms_account_create' learner.pk %}"
+            class="inline-block px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700">
+                Create LMS Account
+            </a>
+            {% else %}
+            <p class="text-xs text-gray-400">
+                Contact an administrator to set up online access for this learner.
+            </p>
+            {% endif %}
+        </div>
+
+        {% elif not lms_account.is_synced_to_moodle %}
+        <!-- Account pending sync -->
+        <div class="bg-white rounded-xl border border-amber-200 px-5 py-4">
+            <p class="text-sm font-medium text-amber-700">LMS account pending Moodle sync.</p>
+            {% if can_manage_lms %}
+            <form method="post" action="{% url 'academics:lms_account_retry_sync' lms_account.pk %}" class="mt-2">
+                {% csrf_token %}
+                <button class="text-xs text-blue-600 border border-blue-200 px-3 py-1.5 rounded-lg hover:bg-blue-50">
+                    Retry Sync
+                </button>
+            </form>
+            {% endif %}
+        </div>
+
+        {% else %}
+        <div class="grid grid-cols-2 gap-4">
+
+            <!-- Current online enrollments -->
+            <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+                <div class="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
+                    <h3 class="text-sm font-semibold text-gray-700">Enrolled Online</h3>
+                    {% if can_enroll_online %}
+                    <form method="post" action="{% url 'academics:sync_online_progress' learner.pk %}">
+                        {% csrf_token %}
+                        <button class="text-xs text-gray-400 hover:text-gray-600">Sync</button>
+                    </form>
+                    {% endif %}
+                </div>
+
+                {% if online_enrollments %}
+                <div class="divide-y divide-gray-100">
+                    {% for oe in online_enrollments %}
+                    <div class="px-4 py-3">
+                        <p class="text-sm font-medium text-gray-800 truncate">{{ oe.course.title }}</p>
+                        {% if oe.subject %}
+                        <p class="text-xs text-gray-400">→ {{ oe.subject.name }}</p>
+                        {% endif %}
+                        <div class="flex items-center gap-2 mt-2">
+                            <div class="flex-1 bg-gray-100 rounded-full h-1.5">
+                                <div class="h-1.5 rounded-full
+                                    {% if oe.progress_display >= 80 %}bg-green-500
+                                    {% elif oe.progress_display >= 40 %}bg-blue-500
+                                    {% else %}bg-gray-300{% endif %}"
+                                    style="width: {{ oe.progress_display }}%">
+                                </div>
+                            </div>
+                            <span class="text-xs text-gray-500 w-8 text-right">
+                                {{ oe.progress_display }}%
+                            </span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="px-4 py-5 text-sm text-gray-400 text-center">
+                    No online courses assigned yet.
+                </p>
+                {% endif %}
+            </div>
+
+            <!-- Suggested courses -->
+            <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+                <div class="px-4 py-3 border-b border-gray-100">
+                    <h3 class="text-sm font-semibold text-gray-700">Available Courses</h3>
+                    <p class="text-xs text-gray-400 mt-0.5">
+                        Enrol this learner in extra online support
+                    </p>
+                </div>
+
+                {% if suggested_courses %}
+                <div class="divide-y divide-gray-100">
+                    {% for course in suggested_courses %}
+                    <div class="px-4 py-3 flex items-center justify-between gap-3">
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm font-medium text-gray-800 truncate">{{ course.title }}</p>
+                            <p class="text-xs text-gray-400">{{ course.category.name }}</p>
+                        </div>
+                        {% if can_enroll_online %}
+                        <a href="{% url 'academics:enroll_confirm' learner.pk course.pk %}"
+                        class="flex-shrink-0 px-3 py-1 bg-blue-600 text-white text-xs font-medium rounded-lg hover:bg-blue-700">
+                            Enrol
+                        </a>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+                <div class="px-4 py-3 border-t border-gray-100">
+                    <a href="{% url 'academics:available_courses' learner.pk %}"
+                    class="text-xs text-blue-600 hover:text-blue-800">
+                        Browse all available courses →
+                    </a>
+                </div>
+                {% else %}
+                <p class="px-4 py-5 text-sm text-gray-400 text-center">
+                    No additional courses available.
+                </p>
+                {% endif %}
+            </div>
+
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+
 </div>
+
+
 {% endblock %}
