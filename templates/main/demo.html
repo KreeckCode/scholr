@@ -1,0 +1,328 @@
+{% extends 'base/base.html' %}
+{% load scholr_extras %}
+{% block title %}Book a Demo{% endblock %}
+{% block title_suffix %}See Scholr in 30 Minutes — Free{% endblock %}
+{% block meta_description %}Book a free 30-minute Scholr demo. We'll walk through the platform, answer your questions, and set up a free trial for your institution.{% endblock %}
+
+{% block extra_head %}
+<style>
+.hero-grid {
+    background-color: #020617;
+    background-image: radial-gradient(circle at 1px 1px, rgba(99,102,241,0.15) 1px, transparent 0);
+    background-size: 32px 32px;
+}
+.glass {
+    background: rgba(255,255,255,0.04);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255,255,255,0.07);
+}
+.field {
+    width: 100%;
+    background: rgba(15,23,42,0.8);
+    border: 1px solid rgba(71,85,105,0.6);
+    border-radius: 0.75rem;
+    padding: 0.75rem 1rem;
+    color: #e2e8f0;
+    font-size: 0.875rem;
+    transition: border-color 0.2s;
+    outline: none;
+}
+.field:focus {
+    border-color: rgba(99,102,241,0.7);
+    box-shadow: 0 0 0 3px rgba(99,102,241,0.12);
+}
+.field::placeholder { color: #475569; }
+select.field option { background: #0f172a; color: #e2e8f0; }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- Hero -->
+<div class="hero-grid relative pt-16 pb-0 overflow-hidden">
+    <div class="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-slate-950 to-transparent pointer-events-none z-10"></div>
+    <div class="relative z-0 max-w-4xl mx-auto px-4 sm:px-6 py-20 text-center">
+        <div class="inline-flex items-center gap-2 px-4 py-2 glass rounded-full text-sm text-slate-300 mb-8">
+            <svg class="w-4 h-4 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+            </svg>
+            Free 30-minute walkthrough
+        </div>
+        <h1 class="text-4xl sm:text-5xl font-bold text-white mb-5 leading-tight">
+            See Scholr built for<br>
+            <span class="bg-gradient-to-r from-indigo-400 via-violet-400 to-sky-400 bg-clip-text text-transparent">
+                your institution
+            </span>
+        </h1>
+        <p class="text-lg text-slate-400 max-w-xl mx-auto mb-6">
+            We'll walk through every feature relevant to your institution, answer every question, and set up a free 30-day trial. No commitment.
+        </p>
+        <!-- What to expect pills -->
+        <div class="flex flex-wrap justify-center gap-3">
+            {% for item in '30-min live walkthrough,Tailored to your institution,Free 30-day trial after,No credit card needed'|split:"," %}
+            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 glass rounded-full text-xs text-slate-300 border border-slate-700/60">
+                <svg class="w-3 h-3 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                </svg>
+                {{ item }}
+            </span>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- Form + sidebar -->
+<div class="bg-slate-950 py-16">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-12">
+
+            <!-- Form -->
+            <div class="lg:col-span-2">
+                <div class="glass rounded-2xl border border-slate-700/40 p-8">
+                    <h2 class="text-xl font-bold text-white mb-1">Request your demo</h2>
+                    <p class="text-slate-400 text-sm mb-8">
+                        Fill in the details below and we'll reach out within 1 business day to schedule.
+                    </p>
+
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+                        <div class="space-y-5">
+
+                            <!-- Name row -->
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-400 mb-1.5">
+                                        First name <span class="text-red-400">*</span>
+                                    </label>
+                                    <input type="text" name="first_name" required
+                                           class="field"
+                                           placeholder="John"
+                                           value="{{ request.POST.first_name }}">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-400 mb-1.5">
+                                        Last name <span class="text-red-400">*</span>
+                                    </label>
+                                    <input type="text" name="last_name" required
+                                           class="field"
+                                           placeholder="Doe"
+                                           value="{{ request.POST.last_name }}">
+                                </div>
+                            </div>
+
+                            <!-- Email + phone -->
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-400 mb-1.5">
+                                        Work email <span class="text-red-400">*</span>
+                                    </label>
+                                    <input type="email" name="email" required
+                                           class="field"
+                                           placeholder="john@institution.org"
+                                           value="{{ request.POST.email }}">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-400 mb-1.5">Phone number</label>
+                                    <input type="tel" name="phone"
+                                           class="field"
+                                           placeholder="+27 82 000 0000"
+                                           value="{{ request.POST.phone }}">
+                                </div>
+                            </div>
+
+                            <!-- Institution + country -->
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-400 mb-1.5">
+                                        Institution name <span class="text-red-400">*</span>
+                                    </label>
+                                    <input type="text" name="institution" required
+                                           class="field"
+                                           placeholder="Cape Town Bible College"
+                                           value="{{ request.POST.institution }}">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-400 mb-1.5">Country</label>
+                                    <select name="country" class="field">
+                                        <option value="">Select country</option>
+                                        {% for c in 'South Africa,Kenya,Nigeria,Ghana,Zimbabwe,Tanzania,Uganda,Zambia,Mozambique,Ethiopia,Other'|split:"," %}
+                                        <option value="{{ c }}" {% if request.POST.country == c %}selected{% endif %}>
+                                            {{ c }}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Learner count + current LMS -->
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-400 mb-1.5">
+                                        Approximate learner count
+                                    </label>
+                                    <select name="learner_count" class="field">
+                                        <option value="">Select range</option>
+                                        {% for r in 'Under 50,50–200,200–500,500–1000,1000+'|split:"," %}
+                                        <option value="{{ r }}" {% if request.POST.learner_count == r %}selected{% endif %}>
+                                            {{ r }}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-400 mb-1.5">
+                                        Current LMS / SMS
+                                    </label>
+                                    <input type="text" name="current_lms"
+                                           class="field"
+                                           placeholder="Moodle, Google Classroom, None…"
+                                           value="{{ request.POST.current_lms }}">
+                                </div>
+                            </div>
+
+                            <!-- Products interested in -->
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-400 mb-2">
+                                    Products you're interested in
+                                </label>
+                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                    {% for product in 'Online LMS,School Management,LMS Bridge'|split:"," %}
+                                    <label class="flex items-center gap-3 p-3 rounded-xl border border-slate-700/60
+                                                  cursor-pointer hover:border-indigo-500/40 transition-colors
+                                                  has-[:checked]:border-indigo-500/60 has-[:checked]:bg-indigo-900/20">
+                                        <input type="checkbox" name="product_{{ forloop.counter }}"
+                                               value="{{ product }}"
+                                               class="rounded border-slate-600 bg-slate-800 text-indigo-500">
+                                        <span class="text-sm text-slate-300">{{ product }}</span>
+                                    </label>
+                                    {% endfor %}
+                                </div>
+                            </div>
+
+                            <!-- Preferred time -->
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-400 mb-1.5">
+                                    Preferred demo time (your timezone)
+                                </label>
+                                <select name="preferred_time" class="field">
+                                    <option value="">No preference</option>
+                                    {% for t in 'Morning (8am–12pm),Afternoon (12pm–5pm),Evening (5pm–8pm)'|split:"," %}
+                                    <option value="{{ t }}" {% if request.POST.preferred_time == t %}selected{% endif %}>
+                                        {{ t }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <!-- Message -->
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-400 mb-1.5">
+                                    Anything specific you want us to cover?
+                                </label>
+                                <textarea name="message" rows="3" class="field resize-none"
+                                          placeholder="e.g. We run a hybrid model across 3 campuses and need LURITS export…">{{ request.POST.message }}</textarea>
+                            </div>
+
+                            <!-- Submit -->
+                            <div class="pt-2">
+                                <button type="submit"
+                                        class="w-full flex items-center justify-center gap-2 py-3.5
+                                               bg-indigo-600 hover:bg-indigo-500 text-white font-bold
+                                               rounded-xl transition-all hover:-translate-y-0.5
+                                               shadow-xl shadow-indigo-900/40 text-sm">
+                                    Request Demo
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
+                                    </svg>
+                                </button>
+                                <p class="text-center text-xs text-slate-600 mt-3">
+                                    We respond within 1 business day. No spam, ever.
+                                </p>
+                            </div>
+
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="space-y-6">
+
+                <!-- What happens next -->
+                <div class="glass rounded-2xl border border-slate-700/40 p-6">
+                    <h3 class="text-sm font-bold text-white mb-5">What happens next</h3>
+                    <ol class="space-y-4">
+                        {% for step in '1,2,3'|split:"," %}
+                        <li class="flex gap-3">
+                            <div class="shrink-0 w-6 h-6 rounded-full bg-indigo-900/60 border border-indigo-500/30
+                                        flex items-center justify-center text-xs font-bold text-indigo-400">
+                                {{ step }}
+                            </div>
+                            <div class="text-sm text-slate-400">
+                                {% if step == '1' %}
+                                <span class="font-semibold text-slate-200">We'll email you within 1 business day</span>
+                                with a calendar link to schedule.
+                                {% elif step == '2' %}
+                                <span class="font-semibold text-slate-200">30-minute live demo</span>
+                                tailored to your institution type and size.
+                                {% else %}
+                                <span class="font-semibold text-slate-200">Free 30-day trial</span>
+                                set up and ready to use. No credit card.
+                                {% endif %}
+                            </div>
+                        </li>
+                        {% endfor %}
+                    </ol>
+                </div>
+
+                <!-- Instant contact -->
+                <div class="glass rounded-2xl border border-slate-700/40 p-6">
+                    <h3 class="text-sm font-bold text-white mb-4">Need to talk now?</h3>
+                    <div class="space-y-3">
+                        <a href="mailto:support@scholr.co.za"
+                           class="flex items-center gap-3 text-sm text-slate-400 hover:text-slate-200 transition-colors">
+                            <div class="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center shrink-0">
+                                <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                                </svg>
+                            </div>
+                            support@scholr.co.za
+                        </a>
+                        <a href="https://wa.me/27000000000"
+                           class="flex items-center gap-3 text-sm text-slate-400 hover:text-slate-200 transition-colors">
+                            <div class="w-8 h-8 rounded-lg bg-green-900/40 border border-green-500/20 flex items-center justify-center shrink-0">
+                                <svg class="w-4 h-4 text-green-400" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+                                </svg>
+                            </div>
+                            WhatsApp us
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Mini testimonial -->
+                <div class="glass rounded-2xl border border-slate-700/40 p-6">
+                    <div class="flex gap-0.5 mb-3">
+                        {% for _ in '1,2,3,4,5'|split:"," %}
+                        <svg class="w-3.5 h-3.5 text-amber-400" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                        {% endfor %}
+                    </div>
+                    <p class="text-slate-300 text-xs italic leading-relaxed mb-3">
+                        "The demo convinced us in 20 minutes. We were live with 340 learners the following week."
+                    </p>
+                    <div class="flex items-center gap-2">
+                        <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=80&h=80&fit=crop"
+                             class="w-7 h-7 rounded-full object-cover" alt="">
+                        <div>
+                            <p class="text-xs font-semibold text-white">Dr. James Odhiambo</p>
+                            <p class="text-xs text-slate-500">Nairobi Theological Seminary</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
