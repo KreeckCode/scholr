@@ -35,6 +35,7 @@ INSTALLED_APPS = [
     'academics',
     'main',
     'debug_toolbar',
+    'enrollment.apps.EnrollmentConfig',
 
 ]
 
@@ -357,3 +358,13 @@ CELERY_BEAT_SCHEDULE = {
         'schedule': crontab(hour=6, minute=0),
     },
 }
+
+
+# ==================== ENROLLMENT MODULE ====================
+# Purchasable add-on. Default False — schools must explicitly enable.
+SCHOLR_ENROLLMENT_ENABLED = os.getenv('SCHOLR_ENROLLMENT_ENABLED', 'False') == 'True'
+
+# Bursary/financial aid sub-feature.
+# Requires SCHOLR_ENROLLMENT_ENABLED=True AND SCHOLR_BURSARY_ENABLED=True.
+# Off by default — most private schools do not offer financial aid.
+SCHOLR_BURSARY_ENABLED = os.getenv('SCHOLR_BURSARY_ENABLED', 'False') == 'True'
