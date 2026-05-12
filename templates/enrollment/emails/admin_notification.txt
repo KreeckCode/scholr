@@ -1,0 +1,33 @@
+[Enrollment] New Application — {{ application.reference_number }}
+{% if is_possible_duplicate %}
+*** POSSIBLE DUPLICATE — manual review required ***
+Suspected duplicate of: {{ duplicate.reference_number }}
+{% endif %}
+
+Submitted: {{ application.submitted_at|date:"d M Y H:i" }}
+Status:    {{ application.get_status_display }}
+
+LEARNER
+-------
+Name:          {{ application.get_full_name }}
+Date of birth: {{ application.date_of_birth|date:"d M Y" }}
+Gender:        {{ application.get_gender_display }}
+ID type:       {{ application.get_id_type_display }}
+ID number:     {{ application.id_number }}
+Grade:         {{ application.target_grade.name }}
+Year:          {{ application.enrollment_year }}
+Priority:      {{ application.priority }}
+
+GUARDIAN
+--------
+Name:    {{ application.guardian_first_name }} {{ application.guardian_last_name }}
+Email:   {{ application.guardian_email }}
+Phone:   {{ application.guardian_phone }}
+Address: {{ application.guardian_address_line1 }}, {{ application.guardian_city }}
+
+REVIEW LINK
+-----------
+{{ admin_url }}
+
+--
+Scholr Enrollment System — automated notification

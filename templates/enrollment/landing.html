@@ -1,0 +1,94 @@
+{% extends 'enrollment/base.html' %}
+{% block title %}Apply{% endblock %}
+
+{% block content %}
+<div class="hero-grid min-h-[40vh] flex items-center">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 py-20 text-center">
+        <span class="inline-block px-3 py-1 rounded-full text-xs font-semibold
+                     bg-indigo-900/40 border border-indigo-500/30 text-indigo-400 mb-6">
+            Online Enrollment
+        </span>
+        <h1 class="text-4xl sm:text-5xl font-bold text-white mb-4">
+            Apply for Enrollment
+        </h1>
+        {% if config.public_notice %}
+        <p class="text-slate-300 text-lg max-w-2xl mx-auto">{{ config.public_notice }}</p>
+        {% else %}
+        <p class="text-slate-400 text-lg max-w-xl mx-auto">
+            Complete your application online. You will receive a reference number
+            by email immediately after submitting.
+        </p>
+        {% endif %}
+    </div>
+</div>
+
+<div class="max-w-4xl mx-auto px-4 sm:px-6 py-12">
+
+    {% if any_open %}
+    <h2 class="text-lg font-bold text-white mb-6">Open for applications</h2>
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-16">
+        {% for tmpl in open_templates %}
+        <a href="{% url 'enrollment:apply' tmpl.pk %}"
+           class="group glass rounded-2xl border border-slate-700/40 p-6
+                  hover:border-indigo-500/40 hover:-translate-y-1
+                  transition-all block">
+            <div class="w-10 h-10 rounded-xl bg-indigo-900/40 border border-indigo-500/20
+                        flex items-center justify-center mb-4">
+                <svg class="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                </svg>
+            </div>
+            <h3 class="font-bold text-white mb-1">{{ tmpl.name }}</h3>
+            <p class="text-sm text-slate-400 mb-4">{{ tmpl.entry_grade.name }}</p>
+            {% if tmpl.enrollment_capacity %}
+            <div class="mb-3">
+                <div class="flex justify-between text-xs text-slate-500 mb-1">
+                    <span>Places filled</span>
+                    <span>{{ tmpl.approved_count }}/{{ tmpl.enrollment_capacity }}</span>
+                </div>
+                <div class="h-1.5 bg-slate-800 rounded-full">
+                    {% widthratio tmpl.approved_count tmpl.enrollment_capacity 100 as pct %}
+                    <div class="h-1.5 rounded-full
+                        {% if pct > 80 %}bg-amber-500{% else %}bg-indigo-500{% endif %}"
+                         style="width: {{ pct }}%"></div>
+                </div>
+            </div>
+            {% endif %}
+            {% if tmpl.close_date %}
+            <p class="text-xs text-slate-500">
+                Closes {{ tmpl.close_date|date:"d M Y" }}
+            </p>
+            {% endif %}
+            <div class="flex items-center gap-1.5 text-indigo-400 text-xs font-semibold mt-4
+                        group-hover:gap-2.5 transition-all">
+                Apply now
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                </svg>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="glass rounded-2xl border border-slate-700/40 p-12 text-center mb-12">
+        <p class="text-slate-400 text-lg mb-2">Enrollment is currently closed.</p>
+        <p class="text-slate-500 text-sm">Please check back during the next enrollment window.</p>
+    </div>
+    {% endif %}
+
+    <!-- Already applied? -->
+    <div class="glass rounded-2xl border border-slate-700/40 p-6 flex flex-col sm:flex-row
+                items-start sm:items-center justify-between gap-4">
+        <div>
+            <p class="font-semibold text-white text-sm mb-1">Already submitted an application?</p>
+            <p class="text-slate-400 text-sm">Check your application status using your reference number.</p>
+        </div>
+        <a href="{% url 'enrollment:status' %}"
+           class="shrink-0 px-5 py-2.5 border border-slate-600 text-slate-200 text-sm
+                  font-semibold rounded-xl hover:border-slate-400 transition-all">
+            Check status
+        </a>
+    </div>
+</div>
+{% endblock %}

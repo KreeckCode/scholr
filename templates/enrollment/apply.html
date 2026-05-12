@@ -1,0 +1,430 @@
+{% extends 'enrollment/base.html' %}
+{% block title %}Apply — {{ template.name }}{% endblock %}
+
+{% block content %}
+
+{% if closed %}
+<div class="max-w-2xl mx-auto px-4 sm:px-6 py-24 text-center">
+    <h1 class="text-3xl font-bold text-white mb-4">Applications Closed</h1>
+    <p class="text-slate-400 mb-8">
+        The enrollment window for <strong class="text-white">{{ template.name }}</strong>
+        is no longer accepting applications.
+    </p>
+    <a href="{% url 'enrollment:landing' %}"
+       class="inline-flex items-center gap-2 px-6 py-3 border border-slate-600
+              text-slate-200 font-semibold rounded-xl hover:border-slate-400 transition-all">
+        ← Back to enrollment
+    </a>
+</div>
+{% else %}
+
+<div x-data="{
+    currentStep: 1,
+    totalSteps: {{ show_sections.previous_school|yesno:'true,false' }}
+        || {{ show_sections.medical|yesno:'true,false' }}
+        || {{ show_sections.essay|yesno:'true,false' }}
+        ? 6 : 4,
+    idType: '{{ form.id_type.value|default:'sa_id' }}',
+    hasMedical: false,
+    hasLearningNeeds: false,
+}" class="max-w-3xl mx-auto px-4 sm:px-6 py-10">
+
+    <!-- Header -->
+    <div class="mb-8">
+        <a href="{% url 'enrollment:landing' %}"
+           class="inline-flex items-center gap-1.5 text-slate-500 hover:text-slate-300
+                  text-xs mb-4 transition-colors">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+            </svg>
+            All open applications
+        </a>
+        <h1 class="text-2xl font-bold text-white mb-1">{{ template.name }}</h1>
+        <p class="text-slate-400 text-sm">{{ template.entry_grade.name }} · Enrollment {{ template.enrollment_year }}</p>
+    </div>
+
+    <!-- Progress bar -->
+    <div class="mb-8">
+        <div class="flex items-center justify-between text-xs text-slate-500 mb-2">
+            <span>Step <span x-text="currentStep"></span> of <span x-text="totalSteps"></span></span>
+            <span x-text="Math.round(currentStep / totalSteps * 100) + '%'"></span>
+        </div>
+        <div class="h-1.5 bg-slate-800 rounded-full">
+            <div class="h-1.5 bg-indigo-500 rounded-full transition-all duration-300"
+                 :style="`width: ${currentStep / totalSteps * 100}%`"></div>
+        </div>
+    </div>
+
+    {% if has_errors %}
+    <div class="mb-6 p-4 rounded-xl border border-red-800/60 bg-red-950/40 text-sm text-red-300">
+        Please review the errors below and correct them before submitting.
+    </div>
+    {% endif %}
+
+    <form method="post" novalidate>
+        {% csrf_token %}
+
+        <!-- ============ STEP 1: LEARNER ============ -->
+        <div x-show="currentStep === 1">
+            <div class="glass rounded-2xl border border-slate-700/40 p-7 mb-6">
+                <h2 class="text-base font-bold text-white mb-6 flex items-center gap-2">
+                    <span class="w-6 h-6 rounded-full bg-indigo-600 text-white text-xs font-bold flex items-center justify-center">1</span>
+                    Learner Details
+                </h2>
+                <div class="space-y-5">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="label">First name <span class="text-red-400">*</span></label>
+                            {{ form.first_name }}
+                            {% if form.first_name.errors %}<p class="field-error">{{ form.first_name.errors.0 }}</p>{% endif %}
+                        </div>
+                        <div>
+                            <label class="label">Last name <span class="text-red-400">*</span></label>
+                            {{ form.last_name }}
+                            {% if form.last_name.errors %}<p class="field-error">{{ form.last_name.errors.0 }}</p>{% endif %}
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="label">Date of birth <span class="text-red-400">*</span></label>
+                            {{ form.date_of_birth }}
+                            {% if form.date_of_birth.errors %}<p class="field-error">{{ form.date_of_birth.errors.0 }}</p>{% endif %}
+                        </div>
+                        <div>
+                            <label class="label">Gender <span class="text-red-400">*</span></label>
+                            {{ form.gender }}
+                            {% if form.gender.errors %}<p class="field-error">{{ form.gender.errors.0 }}</p>{% endif %}
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="label">Home language</label>
+                            {{ form.home_language }}
+                        </div>
+                        <div>
+                            <label class="label">Nationality</label>
+                            {{ form.nationality }}
+                        </div>
+                    </div>
+
+                    <!-- Identity -->
+                    <div class="pt-2 border-t border-slate-800">
+                        <p class="text-xs font-semibold text-slate-400 mb-4 uppercase tracking-wider">Identity document</p>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="label">Document type <span class="text-red-400">*</span></label>
+                                <select name="id_type" x-model="idType" class="field">
+                                    {% for val, label in form.id_type.field.choices %}
+                                    <option value="{{ val }}" {% if form.id_type.value == val %}selected{% endif %}>{{ label }}</option>
+                                    {% endfor %}
+                                </select>
+                                {% if form.id_type.errors %}<p class="field-error">{{ form.id_type.errors.0 }}</p>{% endif %}
+                            </div>
+                            <div>
+                                <label class="label">ID / Passport number <span class="text-red-400">*</span></label>
+                                {{ form.id_number }}
+                                {% if form.id_number.errors %}<p class="field-error">{{ form.id_number.errors.0 }}</p>{% endif %}
+                            </div>
+                        </div>
+                        <div x-show="idType !== 'sa_id'" class="mt-4">
+                            <label class="label">Country of issue <span class="text-red-400">*</span></label>
+                            {{ form.id_country_of_issue }}
+                            {% if form.id_country_of_issue.errors %}<p class="field-error">{{ form.id_country_of_issue.errors.0 }}</p>{% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="flex justify-end">
+                <button type="button" @click="currentStep++"
+                        class="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-xl transition-all text-sm">
+                    Continue →
+                </button>
+            </div>
+        </div>
+
+        <!-- ============ STEP 2: GUARDIAN ============ -->
+        <div x-show="currentStep === 2">
+            <div class="glass rounded-2xl border border-slate-700/40 p-7 mb-6">
+                <h2 class="text-base font-bold text-white mb-6 flex items-center gap-2">
+                    <span class="w-6 h-6 rounded-full bg-indigo-600 text-white text-xs font-bold flex items-center justify-center">2</span>
+                    Parent / Guardian Details
+                </h2>
+                <div class="space-y-5">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="label">First name <span class="text-red-400">*</span></label>
+                            {{ form.guardian_first_name }}
+                            {% if form.guardian_first_name.errors %}<p class="field-error">{{ form.guardian_first_name.errors.0 }}</p>{% endif %}
+                        </div>
+                        <div>
+                            <label class="label">Last name <span class="text-red-400">*</span></label>
+                            {{ form.guardian_last_name }}
+                            {% if form.guardian_last_name.errors %}<p class="field-error">{{ form.guardian_last_name.errors.0 }}</p>{% endif %}
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="label">Relationship <span class="text-red-400">*</span></label>
+                            {{ form.guardian_relationship }}
+                            {% if form.guardian_relationship.errors %}<p class="field-error">{{ form.guardian_relationship.errors.0 }}</p>{% endif %}
+                        </div>
+                        <div>
+                            <label class="label">ID number</label>
+                            {{ form.guardian_id_number }}
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="label">Email address <span class="text-red-400">*</span></label>
+                            {{ form.guardian_email }}
+                            {% if form.guardian_email.errors %}<p class="field-error">{{ form.guardian_email.errors.0 }}</p>{% endif %}
+                        </div>
+                        <div>
+                            <label class="label">Mobile number <span class="text-red-400">*</span></label>
+                            {{ form.guardian_phone }}
+                            {% if form.guardian_phone.errors %}<p class="field-error">{{ form.guardian_phone.errors.0 }}</p>{% endif %}
+                        </div>
+                    </div>
+                    <!-- Address -->
+                    <div class="pt-2 border-t border-slate-800">
+                        <p class="text-xs font-semibold text-slate-400 mb-4 uppercase tracking-wider">Residential address</p>
+                        <div class="space-y-3">
+                            <div>
+                                <label class="label">Street address <span class="text-red-400">*</span></label>
+                                {{ form.guardian_address_line1 }}
+                                {% if form.guardian_address_line1.errors %}<p class="field-error">{{ form.guardian_address_line1.errors.0 }}</p>{% endif %}
+                            </div>
+                            <div>
+                                <label class="label">Suburb / Unit</label>
+                                {{ form.guardian_address_line2 }}
+                            </div>
+                            <div class="grid grid-cols-3 gap-3">
+                                <div>
+                                    <label class="label">City <span class="text-red-400">*</span></label>
+                                    {{ form.guardian_city }}
+                                    {% if form.guardian_city.errors %}<p class="field-error">{{ form.guardian_city.errors.0 }}</p>{% endif %}
+                                </div>
+                                <div>
+                                    <label class="label">Province</label>
+                                    {{ form.guardian_province }}
+                                </div>
+                                <div>
+                                    <label class="label">Postal code</label>
+                                    {{ form.guardian_postal_code }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Emergency contact -->
+                    <div class="pt-2 border-t border-slate-800">
+                        <p class="text-xs font-semibold text-slate-400 mb-4 uppercase tracking-wider">Emergency contact</p>
+                        <div class="grid grid-cols-3 gap-3">
+                            <div>
+                                <label class="label">Name <span class="text-red-400">*</span></label>
+                                {{ form.emergency_contact_name }}
+                                {% if form.emergency_contact_name.errors %}<p class="field-error">{{ form.emergency_contact_name.errors.0 }}</p>{% endif %}
+                            </div>
+                            <div>
+                                <label class="label">Phone <span class="text-red-400">*</span></label>
+                                {{ form.emergency_contact_phone }}
+                                {% if form.emergency_contact_phone.errors %}<p class="field-error">{{ form.emergency_contact_phone.errors.0 }}</p>{% endif %}
+                            </div>
+                            <div>
+                                <label class="label">Relationship <span class="text-red-400">*</span></label>
+                                {{ form.emergency_contact_relationship }}
+                                {% if form.emergency_contact_relationship.errors %}<p class="field-error">{{ form.emergency_contact_relationship.errors.0 }}</p>{% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="flex justify-between">
+                <button type="button" @click="currentStep--"
+                        class="px-5 py-2.5 border border-slate-700 text-slate-300 font-semibold rounded-xl hover:border-slate-500 transition-all text-sm">
+                    ← Back
+                </button>
+                <button type="button" @click="currentStep++"
+                        class="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-xl transition-all text-sm">
+                    Continue →
+                </button>
+            </div>
+        </div>
+
+        <!-- ============ STEP 3: PREVIOUS SCHOOL ============ -->
+        {% if show_sections.previous_school %}
+        <div x-show="currentStep === 3">
+            <div class="glass rounded-2xl border border-slate-700/40 p-7 mb-6">
+                <h2 class="text-base font-bold text-white mb-6 flex items-center gap-2">
+                    <span class="w-6 h-6 rounded-full bg-indigo-600 text-white text-xs font-bold flex items-center justify-center">3</span>
+                    Previous School
+                </h2>
+                <div class="space-y-4">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="label">School name</label>
+                            {{ form.previous_school_name }}
+                        </div>
+                        <div>
+                            <label class="label">School type</label>
+                            {{ form.previous_school_type }}
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="label">Most recent grade completed</label>
+                            {{ form.previous_grade_completed }}
+                        </div>
+                        <div>
+                            <label class="label">Country</label>
+                            {{ form.previous_school_country }}
+                        </div>
+                    </div>
+                    <div>
+                        <label class="label">Reason for leaving</label>
+                        {{ form.reason_for_leaving }}
+                    </div>
+                </div>
+            </div>
+            <div class="flex justify-between">
+                <button type="button" @click="currentStep--"
+                        class="px-5 py-2.5 border border-slate-700 text-slate-300 font-semibold rounded-xl hover:border-slate-500 transition-all text-sm">
+                    ← Back
+                </button>
+                <button type="button" @click="currentStep++"
+                        class="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-xl transition-all text-sm">
+                    Continue →
+                </button>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- ============ STEP 4: MEDICAL ============ -->
+        {% if show_sections.medical %}
+        <div x-show="currentStep === {% if show_sections.previous_school %}4{% else %}3{% endif %}">
+            <div class="glass rounded-2xl border border-slate-700/40 p-7 mb-6">
+                <h2 class="text-base font-bold text-white mb-6 flex items-center gap-2">
+                    <span class="w-6 h-6 rounded-full bg-indigo-600 text-white text-xs font-bold flex items-center justify-center">
+                        {% if show_sections.previous_school %}4{% else %}3{% endif %}
+                    </span>
+                    Medical Information
+                </h2>
+                <div class="space-y-5">
+                    <label class="flex items-start gap-3 cursor-pointer">
+                        {{ form.has_medical_conditions }}
+                        <span class="text-sm text-slate-300">{{ form.has_medical_conditions.label }}</span>
+                    </label>
+                    <div x-show="hasMedical" x-data="{ hasMedical: false }" @change="hasMedical = $event.target.checked">
+                        <label class="label">Medical details <span class="text-red-400">*</span></label>
+                        {{ form.medical_details }}
+                        {% if form.medical_details.errors %}<p class="field-error">{{ form.medical_details.errors.0 }}</p>{% endif %}
+                    </div>
+
+                    <label class="flex items-start gap-3 cursor-pointer">
+                        {{ form.has_learning_support_needs }}
+                        <span class="text-sm text-slate-300">{{ form.has_learning_support_needs.label }}</span>
+                    </label>
+
+                    <div class="grid grid-cols-2 gap-4 pt-2 border-t border-slate-800">
+                        <div>
+                            <label class="label">Medical aid provider</label>
+                            {{ form.medical_aid_provider }}
+                        </div>
+                        <div>
+                            <label class="label">Medical aid number</label>
+                            {{ form.medical_aid_number }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="flex justify-between">
+                <button type="button" @click="currentStep--"
+                        class="px-5 py-2.5 border border-slate-700 text-slate-300 font-semibold rounded-xl hover:border-slate-500 transition-all text-sm">
+                    ← Back
+                </button>
+                <button type="button" @click="currentStep++"
+                        class="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-xl transition-all text-sm">
+                    Continue →
+                </button>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- ============ FINAL STEP: DECLARATION ============ -->
+        {% with final_step="5" %}
+        <div x-show="currentStep === {% if show_sections.previous_school and show_sections.medical %}5{% elif show_sections.previous_school or show_sections.medical %}4{% else %}3{% endif %}">
+            <div class="glass rounded-2xl border border-slate-700/40 p-7 mb-6">
+                <h2 class="text-base font-bold text-white mb-6">Declaration &amp; Submission</h2>
+
+                {% if show_sections.essay and template.essay_question %}
+                <div class="mb-6">
+                    <label class="label">{{ template.essay_question }} <span class="text-red-400">*</span></label>
+                    {{ form.essay_answer }}
+                    {% if form.essay_answer.errors %}<p class="field-error">{{ form.essay_answer.errors.0 }}</p>{% endif %}
+                </div>
+                {% endif %}
+
+                <div class="mb-6">
+                    <label class="label">How did you hear about us?</label>
+                    {{ form.how_did_you_hear }}
+                </div>
+
+                {% if doc_requirements %}
+                <div class="mb-6 p-4 rounded-xl bg-slate-800/40 border border-slate-700/40">
+                    <p class="text-xs font-semibold text-slate-400 mb-3 uppercase tracking-wider">Required documents</p>
+                    <p class="text-xs text-slate-400 mb-3">
+                        After submitting this form you will be asked to upload the following documents.
+                    </p>
+                    <ul class="space-y-1.5">
+                        {% for req in doc_requirements %}
+                        <li class="flex items-center gap-2 text-xs">
+                            {% if req.is_required %}
+                            <span class="w-1.5 h-1.5 rounded-full bg-red-400 shrink-0"></span>
+                            <span class="text-slate-300">{{ req.get_document_type_display }} <span class="text-red-400">(required)</span></span>
+                            {% else %}
+                            <span class="w-1.5 h-1.5 rounded-full bg-slate-600 shrink-0"></span>
+                            <span class="text-slate-400">{{ req.get_document_type_display }} (optional)</span>
+                            {% endif %}
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+
+                <div class="space-y-4">
+                    <label class="flex items-start gap-3 cursor-pointer p-4 rounded-xl border border-slate-700/60 hover:border-indigo-500/30 transition-colors">
+                        {{ form.declaration_accurate }}
+                        <span class="text-sm text-slate-300 leading-relaxed">{{ form.declaration_accurate.label }}</span>
+                    </label>
+                    {% if form.declaration_accurate.errors %}<p class="field-error -mt-2">{{ form.declaration_accurate.errors.0 }}</p>{% endif %}
+
+                    <label class="flex items-start gap-3 cursor-pointer p-4 rounded-xl border border-slate-700/60 hover:border-indigo-500/30 transition-colors">
+                        {{ form.declaration_popia }}
+                        <span class="text-sm text-slate-300 leading-relaxed">{{ form.declaration_popia.label }}</span>
+                    </label>
+                    {% if form.declaration_popia.errors %}<p class="field-error -mt-2">{{ form.declaration_popia.errors.0 }}</p>{% endif %}
+                </div>
+            </div>
+
+            <div class="flex justify-between items-center">
+                <button type="button" @click="currentStep--"
+                        class="px-5 py-2.5 border border-slate-700 text-slate-300 font-semibold rounded-xl hover:border-slate-500 transition-all text-sm">
+                    ← Back
+                </button>
+                <button type="submit"
+                        class="inline-flex items-center gap-2 px-8 py-3 bg-indigo-600 hover:bg-indigo-500
+                               text-white font-bold rounded-xl shadow-xl shadow-indigo-900/40
+                               transition-all hover:-translate-y-0.5 text-sm">
+                    Submit Application
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        {% endwith %}
+
+    </form>
+</div>
+{% endif %}
+
+{% endblock %}

@@ -1,0 +1,43 @@
+{{ school_name }} — Application Received
+========================================
+
+Dear {{ application.guardian_first_name }},
+
+Thank you for submitting an application for {{ application.get_full_name }}.
+
+REFERENCE NUMBER: {{ application.reference_number }}
+
+Please keep this reference number — you will need it to upload documents
+and to check the status of your application.
+
+Application details:
+  Learner:        {{ application.get_full_name }}
+  Grade applying: {{ application.target_grade.name }}
+  Enrollment year: {{ application.enrollment_year }}
+
+NEXT STEPS
+----------
+{% if required_docs %}1. Upload the following required documents at:
+   {{ docs_url }}
+
+Required documents:
+{% for doc in required_docs %}   - {{ doc.get_document_type_display }}
+{% endfor %}
+2. Our admissions team will review your application within 5 working days.
+3. You will receive an email with the outcome.
+{% else %}
+1. Our admissions team will review your application within 5 working days.
+2. You will receive an email with the outcome.
+{% endif %}
+
+CHECK YOUR STATUS
+-----------------
+Track your application at any time at:
+{{ status_url }}
+
+Enter your reference number ({{ application.reference_number }}) and this
+email address to see the current status.
+
+--
+{{ school_name }}
+This is an automated notification.
