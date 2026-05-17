@@ -1,0 +1,15 @@
+{{ school_name }} — Grade Promotion Notification
+
+Dear {{ guardian.first_name }},
+
+We are pleased to inform you that {{ learner.get_full_name }} has been
+{{ promotion.get_status_display|lower }} for the {{ promotion.to_academic_year }} academic year.
+
+{% if promotion.status == 'promoted' %}
+New grade: {{ promotion.to_grade.name }}
+{% if promotion.to_stream %}Stream: {{ promotion.to_stream.name }}{% endif %}
+School starts: {{ start_date|date:"d F Y" }}
+{% endif %}
+
+--
+{{ school_name }}

@@ -1,0 +1,148 @@
+{% extends 'enrollment/admin/base.html' %}
+{% block title %}Application Queue{% endblock %}
+
+{% block content %}
+<div class="mb-6 flex items-center justify-between">
+    <div>
+        <h1 class="text-2xl font-bold text-white mb-1">Enrollment Queue</h1>
+        <p class="text-slate-400 text-sm">Review and manage applications</p>
+    </div>
+</div>
+
+<!-- Stats cards -->
+<div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mb-8">
+    {% for key, label in 'submitted,Submitted|docs_pending,Documents Pending|under_review,Under Review|duplicates,Duplicates|offers,Offers Issued|enrolled,Enrolled'|split:"," %}
+    {% with parts=label|split:"|" stat_key=parts.0 stat_label=parts.1 %}
+    <div class="glass rounded-xl border border-slate-700/40 p-4">
+        <p class="text-xs text-slate-500 mb-1">{{ stat_label }}</p>
+        <p class="text-2xl font-black text-white">{{ stats|get_item:stat_key }}</p>
+    </div>
+    {% endwith %}
+    {% endfor %}
+</div>
+
+<!-- Filters -->
+<div class="glass rounded-xl border border-slate-700/40 p-5 mb-6">
+    <form method="get" class="grid grid-cols-1 md:grid-cols-5 gap-3">
+        <div>
+            <label class="block text-xs text-slate-400 mb-1">Status</label>
+            <select name="status" class="field text-xs">
+                <option value="">— All —</option>
+                {% for val, label in status_choices %}
+                <option value="{{ val }}" {% if status_filter == val %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label class="block text-xs text-slate-400 mb-1">Grade</label>
+            <select name="grade" class="field text-xs">
+                <option value="">— All —</option>
+                {% for grade in grades %}
+                <option value="{{ grade.pk }}" {% if grade_filter == grade.pk|stringformat:"s" %}selected{% endif %}>
+                    {{ grade.name }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label class="block text-xs text-slate-400 mb-1">Year</label>
+            <select name="year" class="field text-xs">
+                <option value="">— All —</option>
+                {% for year in years %}
+                <option value="{{ year }}" {% if year_filter == year|stringformat:"s" %}selected{% endif %}>{{ year }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label class="block text-xs text-slate-400 mb-1">Search</label>
+            <input type="text" name="q" value="{{ search_query }}"
+                   placeholder="Reference, name, ID…"
+                   class="field text-xs">
+        </div>
+        <div class="flex items-end">
+            <button type="submit"
+                    class="w-full py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-lg transition-all">
+                Apply Filters
+            </button>
+        </div>
+    </form>
+</div>
+
+<!-- Applications table -->
+<div class="glass rounded-xl border border-slate-700/40 overflow-hidden">
+    <table class="w-full text-sm">
+        <thead class="bg-slate-800/60 border-b border-slate-700/40">
+            <tr>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-slate-400 uppercase">Reference</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-slate-400 uppercase">Name</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-slate-400 uppercase">Grade</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-slate-400 uppercase">Status</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-slate-400 uppercase">Submitted</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-slate-400 uppercase">Priority</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-slate-400 uppercase"></th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-700/30">
+            {% for app in page %}
+            <tr class="hover:bg-slate-800/40 transition-colors">
+                <td class="px-4 py-3 font-mono text-xs text-slate-300">{{ app.reference_number }}</td>
+                <td class="px-4 py-3 text-slate-200">{{ app.get_full_name }}</td>
+                <td class="px-4 py-3 text-slate-400 text-xs">{{ app.target_grade.name }}</td>
+                <td class="px-4 py-3">
+                    <span class="inline-block px-2 py-0.5 rounded text-xs font-semibold
+                        {% if app.status == 'enrolled' %}bg-green-900/60 text-green-300
+                        {% elif app.status == 'rejected' %}bg-red-900/60 text-red-300
+                        {% elif app.status == 'possible_duplicate' %}bg-amber-900/60 text-amber-300
+                        {% elif app.status == 'offer_issued' %}bg-teal-900/60 text-teal-300
+                        {% else %}bg-indigo-900/60 text-indigo-300{% endif %}">
+                        {{ app.get_status_display }}
+                    </span>
+                </td>
+                <td class="px-4 py-3 text-slate-400 text-xs">{{ app.submitted_at|date:"d M Y" }}</td>
+                <td class="px-4 py-3 text-slate-500 text-xs">
+                    {% if app.priority == 1 %}Sibling
+                    {% elif app.priority == 2 %}Staff Child
+                    {% elif app.priority == 3 %}Alumni
+                    {% else %}General{% endif %}
+                </td>
+                <td class="px-4 py-3 text-right">
+                    <a href="{% url 'enrollment:admin_application_detail' app.pk %}"
+                       class="text-xs text-indigo-400 hover:text-indigo-300 font-semibold transition-colors">
+                        Review →
+                    </a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="7" class="px-4 py-8 text-center text-slate-500 text-sm">
+                    No applications match your filters.
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    {% if page.has_other_pages %}
+    <div class="px-4 py-3 border-t border-slate-700/40 flex items-center justify-between">
+        <p class="text-xs text-slate-500">
+            Page {{ page.number }} of {{ page.paginator.num_pages }} — {{ page.paginator.count }} total
+        </p>
+        <div class="flex gap-2">
+            {% if page.has_previous %}
+            <a href="?page={{ page.previous_page_number }}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if grade_filter %}&grade={{ grade_filter }}{% endif %}{% if year_filter %}&year={{ year_filter }}{% endif %}{% if search_query %}&q={{ search_query }}{% endif %}"
+               class="px-3 py-1.5 border border-slate-700 text-slate-300 rounded text-xs hover:border-slate-500 transition-all">
+                ← Previous
+            </a>
+            {% endif %}
+            {% if page.has_next %}
+            <a href="?page={{ page.next_page_number }}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if grade_filter %}&grade={{ grade_filter }}{% endif %}{% if year_filter %}&year={{ year_filter }}{% endif %}{% if search_query %}&q={{ search_query }}{% endif %}"
+               class="px-3 py-1.5 border border-slate-700 text-slate-300 rounded text-xs hover:border-slate-500 transition-all">
+                Next →
+            </a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+{% endblock %}

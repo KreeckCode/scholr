@@ -1,0 +1,14 @@
+{{ school_name }} — Re-enrollment Required
+
+Dear {{ guardian.first_name }},
+
+{{ learner.get_full_name }} has been promoted to {{ reenrollment.to_grade.name }}
+for {{ reenrollment.enrollment_year }}.
+
+ACTION REQUIRED:
+Please confirm your child's re-enrollment by {{ expiry_date|date:"d F Y" }}.
+
+Log in to the parent portal: {{ portal_url }}
+
+--
+{{ school_name }}

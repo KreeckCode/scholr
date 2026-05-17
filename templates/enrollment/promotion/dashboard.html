@@ -1,0 +1,94 @@
+{% extends 'enrollment/admin/base.html' %}
+{% block title %}Grade Promotion{% endblock %}
+
+{% block content %}
+<div class="mb-8 flex items-start justify-between">
+    <div>
+        <h1 class="text-2xl font-bold text-white mb-1">Grade Promotion</h1>
+        <p class="text-slate-400 text-sm">Promote learners to the next academic year</p>
+    </div>
+    <a href="{% url 'enrollment:promotion_create_batch' %}"
+       class="inline-flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500
+              text-white font-bold rounded-xl transition-all text-sm">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+        </svg>
+        Create Promotion Batch
+    </a>
+</div>
+
+<div class="glass rounded-xl border border-slate-700/40 p-6 mb-8">
+    <h2 class="text-sm font-bold text-white mb-4">How it works</h2>
+    <ol class="space-y-2 text-sm text-slate-400">
+        <li class="flex gap-3">
+            <span class="shrink-0 w-5 h-5 rounded-full bg-indigo-900/60 border border-indigo-500/30
+                         flex items-center justify-center text-xs font-bold text-indigo-400">1</span>
+            <span>Select which learners to promote (grade, stream, academic year)</span>
+        </li>
+        <li class="flex gap-3">
+            <span class="shrink-0 w-5 h-5 rounded-full bg-indigo-900/60 border border-indigo-500/30
+                         flex items-center justify-center text-xs font-bold text-indigo-400">2</span>
+            <span>For each learner, choose: promote, retain, graduate, or withdraw</span>
+        </li>
+        <li class="flex gap-3">
+            <span class="shrink-0 w-5 h-5 rounded-full bg-indigo-900/60 border border-indigo-500/30
+                         flex items-center justify-center text-xs font-bold text-indigo-400">3</span>
+            <span>Review the batch, then execute to create new enrollments</span>
+        </li>
+    </ol>
+</div>
+
+{% if recent_batches %}
+<div class="glass rounded-xl border border-slate-700/40 overflow-hidden">
+    <div class="px-5 py-4 border-b border-slate-700/40">
+        <h2 class="text-sm font-bold text-white">Recent batches</h2>
+    </div>
+    <table class="w-full text-sm">
+        <thead class="bg-slate-800/60 border-b border-slate-700/40">
+            <tr>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-slate-400 uppercase">Batch</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-slate-400 uppercase">From → To</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-slate-400 uppercase">Learners</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-slate-400 uppercase">Status</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-slate-400 uppercase">Created</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-slate-400 uppercase"></th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-700/30">
+            {% for batch in recent_batches %}
+            <tr class="hover:bg-slate-800/40 transition-colors">
+                <td class="px-4 py-3 text-slate-200">{{ batch.label }}</td>
+                <td class="px-4 py-3 text-slate-400 text-xs">
+                    {{ batch.from_academic_year }} → {{ batch.to_academic_year }}
+                </td>
+                <td class="px-4 py-3 text-slate-400 text-xs">{{ batch.total_count }}</td>
+                <td class="px-4 py-3">
+                    {% if batch.executed %}
+                    <span class="inline-block px-2 py-0.5 rounded text-xs font-semibold bg-green-900/60 text-green-300">
+                        Executed
+                    </span>
+                    {% else %}
+                    <span class="inline-block px-2 py-0.5 rounded text-xs font-semibold bg-amber-900/60 text-amber-300">
+                        Pending
+                    </span>
+                    {% endif %}
+                </td>
+                <td class="px-4 py-3 text-slate-500 text-xs">{{ batch.created_at|date:"d M Y" }}</td>
+                <td class="px-4 py-3 text-right">
+                    <a href="{% url 'enrollment:promotion_batch_detail' batch.pk %}"
+                       class="text-xs text-indigo-400 hover:text-indigo-300 font-semibold">
+                        View →
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="glass rounded-xl border border-slate-700/40 p-12 text-center">
+    <p class="text-slate-400">No promotion batches yet. Create one to get started.</p>
+</div>
+{% endif %}
+
+{% endblock %}
