@@ -181,3 +181,21 @@ def send_reenrollment_required_email_task(self, reenrollment_pk):
             raise self.retry(exc=exc)
         except self.MaxRetriesExceededError:
             pass
+
+
+
+@shared_task(bind=True, max_retries=3, default_retry_delay=60)
+def send_reenrollment_confirmation_email_task(self, reenrollment_pk):
+    """Send re-enrollment completion confirmation."""
+    try:
+        from .models.reenrollment import Reenrollment
+        from .emails import send_reenrollment_confirmation
+
+        reenrollment = Reenrollment.objects.get(pk=reenrollment_pk)
+        send_reenrollment_confirmation(reenrollment)
+    except Exception as exc:
+        logger.error(f'send_reenrollment_confirmation_email_task failed: {exc}')
+        try:
+            raise self.retry(exc=exc)
+        except self.MaxRetriesExceededError:
+            pass

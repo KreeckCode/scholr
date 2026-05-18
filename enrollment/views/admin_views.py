@@ -6,7 +6,7 @@ These views provide the enrollment officer interface for reviewing
 applications, managing documents, and making admission decisions.
 """
 import logging
-
+from django.utils.decorators import method_decorator
 from django.contrib import messages
 from django.core.paginator import Paginator
 from django.db.models import Q, Count
@@ -33,7 +33,7 @@ logger = logging.getLogger(__name__)
 
 
 # ==================== QUEUE ====================
-
+@method_decorator(enrollment_admin_required, name='dispatch')
 class AdminQueueView(View):
     """
     Application review queue dashboard.
@@ -42,7 +42,7 @@ class AdminQueueView(View):
 
     template_name = 'enrollment/admin/queue.html'
 
-    @enrollment_admin_required
+    
     def get(self, request):
         # Filters
         status_filter = request.GET.get('status', '')
@@ -110,7 +110,7 @@ class AdminQueueView(View):
 
 
 # ==================== APPLICATION DETAIL ====================
-
+@method_decorator(enrollment_admin_required, name='dispatch')
 class ApplicationDetailView(View):
     """
     Detailed view of a single application.
@@ -119,7 +119,7 @@ class ApplicationDetailView(View):
 
     template_name = 'enrollment/admin/application_detail.html'
 
-    @enrollment_admin_required
+    
     def get(self, request, pk):
         application = get_object_or_404(
             Application.objects.select_related(
@@ -164,7 +164,7 @@ class ApplicationDetailView(View):
             'notes_form':      notes_form,
         })
 
-    @enrollment_admin_required
+    
     def post(self, request, pk):
         """Handle assignment and notes updates."""
         application = get_object_or_404(Application, pk=pk)
@@ -188,14 +188,14 @@ class ApplicationDetailView(View):
 
 
 # ==================== DOCUMENT REVIEW ====================
-
+@method_decorator(enrollment_admin_required, name='dispatch')
 class DocumentReviewView(View):
     """
     Approve or reject a specific document.
     Rejection fires an email to the guardian requesting re-upload.
     """
 
-    @enrollment_admin_required
+    
     def post(self, request, document_pk):
         document = get_object_or_404(
             ApplicationDocument.objects.select_related('application'),
@@ -229,13 +229,13 @@ class DocumentReviewView(View):
 
 
 # ==================== DECISION ACTIONS ====================
-
+@method_decorator(enrollment_admin_required, name='dispatch')
 class IssueOfferView(View):
     """Issue a conditional offer to an applicant."""
 
     template_name = 'enrollment/admin/issue_offer.html'
 
-    @enrollment_admin_required
+    
     def get(self, request, pk):
         application = get_object_or_404(Application, pk=pk)
         form = IssueOfferForm()
@@ -244,7 +244,7 @@ class IssueOfferView(View):
             'form': form,
         })
 
-    @enrollment_admin_required
+    
     def post(self, request, pk):
         application = get_object_or_404(Application, pk=pk)
         form = IssueOfferForm(request.POST)
@@ -269,11 +269,11 @@ class IssueOfferView(View):
         )
         return redirect('enrollment:admin_application_detail', pk=pk)
 
-
+@method_decorator(enrollment_admin_required, name='dispatch')
 class ApproveApplicationView(View):
     """Final approval — mark application as enrolled."""
 
-    @enrollment_admin_required
+    
     def post(self, request, pk):
         application = get_object_or_404(Application, pk=pk)
         service = ReviewService()
@@ -286,13 +286,13 @@ class ApproveApplicationView(View):
         )
         return redirect('enrollment:admin_application_detail', pk=pk)
 
-
+@method_decorator(enrollment_admin_required, name='dispatch')
 class RejectApplicationView(View):
     """Reject an application with a reason."""
 
     template_name = 'enrollment/admin/reject_application.html'
 
-    @enrollment_admin_required
+    
     def get(self, request, pk):
         application = get_object_or_404(Application, pk=pk)
         form = RejectApplicationForm()
@@ -301,7 +301,7 @@ class RejectApplicationView(View):
             'form': form,
         })
 
-    @enrollment_admin_required
+    
     def post(self, request, pk):
         application = get_object_or_404(Application, pk=pk)
         form = RejectApplicationForm(request.POST)
@@ -327,11 +327,11 @@ class RejectApplicationView(View):
         )
         return redirect('enrollment:admin_queue')
 
-
+@method_decorator(enrollment_admin_required, name='dispatch')
 class ClearDuplicateView(View):
     """Clear the duplicate flag on an application."""
 
-    @enrollment_admin_required
+    
     def post(self, request, pk):
         application = get_object_or_404(Application, pk=pk)
         service = ReviewService()
@@ -346,13 +346,13 @@ class ClearDuplicateView(View):
 
 
 # ==================== WAITLIST MANAGEMENT ====================
-
+@method_decorator(enrollment_admin_required, name='dispatch')
 class WaitlistView(View):
     """Waitlist management dashboard."""
 
     template_name = 'enrollment/admin/waitlist.html'
 
-    @enrollment_admin_required
+    
     def get(self, request):
         template_filter = request.GET.get('template', '')
 
@@ -375,11 +375,11 @@ class WaitlistView(View):
             'template_filter': template_filter,
         })
 
-
+@method_decorator(enrollment_admin_required, name='dispatch')
 class PromoteWaitlistView(View):
     """Promote a waitlisted applicant to offered status."""
 
-    @enrollment_admin_required
+    
     def post(self, request, pk):
         application = get_object_or_404(Application, pk=pk)
 

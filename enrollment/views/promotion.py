@@ -6,7 +6,7 @@ Individual promotions can be triggered from the learner detail page
 in the academics module (Stage 5).
 """
 import logging
-
+from django.utils.decorators import method_decorator
 from django.contrib import messages
 from django.db.models import Q
 from django.forms import formset_factory
@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 
 
 # ==================== PROMOTION DASHBOARD ====================
-
+@method_decorator(enrollment_admin_required, name='dispatch')
 class PromotionDashboardView(View):
     """
     Landing page for grade promotion.
@@ -34,7 +34,7 @@ class PromotionDashboardView(View):
 
     template_name = 'enrollment/promotion/dashboard.html'
 
-    @enrollment_admin_required
+    
     def get(self, request):
         recent_batches = BulkPromotionBatch.objects.all().select_related(
             'from_academic_year',
@@ -48,7 +48,7 @@ class PromotionDashboardView(View):
 
 
 # ==================== CREATE BATCH ====================
-
+@method_decorator(enrollment_admin_required, name='dispatch')
 class CreateBulkPromotionView(View):
     """
     Step 1: Select which learners to promote (year/grade/stream).
@@ -57,12 +57,12 @@ class CreateBulkPromotionView(View):
 
     template_name = 'enrollment/promotion/create_batch.html'
 
-    @enrollment_admin_required
+    
     def get(self, request):
         form = CreateBulkPromotionForm()
         return render(request, self.template_name, {'form': form})
 
-    @enrollment_admin_required
+    
     def post(self, request):
         form = CreateBulkPromotionForm(request.POST)
 
@@ -83,7 +83,7 @@ class CreateBulkPromotionView(View):
 
 
 # ==================== CONFIGURE BATCH ====================
-
+@method_decorator(enrollment_admin_required, name='dispatch')
 class ConfigureBulkPromotionView(View):
     """
     Step 2: For each learner, choose promote/retain/graduate/withdraw.
@@ -92,7 +92,7 @@ class ConfigureBulkPromotionView(View):
 
     template_name = 'enrollment/promotion/configure_batch.html'
 
-    @enrollment_admin_required
+    
     def get(self, request):
         config = request.session.get('promotion_batch_config')
         if not config:
@@ -154,7 +154,7 @@ class ConfigureBulkPromotionView(View):
             'learner_forms': learner_forms,
         })
 
-    @enrollment_admin_required
+    
     def post(self, request):
         config = request.session.get('promotion_batch_config')
         if not config:
@@ -225,7 +225,7 @@ class ConfigureBulkPromotionView(View):
 
 
 # ==================== BATCH DETAIL ====================
-
+@method_decorator(enrollment_admin_required, name='dispatch')
 class BatchDetailView(View):
     """
     Review a promotion batch before execution.
@@ -234,7 +234,7 @@ class BatchDetailView(View):
 
     template_name = 'enrollment/promotion/batch_detail.html'
 
-    @enrollment_admin_required
+    
     def get(self, request, pk):
         batch = get_object_or_404(
             BulkPromotionBatch.objects.select_related(
@@ -260,7 +260,7 @@ class BatchDetailView(View):
 
 
 # ==================== EXECUTE BATCH ====================
-
+@method_decorator(enrollment_admin_required, name='dispatch')
 class ExecuteBatchView(View):
     """
     Execute a promotion batch.
@@ -269,7 +269,7 @@ class ExecuteBatchView(View):
 
     template_name = 'enrollment/promotion/execute_batch.html'
 
-    @enrollment_admin_required
+    
     def get(self, request, pk):
         batch = get_object_or_404(BulkPromotionBatch, pk=pk)
 
@@ -279,7 +279,7 @@ class ExecuteBatchView(View):
 
         return render(request, self.template_name, {'batch': batch})
 
-    @enrollment_admin_required
+    
     def post(self, request, pk):
         batch = get_object_or_404(BulkPromotionBatch, pk=pk)
 

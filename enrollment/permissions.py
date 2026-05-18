@@ -9,6 +9,7 @@ from functools import wraps
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.shortcuts import redirect
+from django.utils.decorators import method_decorator
 
 from scholr.features import enrollment_enabled
 
@@ -17,6 +18,16 @@ def enrollment_admin_required(view_func):
     """
     Decorator requiring both login and staff status.
     Checks enrollment_enabled() first — redirects to home if disabled.
+    
+    For function-based views, use directly:
+        @enrollment_admin_required
+        def my_view(request):
+            ...
+    
+    For class-based views, use method_decorator:
+        @method_decorator(enrollment_admin_required, name='dispatch')
+        class MyView(View):
+            ...
     """
     @wraps(view_func)
     @login_required

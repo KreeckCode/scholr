@@ -316,13 +316,13 @@ def send_promotion_notification(promotion):
         context=context,
     )
 
-
 def send_reenrollment_required(reenrollment):
     """
     Notify parent that re-enrollment confirmation is required.
-    Includes link to the parent portal and expiry deadline.
+    Includes magic link with access token.
     """
-    from academics.models.learner import Guardian, LearnerGuardian
+    from academics.models.learner import LearnerGuardian
+    from .services.reenrollment_service import ReenrollmentService
 
     guardian_relationship = LearnerGuardian.objects.filter(
         learner=reenrollment.learner,
@@ -338,13 +338,17 @@ def send_reenrollment_required(reenrollment):
 
     guardian = guardian_relationship.guardian
 
+    # Generate magic link token
+    service = ReenrollmentService()
+    token = service.generate_access_token(reenrollment)
+
     context = {
         'reenrollment':  reenrollment,
         'learner':       reenrollment.learner,
         'guardian':      guardian,
         'school_name':   _get_school_name(),
         'site_url':      settings.SITE_URL,
-        'portal_url':    f"{settings.SITE_URL}/academics/portal/reenroll/{reenrollment.learner.pk}/",
+        'portal_url':    f"{settings.SITE_URL}/enroll/reenroll/?token={token}",
         'expiry_date':   reenrollment.expiry_date,
     }
 
@@ -355,5 +359,39 @@ def send_reenrollment_required(reenrollment):
         ),
         to_emails=[guardian.email],
         template_name='reenrollment_required',
+        context=context,
+    )
+
+
+def send_reenrollment_confirmation(reenrollment):
+    """
+    Confirmation email sent when re-enrollment is completed.
+    """
+    from academics.models.learner import LearnerGuardian
+
+    guardian_relationship = LearnerGuardian.objects.filter(
+        learner=reenrollment.learner,
+        is_primary=True,
+    ).select_related('guardian').first()
+
+    if not guardian_relationship or not guardian_relationship.guardian.email:
+        return False
+
+    guardian = guardian_relationship.guardian
+
+    context = {
+        'reenrollment': reenrollment,
+        'learner':      reenrollment.learner,
+        'guardian':     guardian,
+        'school_name':  _get_school_name(),
+    }
+
+    return _send(
+        subject=(
+            f'[{_get_school_name()}] '
+            f'Re-enrollment confirmed — {reenrollment.learner.get_full_name()}'
+        ),
+        to_emails=[guardian.email],
+        template_name='reenrollment_confirmation',
         context=context,
     )

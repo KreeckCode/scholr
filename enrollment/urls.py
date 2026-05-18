@@ -25,6 +25,14 @@ from .views.promotion import (
     BatchDetailView,
     ExecuteBatchView,
 )
+from .views.reenrollment import (
+    ReenrollmentLandingView,
+    ConfirmDetailsView,
+    SubjectSelectionView,
+    FeeAgreementView,
+    PaymentView,
+    ReenrollmentCompleteView,
+)
 
 app_name = 'enrollment'
 
@@ -53,4 +61,12 @@ urlpatterns = [
     path('admin/promotion/configure/',             ConfigureBulkPromotionView.as_view(), name='promotion_configure_batch'),
     path('admin/promotion/batch/<int:pk>/',        BatchDetailView.as_view(),            name='promotion_batch_detail'),
     path('admin/promotion/batch/<int:pk>/execute/', ExecuteBatchView.as_view(),          name='promotion_execute_batch'),
+
+    # ==================== PARENT REENROLLMENT PORTAL ====================
+    path('reenroll/',            ReenrollmentLandingView.as_view(),  name='reenroll_landing'),
+    path('reenroll/details/',    ConfirmDetailsView.as_view(),       name='reenroll_details'),
+    path('reenroll/subjects/',   SubjectSelectionView.as_view(),     name='reenroll_subjects'),
+    path('reenroll/agreement/',  FeeAgreementView.as_view(),         name='reenroll_agreement'),
+    path('reenroll/payment/',    PaymentView.as_view(),              name='reenroll_payment'),
+    path('reenroll/complete/',   ReenrollmentCompleteView.as_view(), name='reenroll_complete'),
 ]

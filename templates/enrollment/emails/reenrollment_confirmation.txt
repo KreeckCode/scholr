@@ -1,0 +1,17 @@
+{{ school_name }} — Re-enrollment Confirmed
+
+Dear {{ guardian.first_name }},
+
+Thank you for completing re-enrollment for {{ learner.get_full_name }}.
+
+Confirmed for: {{ reenrollment.to_grade.name }} — {{ reenrollment.enrollment_year }}
+
+Next steps:
+- Check your email for the school calendar
+- Purchase required textbooks and stationery
+- Attend orientation on the first day of term
+
+See you in {{ reenrollment.enrollment_year }}!
+
+--
+{{ school_name }}
