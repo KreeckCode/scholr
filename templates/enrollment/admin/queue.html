@@ -11,14 +11,30 @@
 
 <!-- Stats cards -->
 <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mb-8">
-    {% for key, label in 'submitted,Submitted|docs_pending,Documents Pending|under_review,Under Review|duplicates,Duplicates|offers,Offers Issued|enrolled,Enrolled'|split:"," %}
-    {% with parts=label|split:"|" stat_key=parts.0 stat_label=parts.1 %}
     <div class="glass rounded-xl border border-slate-700/40 p-4">
-        <p class="text-xs text-slate-500 mb-1">{{ stat_label }}</p>
-        <p class="text-2xl font-black text-white">{{ stats|get_item:stat_key }}</p>
+        <p class="text-xs text-slate-500 mb-1">Submitted</p>
+        <p class="text-2xl font-black text-white">{{ stats.submitted }}</p>
     </div>
-    {% endwith %}
-    {% endfor %}
+    <div class="glass rounded-xl border border-slate-700/40 p-4">
+        <p class="text-xs text-slate-500 mb-1">Documents Pending</p>
+        <p class="text-2xl font-black text-white">{{ stats.docs_pending }}</p>
+    </div>
+    <div class="glass rounded-xl border border-slate-700/40 p-4">
+        <p class="text-xs text-slate-500 mb-1">Under Review</p>
+        <p class="text-2xl font-black text-white">{{ stats.under_review }}</p>
+    </div>
+    <div class="glass rounded-xl border border-slate-700/40 p-4">
+        <p class="text-xs text-slate-500 mb-1">Duplicates</p>
+        <p class="text-2xl font-black text-white">{{ stats.duplicates }}</p>
+    </div>
+    <div class="glass rounded-xl border border-slate-700/40 p-4">
+        <p class="text-xs text-slate-500 mb-1">Offers Issued</p>
+        <p class="text-2xl font-black text-white">{{ stats.offers }}</p>
+    </div>
+    <div class="glass rounded-xl border border-slate-700/40 p-4">
+        <p class="text-xs text-slate-500 mb-1">Enrolled</p>
+        <p class="text-2xl font-black text-white">{{ stats.enrolled }}</p>
+    </div>
 </div>
 
 <!-- Filters -->

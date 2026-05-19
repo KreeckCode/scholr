@@ -136,3 +136,8 @@ class Reenrollment(models.Model):
             and (self.subject_selection_completed if self.subject_selection_required else True)
         )
         return base
+    
+    def is_expired(self):
+        """Check if the reenrollment deadline has passed."""
+        from django.utils import timezone
+        return timezone.now().date() > self.expiry_date

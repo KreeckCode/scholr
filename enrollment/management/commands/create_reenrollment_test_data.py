@@ -26,8 +26,14 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         if options['reset']:
             self.stdout.write('Cleaning up old test data...')
+            # Delete in correct order to avoid foreign key constraints
+            from enrollment.models import Reenrollment
+            Reenrollment.objects.filter(learner__admission_number__startswith='TEST').delete()
+            LearnerEnrollment.objects.filter(learner__admission_number__startswith='TEST').delete()
+            LearnerGuardian.objects.filter(learner__admission_number__startswith='TEST').delete()
             Learner.objects.filter(admission_number__startswith='TEST').delete()
             Guardian.objects.filter(email='parent@test.com').delete()
+            self.stdout.write(self.style.SUCCESS('✓ Cleaned up old test data'))
 
         self.stdout.write('Creating test data for re-enrollment portal...\n')
 

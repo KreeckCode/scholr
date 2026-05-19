@@ -1,0 +1,87 @@
+{% extends 'enrollment/admin/base.html' %}
+{% block title %}Create Promotion Batch{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <h1 class="text-2xl font-bold text-white mb-1">Create Promotion Batch</h1>
+    <p class="text-slate-400 text-sm">Select which learners to promote</p>
+</div>
+
+<div class="max-w-2xl">
+    <form method="post" class="glass rounded-xl border border-slate-700/40 p-6">
+        {% csrf_token %}
+        
+        <div class="space-y-4">
+            <div>
+                <label class="block text-sm font-semibold text-white mb-2">{{ form.label.label }}</label>
+                {{ form.label }}
+                {% if form.label.help_text %}
+                <p class="text-xs text-slate-500 mt-1">{{ form.label.help_text }}</p>
+                {% endif %}
+                {% if form.label.errors %}
+                <p class="text-xs text-red-400 mt-1">{{ form.label.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-semibold text-white mb-2">{{ form.from_academic_year.label }}</label>
+                    {{ form.from_academic_year }}
+                    {% if form.from_academic_year.errors %}
+                    <p class="text-xs text-red-400 mt-1">{{ form.from_academic_year.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold text-white mb-2">{{ form.to_academic_year.label }}</label>
+                    {{ form.to_academic_year }}
+                    {% if form.to_academic_year.errors %}
+                    <p class="text-xs text-red-400 mt-1">{{ form.to_academic_year.errors.0 }}</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-semibold text-white mb-2">{{ form.from_grade.label }}</label>
+                    {{ form.from_grade }}
+                    {% if form.from_grade.errors %}
+                    <p class="text-xs text-red-400 mt-1">{{ form.from_grade.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold text-white mb-2">{{ form.from_stream.label }}</label>
+                    {{ form.from_stream }}
+                    {% if form.from_stream.help_text %}
+                    <p class="text-xs text-slate-500 mt-1">{{ form.from_stream.help_text }}</p>
+                    {% endif %}
+                    {% if form.from_stream.errors %}
+                    <p class="text-xs text-red-400 mt-1">{{ form.from_stream.errors.0 }}</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-sm font-semibold text-white mb-2">{{ form.notes.label }}</label>
+                {{ form.notes }}
+                {% if form.notes.errors %}
+                <p class="text-xs text-red-400 mt-1">{{ form.notes.errors.0 }}</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="mt-6 flex gap-3">
+            <button type="submit"
+                    class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl transition-all">
+                Continue to Configure →
+            </button>
+            <a href="{% url 'enrollment:promotion_dashboard' %}"
+               class="px-5 py-2.5 border border-slate-700 text-slate-300 rounded-xl hover:border-slate-500 transition-all">
+                Cancel
+            </a>
+        </div>
+    </form>
+</div>
+
+{% endblock %}
