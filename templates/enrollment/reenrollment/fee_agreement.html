@@ -1,0 +1,141 @@
+{% extends 'enrollment/base.html' %}
+{% block title %}Fee Agreement{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <div class="mb-6">
+        <h1 class="text-2xl font-bold text-white mb-1">School Fee Agreement</h1>
+        <p class="text-slate-400 text-sm">Review and sign the fee agreement for {{ reenrollment.enrollment_year }}</p>
+    </div>
+
+    <!-- Agreement Document -->
+    <div class="glass rounded-xl border border-slate-700/40 p-8 mb-6 max-h-[500px] overflow-y-auto">
+        <div class="prose prose-invert prose-sm max-w-none">
+            <h2 class="text-xl font-bold text-white mb-4">Financial Commitment</h2>
+            
+            <div class="bg-slate-800/60 rounded-lg p-4 mb-6">
+                <div class="flex justify-between items-center mb-2">
+                    <span class="text-slate-300 font-semibold">Enrollment Deposit</span>
+                    <span class="text-2xl font-bold text-white">R {{ reenrollment.enrollment_deposit_amount }}</span>
+                </div>
+                <p class="text-slate-400 text-xs">Non-refundable deposit to secure placement</p>
+            </div>
+
+            <h3 class="text-lg font-bold text-white mt-6 mb-3">Payment Obligations</h3>
+            <ul class="text-slate-300 text-sm space-y-2 list-disc pl-5">
+                <li>I am liable for all school fees as per the published fee schedule</li>
+                <li>Fees are payable in advance according to payment terms</li>
+                <li>Late payments will incur interest as per school policy</li>
+                <li>Non-payment may result in learner exclusion from classes</li>
+                <li>No learner may write examinations with outstanding fees</li>
+            </ul>
+
+            <h3 class="text-lg font-bold text-white mt-6 mb-3">Policies and Code of Conduct</h3>
+            <p class="text-slate-300 text-sm mb-3">I have read, understood, and agree to abide by all school policies:</p>
+            
+            <div class="space-y-2">
+                <a href="/policies/code-of-conduct" target="_blank" 
+                   class="flex items-center gap-2 p-3 bg-slate-800/60 hover:bg-slate-800 rounded-lg transition-colors">
+                    <svg class="w-4 h-4 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    </svg>
+                    <span class="text-slate-300 text-sm">Learner Code of Conduct</span>
+                    <svg class="w-4 h-4 text-slate-500 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                    </svg>
+                </a>
+
+                <a href="/policies/discipline" target="_blank"
+                   class="flex items-center gap-2 p-3 bg-slate-800/60 hover:bg-slate-800 rounded-lg transition-colors">
+                    <svg class="w-4 h-4 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    </svg>
+                    <span class="text-slate-300 text-sm">Disciplinary Procedures</span>
+                    <svg class="w-4 h-4 text-slate-500 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                    </svg>
+                </a>
+
+                <a href="/policies/academic" target="_blank"
+                   class="flex items-center gap-2 p-3 bg-slate-800/60 hover:bg-slate-800 rounded-lg transition-colors">
+                    <svg class="w-4 h-4 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    </svg>
+                    <span class="text-slate-300 text-sm">Academic Policies</span>
+                    <svg class="w-4 h-4 text-slate-500 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                    </svg>
+                </a>
+
+                <a href="/policies/safety" target="_blank"
+                   class="flex items-center gap-2 p-3 bg-slate-800/60 hover:bg-slate-800 rounded-lg transition-colors">
+                    <svg class="w-4 h-4 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    </svg>
+                    <span class="text-slate-300 text-sm">Safety and Wellbeing</span>
+                    <svg class="w-4 h-4 text-slate-500 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                    </svg>
+                </a>
+
+                <a href="/privacy" target="_blank"
+                   class="flex items-center gap-2 p-3 bg-slate-800/60 hover:bg-slate-800 rounded-lg transition-colors">
+                    <svg class="w-4 h-4 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                    </svg>
+                    <span class="text-slate-300 text-sm">Privacy Policy (POPIA Compliance)</span>
+                    <svg class="w-4 h-4 text-slate-500 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                    </svg>
+                </a>
+            </div>
+
+            <h3 class="text-lg font-bold text-white mt-6 mb-3">Withdrawal and Refunds</h3>
+            <ul class="text-slate-300 text-sm space-y-2 list-disc pl-5">
+                <li>One term's written notice required for withdrawal</li>
+                <li>Fees payable for notice period regardless of attendance</li>
+                <li>Enrollment deposit is non-refundable in all circumstances</li>
+                <li>Outstanding fees due immediately upon withdrawal</li>
+            </ul>
+
+            <div class="bg-amber-900/40 border border-amber-700/40 rounded-lg p-4 mt-6">
+                <p class="text-amber-300 text-xs">
+                    <strong>Electronic Signature:</strong> This electronic signature has the same legal effect 
+                    as a handwritten signature in accordance with the Electronic Communications and Transactions Act (ECTA).
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Consent Form -->
+    <form method="post" class="space-y-6">
+        {% csrf_token %}
+
+        {% for field in form %}
+        <div class="glass rounded-xl border border-slate-700/40 p-4">
+            {% if field.field.widget.input_type == 'checkbox' %}
+            <label class="flex items-start gap-3 cursor-pointer">
+                {{ field }}
+                <span class="text-sm text-slate-300">{{ field.label }}</span>
+            </label>
+            {% else %}
+            <label class="block text-sm font-semibold text-white mb-2">{{ field.label }}</label>
+            {{ field }}
+            {% endif %}
+            
+            {% if field.help_text %}
+            <p class="text-xs text-slate-500 mt-2">{{ field.help_text }}</p>
+            {% endif %}
+            {% if field.errors %}
+            <p class="text-xs text-red-400 mt-2">{{ field.errors.0 }}</p>
+            {% endif %}
+        </div>
+        {% endfor %}
+
+        <button type="submit"
+                class="px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl transition-all">
+            Sign Agreement and Continue →
+        </button>
+    </form>
+</div>
+{% endblock %}

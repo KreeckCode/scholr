@@ -1,0 +1,91 @@
+{% extends 'enrollment/base.html' %}
+{% block title %}Re-enrollment{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto">
+    <div class="mb-8">
+        <h1 class="text-2xl font-bold text-white mb-2">Re-enrollment for {{ reenrollment.enrollment_year }}</h1>
+        <p class="text-slate-400">{{ reenrollment.learner.get_full_name }} → {{ reenrollment.to_grade.name }}</p>
+    </div>
+
+    <!-- Progress bar -->
+    <div class="glass rounded-xl border border-slate-700/40 p-6 mb-6">
+        <div class="flex items-center justify-between mb-2">
+            <span class="text-sm font-semibold text-white">Progress</span>
+            <span class="text-sm text-slate-400">{{ status.completion_percentage|floatformat:0 }}%</span>
+        </div>
+        <div class="w-full bg-slate-800 rounded-full h-2">
+            <div class="bg-indigo-600 h-2 rounded-full transition-all" style="width: {{ status.completion_percentage }}%"></div>
+        </div>
+    </div>
+
+    <!-- Steps -->
+    <div class="space-y-3">
+        <div class="glass rounded-xl border border-slate-700/40 p-4 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                {% if status.steps.details_confirmed %}
+                <div class="w-8 h-8 bg-green-900/60 rounded-full flex items-center justify-center">
+                    <svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                    </svg>
+                </div>
+                {% else %}
+                <div class="w-8 h-8 bg-slate-800 rounded-full flex items-center justify-center text-slate-500 text-sm font-bold">1</div>
+                {% endif %}
+                <span class="text-white font-medium">Confirm Details</span>
+            </div>
+        </div>
+
+        <div class="glass rounded-xl border border-slate-700/40 p-4 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                {% if status.steps.subjects_selected %}
+                <div class="w-8 h-8 bg-green-900/60 rounded-full flex items-center justify-center">
+                    <svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                    </svg>
+                </div>
+                {% else %}
+                <div class="w-8 h-8 bg-slate-800 rounded-full flex items-center justify-center text-slate-500 text-sm font-bold">2</div>
+                {% endif %}
+                <span class="text-white font-medium">Select Subjects</span>
+            </div>
+            {% if not reenrollment.subject_selection_required %}
+            <span class="text-xs text-slate-500">Not required</span>
+            {% endif %}
+        </div>
+
+        <div class="glass rounded-xl border border-slate-700/40 p-4 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                {% if status.steps.fee_agreement_signed %}
+                <div class="w-8 h-8 bg-green-900/60 rounded-full flex items-center justify-center">
+                    <svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                    </svg>
+                </div>
+                {% else %}
+                <div class="w-8 h-8 bg-slate-800 rounded-full flex items-center justify-center text-slate-500 text-sm font-bold">3</div>
+                {% endif %}
+                <span class="text-white font-medium">Sign Fee Agreement</span>
+            </div>
+        </div>
+
+        <div class="glass rounded-xl border border-slate-700/40 p-4 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                {% if status.steps.payment_complete %}
+                <div class="w-8 h-8 bg-green-900/60 rounded-full flex items-center justify-center">
+                    <svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                    </svg>
+                </div>
+                {% else %}
+                <div class="w-8 h-8 bg-slate-800 rounded-full flex items-center justify-center text-slate-500 text-sm font-bold">4</div>
+                {% endif %}
+                <span class="text-white font-medium">Payment</span>
+            </div>
+            {% if not reenrollment.enrollment_deposit_required %}
+            <span class="text-xs text-slate-500">Not required</span>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

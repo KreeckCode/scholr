@@ -1,0 +1,54 @@
+{% extends 'enrollment/base.html' %}
+{% block title %}Select Subjects{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto">
+    <div class="mb-6">
+        <h1 class="text-2xl font-bold text-white mb-1">Select Your Subjects</h1>
+        <p class="text-slate-400 text-sm">Choose {{ form.required_count }} subjects for {{ reenrollment.to_grade.name }}</p>
+    </div>
+
+    <form method="post">
+        {% csrf_token %}
+
+        <div class="glass rounded-xl border border-slate-700/40 p-6 mb-6">
+            <h2 class="text-sm font-bold text-white mb-4">Compulsory Subjects</h2>
+            <div class="space-y-2">
+                {% for field in form %}
+                {% if field.field.disabled %}
+                <label class="flex items-center gap-3 p-3 bg-slate-800/40 rounded-lg">
+                    {{ field }}
+                    <span class="text-slate-400">{{ field.label }}</span>
+                </label>
+                {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="glass rounded-xl border border-slate-700/40 p-6 mb-6">
+            <h2 class="text-sm font-bold text-white mb-4">Elective Subjects (Choose Additional)</h2>
+            <div class="space-y-2">
+                {% for field in form %}
+                {% if not field.field.disabled and field.name != 'csrfmiddlewaretoken' %}
+                <label class="flex items-center gap-3 p-3 hover:bg-slate-800/40 rounded-lg cursor-pointer transition-colors">
+                    {{ field }}
+                    <span class="text-white">{{ field.label }}</span>
+                </label>
+                {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+
+        {% if form.non_field_errors %}
+        <div class="bg-red-900/60 border border-red-700/40 rounded-xl p-4 mb-6">
+            <p class="text-red-300 text-sm">{{ form.non_field_errors.0 }}</p>
+        </div>
+        {% endif %}
+
+        <button type="submit"
+                class="px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl transition-all">
+            Continue →
+        </button>
+    </form>
+</div>
+{% endblock %}

@@ -22,7 +22,7 @@ class ReenrollmentService:
     Handles completion of re-enrollment process.
     
     Tracks progress through steps:
-    1. Details confirmation
+    1. Details confirmation (personal + guardian)
     2. Subject selection (if required)
     3. Fee agreement consent
     4. Payment (if required)
@@ -91,7 +91,7 @@ class ReenrollmentService:
                 # Get primary guardian
                 guardian_rel = LearnerGuardian.objects.filter(
                     learner=learner,
-                    is_primary_contact=True,  # Note: field is is_primary_contact, not is_primary
+                    is_primary_contact=True,
                 ).select_related('guardian').first()
 
                 if guardian_rel:
@@ -102,29 +102,19 @@ class ReenrollmentService:
                     guardian.street_address = guardian_data.get('physical_address', guardian.street_address)
                     guardian.save()
 
-            # Mark step complete
-            reenrollment.details_confirmed = True
-            reenrollment.details_confirmed_at = timezone.now()
+            # Mark steps complete
+            reenrollment.personal_details_confirmed = True
+            reenrollment.guardian_details_confirmed = True
             reenrollment.save(update_fields=[
-                'details_confirmed',
-                'details_confirmed_at',
+                'personal_details_confirmed',
+                'guardian_details_confirmed',
+                'updated_at',
             ])
 
         logger.info(
             f'Details confirmed for reenrollment {reenrollment.pk} '
             f'(learner {learner.admission_number})'
         )
-
-
-
-
-
-
-
-
-
-
-
 
     def save_subject_selection(
         self,
@@ -133,31 +123,21 @@ class ReenrollmentService:
     ):
         """
         Step 2: Save subject selection.
-        Creates SubjectEnrollment records for the new academic year.
+        Stores selected offerings in the ManyToMany field.
         """
-        from academics.models.learner import SubjectEnrollment
-
         with transaction.atomic():
-            # Delete any existing subject enrollments for this learner/year
-            # (in case they're re-doing subject selection)
-            SubjectEnrollment.objects.filter(
-                learner_enrollment=reenrollment.learner_enrollment,
-            ).delete()
+            # Clear existing selections
+            reenrollment.selected_subject_offerings.clear()
 
-            # Create new subject enrollments
+            # Add new selections
             for offering in selected_offerings:
-                SubjectEnrollment.objects.create(
-                    learner_enrollment=reenrollment.learner_enrollment,
-                    subject_offering=offering,
-                    enrollment_date=reenrollment.learner_enrollment.enrollment_date,
-                )
+                reenrollment.selected_subject_offerings.add(offering)
 
             # Mark step complete
-            reenrollment.subjects_selected = True
-            reenrollment.subjects_selected_at = timezone.now()
+            reenrollment.subject_selection_completed = True
             reenrollment.save(update_fields=[
-                'subjects_selected',
-                'subjects_selected_at',
+                'subject_selection_completed',
+                'updated_at',
             ])
 
         logger.info(
@@ -177,13 +157,12 @@ class ReenrollmentService:
         Creates ECTA-compliant ConsentRecord.
         """
         # Generate hash of fee agreement document
-        # In production, this would hash the actual PDF or agreement text
         fee_agreement_text = self._get_fee_agreement_text(reenrollment)
         document_hash = hashlib.sha256(fee_agreement_text.encode()).hexdigest()
 
         with transaction.atomic():
             consent = ConsentRecord.objects.create(
-                consent_type=ConsentRecord.TYPE_FEE_AGREEMENT,
+                consent_type=ConsentRecord.CONSENT_FEE_AGREEMENT,  # Fixed attribute name
                 consented_by_name=signature_name,
                 consented_by_email=self._get_guardian_email(reenrollment),
                 ip_address=ip_address,
@@ -195,11 +174,14 @@ class ReenrollmentService:
 
             reenrollment.fee_agreement_signed = True
             reenrollment.fee_agreement_signed_at = timezone.now()
+            reenrollment.fee_agreement_ip = ip_address
             reenrollment.consent_record = consent
             reenrollment.save(update_fields=[
                 'fee_agreement_signed',
                 'fee_agreement_signed_at',
+                'fee_agreement_ip',
                 'consent_record',
+                'updated_at',
             ])
 
         logger.info(
@@ -207,15 +189,17 @@ class ReenrollmentService:
             f'by {signature_name}'
         )
 
+
+
     def complete_reenrollment(self, reenrollment: Reenrollment):
         """
-        Final step: Mark reenrollment as confirmed.
+        Final step: Mark reenrollment as completed.
         Triggered after all required steps are complete.
         """
         with transaction.atomic():
-            reenrollment.status = Reenrollment.STATUS_CONFIRMED
-            reenrollment.confirmed_at = timezone.now()
-            reenrollment.save(update_fields=['status', 'confirmed_at'])
+            reenrollment.status = Reenrollment.STATUS_COMPLETED
+            reenrollment.completed_at = timezone.now()
+            reenrollment.save(update_fields=['status', 'completed_at', 'updated_at'])
 
         logger.info(
             f'Reenrollment completed: {reenrollment.pk} '
@@ -232,23 +216,30 @@ class ReenrollmentService:
         Returns a dict with completion status and next step.
         """
         steps = {
-            'details_confirmed': reenrollment.details_confirmed,
+            'details_confirmed': (
+                reenrollment.personal_details_confirmed 
+                and reenrollment.guardian_details_confirmed
+            ),
             'subjects_selected': (
-                reenrollment.subjects_selected
+                reenrollment.subject_selection_completed
                 if reenrollment.subject_selection_required
                 else True  # Skip if not required
             ),
-            'fee_agreement_signed': reenrollment.fee_agreement_signed,
+            'fee_agreement_signed': (
+                reenrollment.fee_agreement_signed
+                if reenrollment.fee_agreement_required
+                else True  # Skip if not required
+            ),
             'payment_complete': (
-                reenrollment.payment_complete
-                if reenrollment.deposit_required
+                bool(reenrollment.fee_order_id)
+                if reenrollment.enrollment_deposit_required
                 else True  # Skip if not required
             ),
         }
 
         all_complete = all(steps.values())
 
-        if all_complete and reenrollment.status != Reenrollment.STATUS_CONFIRMED:
+        if all_complete and reenrollment.status != Reenrollment.STATUS_COMPLETED:
             self.complete_reenrollment(reenrollment)
 
         # Determine next step
@@ -272,22 +263,50 @@ class ReenrollmentService:
 
     # ---- Private helpers ----
 
-    def _get_fee_agreement_text(self, reenrollment: Reenrollment) -> str:
+    def sign_fee_agreement(
+        self,
+        reenrollment: Reenrollment,
+        signature_name: str,
+        ip_address: str,
+        user_agent: str,
+    ):
         """
-        Get the fee agreement text for hashing.
-        In production, this would fetch the actual PDF or agreement document.
+        Step 3: Record fee agreement consent.
+        Creates ECTA-compliant ConsentRecord.
         """
-        from ..models.application import EnrollmentConfig
-        
-        config = EnrollmentConfig.get()
-        
-        return (
-            f'Fee Agreement for {reenrollment.enrollment_year}\n'
-            f'Learner: {reenrollment.learner.get_full_name()}\n'
-            f'Grade: {reenrollment.to_grade.name}\n'
-            f'Date: {timezone.now().date()}\n'
-            f'School: {config.school_name if hasattr(config, "school_name") else "Scholr School"}\n'
+        # Generate hash of fee agreement document
+        fee_agreement_text = self._get_fee_agreement_text(reenrollment)
+        document_hash = hashlib.sha256(fee_agreement_text.encode()).hexdigest()
+
+        with transaction.atomic():
+            consent = ConsentRecord.objects.create(
+                reenrollment=reenrollment,  # Link to reenrollment, not application
+                consent_type=ConsentRecord.CONSENT_FEE_AGREEMENT,
+                document_version=f'{reenrollment.enrollment_year}-v1',
+                document_hash=document_hash,
+                agreed=True,
+                ip_address=ip_address,
+                user_agent=user_agent,
+            )
+
+            reenrollment.fee_agreement_signed = True
+            reenrollment.fee_agreement_signed_at = timezone.now()
+            reenrollment.fee_agreement_ip = ip_address
+            reenrollment.consent_record = consent
+            reenrollment.save(update_fields=[
+                'fee_agreement_signed',
+                'fee_agreement_signed_at',
+                'fee_agreement_ip',
+                'consent_record',
+                'updated_at',
+            ])
+
+        logger.info(
+            f'Fee agreement signed for reenrollment {reenrollment.pk} '
+            f'by {signature_name}'
         )
+
+
 
     def _get_guardian_email(self, reenrollment: Reenrollment) -> str:
         """Get primary guardian email for consent record."""
@@ -295,7 +314,7 @@ class ReenrollmentService:
 
         guardian_rel = LearnerGuardian.objects.filter(
             learner=reenrollment.learner,
-            is_primary=True,
+            is_primary_contact=True,
         ).select_related('guardian').first()
 
         if guardian_rel and guardian_rel.guardian.email:

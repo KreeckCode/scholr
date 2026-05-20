@@ -8,46 +8,26 @@ from django import forms
 
 from academics.models.learner import Learner
 from academics.models.curriculum import SubjectOffering
+from academics.models.school import AcademicYear
 
 class LearnerDetailsConfirmationForm(forms.ModelForm):
     """
     Pre-populated form for parents to confirm/update learner details.
-    Most fields are read-only, but medical info can be updated.
+    Name, DOB, gender are displayed as text in template (not included in form).
+    Only medical/language info is editable.
     """
 
     class Meta:
         model = Learner
         fields = [
-            'first_name',
-            'last_name',
-            'date_of_birth',
-            'gender',
+            # Only the editable fields
             'home_language',
             'allergies',
             'chronic_conditions',
             'current_medication',
         ]
         widgets = {
-            'first_name': forms.TextInput(attrs={
-                'class': 'field',
-                'readonly': True,
-            }),
-            'last_name': forms.TextInput(attrs={
-                'class': 'field',
-                'readonly': True,
-            }),
-            'date_of_birth': forms.DateInput(attrs={
-                'class': 'field',
-                'type': 'date',
-                'readonly': True,
-            }),
-            'gender': forms.Select(attrs={
-                'class': 'field',
-                'disabled': True,
-            }),
-            'home_language': forms.Select(attrs={
-                'class': 'field',
-            }),
+            'home_language': forms.Select(attrs={'class': 'field'}),
             'allergies': forms.Textarea(attrs={
                 'class': 'field',
                 'rows': 2,
@@ -71,9 +51,6 @@ class LearnerDetailsConfirmationForm(forms.ModelForm):
         error_messages={'required': 'Please confirm the details before continuing.'},
     )
 
-
-
-
     
 class SubjectSelectionForm(forms.Form):
     """
@@ -83,16 +60,15 @@ class SubjectSelectionForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         grade = kwargs.pop('grade', None)
-        academic_year = kwargs.pop('academic_year', None)
-        required_count = kwargs.pop('required_count', 7)  # Default 7 subjects
+        kwargs.pop('academic_year', None)  # Remove it but don't use it
+        required_count = kwargs.pop('required_count', 4)
         
         super().__init__(*args, **kwargs)
 
-        if grade and academic_year:
+        if grade and AcademicYear:
             # Get all available subject offerings for this grade/year
             offerings = SubjectOffering.objects.filter(
                 grade=grade,
-                academic_year=academic_year,
                 is_active=True,
             ).select_related('subject').order_by('subject__name')
 
@@ -131,27 +107,23 @@ class SubjectSelectionForm(forms.Form):
     def clean(self):
         cleaned = super().clean()
         
-        # Count selected subjects (excluding compulsory which are always selected)
-        selected_pks = [
-            pk for field_name, pk in self.offerings_map.items()
-            if cleaned.get(field_name) and not self.fields[field_name].disabled
-        ]
-
-        total_selected = self.compulsory_count + len(selected_pks)
-
-        if total_selected < self.required_count:
+        # Collect all selected offerings (compulsory + electives)
+        selected_offerings = []
+        
+        for field_name, offering in self.offerings_map.items():
+            if cleaned.get(field_name):  # If checkbox is checked
+                selected_offerings.append(offering)
+        
+        # Check minimum count
+        if len(selected_offerings) < self.required_count:
             raise forms.ValidationError(
                 f'Please select at least {self.required_count} subjects in total. '
-                f'You have selected {total_selected}.'
+                f'You have selected {len(selected_offerings)}.'
             )
-
-        # Store selected offerings for easy access
-        self.selected_offerings = [
-            self.offerings_map[f'subject_{offering.pk}']
-            for field_name, offering in self.offerings_map.items()
-            if cleaned.get(field_name)
-        ]
-
+        
+        # Store for view to access
+        self.selected_offerings = selected_offerings
+        
         return cleaned
 
 

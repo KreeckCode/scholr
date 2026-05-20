@@ -4,6 +4,7 @@ Parent re-enrollment portal views.
 Magic link authentication — no password required.
 Token in URL grants access to specific Reenrollment record.
 """
+from datetime import timezone
 import logging
 
 from django.contrib import messages
@@ -119,7 +120,7 @@ class ConfirmDetailsView(ReenrollmentAccessMixin, View):
 
         guardian_rel = LearnerGuardian.objects.filter(
             learner=learner,
-            is_primary=True,
+            is_primary_contact=True,  # CORRECT
         ).select_related('guardian').first()
 
         guardian_form = None
@@ -127,9 +128,9 @@ class ConfirmDetailsView(ReenrollmentAccessMixin, View):
             guardian = guardian_rel.guardian
             guardian_form = GuardianContactUpdateForm(initial={
                 'email': guardian.email,
-                'cell_phone': guardian.cell_phone,
-                'work_phone': guardian.work_phone,
-                'physical_address': guardian.physical_address,
+                'cell_phone': guardian.phone_primary,  # Correct field name
+                'work_phone': guardian.phone_secondary,  # Correct field name
+                'physical_address': guardian.street_address,  # Correct field name
             })
 
         return render(request, self.template_name, {
@@ -198,7 +199,6 @@ class SubjectSelectionView(ReenrollmentAccessMixin, View):
 
         form = SubjectSelectionForm(
             grade=self.reenrollment.to_grade,
-            academic_year=self.reenrollment.to_academic_year,
             required_count=7,  # Configurable
         )
 
@@ -315,7 +315,8 @@ class PaymentView(ReenrollmentAccessMixin, View):
         # For now, just mark as complete
         self.reenrollment.payment_complete = True
         self.reenrollment.payment_date = timezone.now()
-        self.reenrollment.save(update_fields=['payment_complete', 'payment_date'])
+        self.reenrollment.fee_order_id = 1  # Placeholder
+        self.reenrollment.save(update_fields=['fee_order_id', 'updated_at'])
 
         messages.success(request, 'Payment received.')
         return redirect(f'/enroll/reenroll/complete/?token={self.token}')
