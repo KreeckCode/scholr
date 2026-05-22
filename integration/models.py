@@ -101,11 +101,17 @@ class CourseCategory(models.Model):
     """
     
     DISCIPLINE_CHOICES = [
-        ('biblical_studies', 'Biblical Studies'),
+        ('Higher Education', 'Higher Education'),
+        ('Science', 'Science'),
+        ('Arts', 'Arts'),
+        ('Social Sciences', 'Social Sciences'),
+        ('Reading Writing', 'Reading Writing'),
+        ('Foundation Phase', 'Foundation Phase'),
+        ('Secondary Education', 'Secondary Education'),
+        ('primary', 'Primary'),
+        ('High School', 'High School'),
+        ('history', 'History'),
         ('theology', 'Theology'),
-        ('church_history', 'Church History'),
-        ('practical_ministry', 'Practical Ministry'),
-        ('leadership', 'Leadership'),
     ]
     
     name = models.CharField(
