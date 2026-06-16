@@ -13,7 +13,7 @@ def cache_key(*args, **kwargs):
         'kwargs': kwargs
     }
     key_string = json.dumps(key_data, sort_keys=True)
-    key_hash = hashlib.md5(key_string.encode()).hexdigest()
+    key_hash = hashlib.md5(key_string.encode(), usedforsecurity=False).hexdigest()
     return key_hash
 
 

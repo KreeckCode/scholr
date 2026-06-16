@@ -226,15 +226,18 @@ class OrderAdmin(admin.ModelAdmin):
         Shows whether order has been processed for course access
         """
         from django.utils.safestring import mark_safe
+        from django.utils.html import format_html
         
         if obj.enrollment_processed:
-            return mark_safe('<span style="color: green;">✓ Processed</span>')
+            return format_html('<span style="color: green;">✓ Processed</span>')
+
         elif obj.enrollment_error:
-            return mark_safe(
-                f'<span style="color: red;" title="{obj.enrollment_error}">✗ Failed</span>'
+            return format_html(
+                '<span style="color: red;" title="{}">✗ Failed</span>',
+                obj.enrollment_error
             )
         else:
-            return mark_safe('<span style="color: orange;">⏳ Pending</span>')
+            return format_html('<span style="color: orange;">⏳ Pending</span>')
 
     enrollment_status.short_description = 'Enrollment'
     
