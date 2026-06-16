@@ -30,8 +30,6 @@
     <meta property="og:url"           content="{{ request.build_absolute_uri }}">
     <meta property="og:title"         content="{% block og_title %}{% block title_og %}Judea Harvest{% endblock %} — Equipping African Church Leaders{% endblock %}">
     <meta property="og:description"   content="{% block og_description %}Accredited theological training for African ministry leaders — accessible from any device, in any village, across 40 nations.{% endblock %}">
-    <meta property="og:image"         content="{% block og_image %}{{ request.scheme }}://{{ request.get_host }}/static/images/judea-og.png{% endblock %}">
-    <meta property="og:image:secure_url" content="{% block og_image_secure %}{{ request.scheme }}://{{ request.get_host }}/static/images/judea-og.png{% endblock %}">
     <meta property="og:image:width"   content="1200">
     <meta property="og:image:height"  content="630">
     <meta property="og:image:type"    content="image/png">
@@ -39,13 +37,11 @@
     <meta property="og:locale"        content="en_ZA">
 
     <!-- ==================== TWITTER / X ==================== -->
-    <!-- summary_large_image shows the full-width banner card in feeds -->
     <meta name="twitter:card"        content="summary_large_image">
     <meta name="twitter:site"        content="@judeaharvest">
     <meta name="twitter:creator"     content="@judeaharvest">
     <meta name="twitter:title"       content="{% block twitter_title %}Judea Harvest — Equipping African Church Leaders{% endblock %}">
     <meta name="twitter:description" content="{% block twitter_description %}Accredited theological training for African ministry leaders across 40 nations.{% endblock %}">
-    <meta name="twitter:image"       content="{% block twitter_image %}{{ request.scheme }}://{{ request.get_host }}/static/images/judea-og.png{% endblock %}">
     <meta name="twitter:image:alt"   content="{% block twitter_image_alt %}Judea Harvest — Equipping African Church Leaders{% endblock %}">
 
     <!-- ==================== STRUCTURED DATA ==================== -->
@@ -115,8 +111,7 @@
     <!-- ==================== FAVICON ==================== -->
     <link rel="icon" type="image/svg+xml"
           href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23d4a843' stroke-width='2'><path stroke-linecap='round' stroke-linejoin='round' d='M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253'/></svg>">
-    <!-- Place a judea-apple-touch-icon.png (180×180px) in /static/images/ and uncomment: -->
-    <!-- <link rel="apple-touch-icon" sizes="180x180" href="{% static 'images/judea-apple-touch-icon.png' %}"> -->
+
 
     <!-- ==================== RESOURCE HINTS ==================== -->
     <!-- Tell the browser to establish connections to CDN origins early -->
