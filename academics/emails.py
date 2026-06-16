@@ -20,6 +20,8 @@ from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils import timezone
 
+from academics.models.lms_link import OnlineProgressAlert
+
 logger = logging.getLogger(__name__)
 
 # ---- Configurable thresholds (override via .env without code changes) ----
