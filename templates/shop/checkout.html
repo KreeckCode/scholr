@@ -1,218 +1,243 @@
 {% extends 'base/base.html' %}
 {% load shop_tags %}
 
-{% block title %}Checkout - scholr{% endblock %}
+{% block title %}Checkout{% endblock %}
+{% block title_suffix %}Judea Harvest{% endblock %}
 
 {% block content %}
-<div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-    
-    <h1 class="text-3xl font-bold text-gray-900 text-display mb-8">Checkout</h1>
-    
-    <form method="post" class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {% csrf_token %}
-        
-        <!-- Checkout Form -->
-        <div class="lg:col-span-2 space-y-6">
-            
-            {% if not user_authenticated %}
-            <!-- Customer Information -->
-            <div class="glass-card rounded-2xl p-6">
-                <h2 class="text-xl font-semibold text-gray-900 mb-6">Your Information</h2>
-                
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <!-- First Name -->
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">
-                            First Name <span class="text-red-600">*</span>
-                        </label>
-                        {{ form.first_name }}
-                        {% if form.first_name.errors %}
-                        <p class="mt-1 text-sm text-red-600">{{ form.first_name.errors.0 }}</p>
-                        {% endif %}
-                    </div>
-                    
-                    <!-- Last Name -->
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">
-                            Last Name <span class="text-red-600">*</span>
-                        </label>
-                        {{ form.last_name }}
-                        {% if form.last_name.errors %}
-                        <p class="mt-1 text-sm text-red-600">{{ form.last_name.errors.0 }}</p>
-                        {% endif %}
-                    </div>
-                    
-                    <!-- Email -->
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">
-                            Email Address
-                        </label>
-                        {{ form.email }}
-                        {% if form.email.errors %}
-                        <p class="mt-1 text-sm text-red-600">{{ form.email.errors.0 }}</p>
-                        {% endif %}
-                        <p class="mt-1 text-xs text-gray-500">{{ form.email.help_text }}</p>
-                    </div>
-                    
-                    <!-- Phone -->
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">
-                            Phone Number <span class="text-red-600">*</span>
-                        </label>
-                        {{ form.phone_number }}
-                        {% if form.phone_number.errors %}
-                        <p class="mt-1 text-sm text-red-600">{{ form.phone_number.errors.0 }}</p>
-                        {% endif %}
-                        <p class="mt-1 text-xs text-gray-500">{{ form.phone_number.help_text }}</p>
-                    </div>
-                    
-                    <!-- Country -->
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">
-                            Country <span class="text-red-600">*</span>
-                        </label>
-                        {{ form.country }}
-                        {% if form.country.errors %}
-                        <p class="mt-1 text-sm text-red-600">{{ form.country.errors.0 }}</p>
-                        {% endif %}
-                    </div>
-                    
-                    <!-- Church Name -->
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">
-                            Church Name
-                        </label>
-                        {{ form.church_name }}
-                        {% if form.church_name.errors %}
-                        <p class="mt-1 text-sm text-red-600">{{ form.church_name.errors.0 }}</p>
-                        {% endif %}
-                    </div>
-                </div>
-                
-                <!-- Customer Notes -->
-                <div class="mt-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">
-                        Additional Notes
-                    </label>
-                    {{ form.customer_notes }}
-                    {% if form.customer_notes.errors %}
-                    <p class="mt-1 text-sm text-red-600">{{ form.customer_notes.errors.0 }}</p>
-                    {% endif %}
-                </div>
-            </div>
-            
-            <!-- Terms & Conditions -->
-            <div class="glass-card rounded-2xl p-6">
-                <div class="flex items-start gap-3">
-                    {{ form.accept_terms }}
-                    <label class="text-sm text-gray-700">
-                        I accept the <a href="#" class="text-primary hover:text-primary-dark font-medium">Terms and Conditions</a> and <a href="#" class="text-primary hover:text-primary-dark font-medium">Privacy Policy</a> <span class="text-red-600">*</span>
-                    </label>
-                </div>
-                {% if form.accept_terms.errors %}
-                <p class="mt-2 text-sm text-red-600">{{ form.accept_terms.errors.0 }}</p>
-                {% endif %}
-            </div>
-            
-            {% else %}
-            <!-- Logged In User -->
-            <div class="glass-card rounded-2xl p-6">
-                <div class="flex items-start gap-4">
-                    <div class="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center">
-                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                    </div>
-                    <div>
-                        <h3 class="font-semibold text-gray-900 mb-1">Logged in as {{ user.get_full_name }}</h3>
-                        <p class="text-sm text-gray-600">{{ user.email|default:user.phone_number }}</p>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Optional Notes -->
-            <div class="glass-card rounded-2xl p-6">
-                <label class="block text-sm font-medium text-gray-700 mb-2">
-                    Order Notes (Optional)
-                </label>
-                <textarea name="customer_notes" 
-                          rows="3"
-                          class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                          placeholder="Any special requests or notes..."></textarea>
-            </div>
-            {% endif %}
-        </div>
-        
-        <!-- Order Summary -->
-        <div class="lg:col-span-1">
-            <div class="glass-card rounded-2xl p-6 sticky top-24">
-                <h2 class="text-xl font-semibold text-gray-900 mb-6">Order Summary</h2>
-                
-                <!-- Items -->
-                <div class="space-y-3 mb-6">
-                    {% for item in cart %}
-                    <div class="flex items-start gap-3 pb-3 border-b border-gray-200/50">
-                        <div class="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg overflow-hidden">
-                            {% if item.product.image %}
-                            <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" class="w-full h-full object-cover">
+<div class="min-h-screen bg-stone-50">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+
+        <h1 class="text-3xl font-bold text-stone-900 mb-8">Checkout</h1>
+
+        <form method="post" class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {% csrf_token %}
+
+            <!-- Left: Form -->
+            <div class="lg:col-span-2 space-y-6">
+
+                {% if not user_authenticated %}
+                <!-- Guest: Customer Information -->
+                <div class="bg-white rounded-2xl border border-stone-200/60 shadow-sm p-6">
+                    <h2 class="text-xl font-semibold text-stone-900 mb-6">Your Information</h2>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                        <div>
+                            <label class="block text-sm font-medium text-stone-700 mb-2">
+                                First Name <span class="text-red-500">*</span>
+                            </label>
+                            {{ form.first_name }}
+                            {% if form.first_name.errors %}
+                            <p class="mt-1 text-xs text-red-500">{{ form.first_name.errors.0 }}</p>
                             {% endif %}
                         </div>
-                        <div class="flex-grow min-w-0">
-                            <h4 class="text-sm font-medium text-gray-900 truncate">{{ item.product.name }}</h4>
-                            <p class="text-xs text-gray-600">Qty: {{ item.quantity }}</p>
+
+                        <div>
+                            <label class="block text-sm font-medium text-stone-700 mb-2">
+                                Last Name <span class="text-red-500">*</span>
+                            </label>
+                            {{ form.last_name }}
+                            {% if form.last_name.errors %}
+                            <p class="mt-1 text-xs text-red-500">{{ form.last_name.errors.0 }}</p>
+                            {% endif %}
                         </div>
-                        <div class="text-sm font-medium text-gray-900">
-                            {{ item.total_price|currency }}
+
+                        <div>
+                            <label class="block text-sm font-medium text-stone-700 mb-2">
+                                Email Address
+                            </label>
+                            {{ form.email }}
+                            {% if form.email.errors %}
+                            <p class="mt-1 text-xs text-red-500">{{ form.email.errors.0 }}</p>
+                            {% endif %}
+                            {% if form.email.help_text %}
+                            <p class="mt-1 text-xs text-stone-400">{{ form.email.help_text }}</p>
+                            {% endif %}
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-stone-700 mb-2">
+                                Phone Number <span class="text-red-500">*</span>
+                            </label>
+                            {{ form.phone_number }}
+                            {% if form.phone_number.errors %}
+                            <p class="mt-1 text-xs text-red-500">{{ form.phone_number.errors.0 }}</p>
+                            {% endif %}
+                            {% if form.phone_number.help_text %}
+                            <p class="mt-1 text-xs text-stone-400">{{ form.phone_number.help_text }}</p>
+                            {% endif %}
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-stone-700 mb-2">
+                                Country <span class="text-red-500">*</span>
+                            </label>
+                            {{ form.country }}
+                            {% if form.country.errors %}
+                            <p class="mt-1 text-xs text-red-500">{{ form.country.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-stone-700 mb-2">
+                                Church Name
+                            </label>
+                            {{ form.church_name }}
+                            {% if form.church_name.errors %}
+                            <p class="mt-1 text-xs text-red-500">{{ form.church_name.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+
+                    </div>
+
+                    <div class="mt-5">
+                        <label class="block text-sm font-medium text-stone-700 mb-2">
+                            Additional Notes
+                        </label>
+                        {{ form.customer_notes }}
+                        {% if form.customer_notes.errors %}
+                        <p class="mt-1 text-xs text-red-500">{{ form.customer_notes.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Terms -->
+                <div class="bg-white rounded-2xl border border-stone-200/60 shadow-sm p-6">
+                    <div class="flex items-start gap-3">
+                        {{ form.accept_terms }}
+                        <label class="text-sm text-stone-600 leading-relaxed">
+                            I accept the
+                            <a href="#" class="text-amber-700 hover:text-amber-600 font-medium transition-colors">Terms and Conditions</a>
+                            and
+                            <a href="#" class="text-amber-700 hover:text-amber-600 font-medium transition-colors">Privacy Policy</a>
+                            <span class="text-red-500"> *</span>
+                        </label>
+                    </div>
+                    {% if form.accept_terms.errors %}
+                    <p class="mt-2 text-xs text-red-500">{{ form.accept_terms.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                {% else %}
+                <!-- Authenticated: Account confirmation -->
+                <div class="bg-white rounded-2xl border border-stone-200/60 shadow-sm p-6">
+                    <div class="flex items-start gap-4">
+                        <div class="shrink-0 w-12 h-12 bg-amber-700 rounded-full flex items-center justify-center text-white font-bold text-sm">
+                            {{ user.first_name.0|default:user.username.0|upper }}{{ user.last_name.0|default:''|upper }}
+                        </div>
+                        <div>
+                            <h3 class="font-semibold text-stone-900 mb-0.5">
+                                Checking out as {{ user.get_full_name }}
+                            </h3>
+                            <p class="text-sm text-stone-500">{{ user.email|default:user.phone_number }}</p>
+                        </div>
+                        <div class="ml-auto shrink-0">
+                            <span class="inline-flex items-center gap-1.5 text-xs font-medium text-amber-700 bg-amber-50 border border-amber-200/60 rounded-full px-3 py-1">
+                                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                                Verified
+                            </span>
                         </div>
                     </div>
-                    {% endfor %}
                 </div>
-                
-                <!-- Pricing -->
-                <div class="space-y-2 mb-6">
-                    <div class="flex justify-between text-sm">
-                        <span class="text-gray-600">Subtotal</span>
-                        <span class="font-medium text-gray-900">{{ subtotal|currency }}</span>
-                    </div>
-                    
-                    {% if discount %}
-                    <div class="flex justify-between text-sm text-green-600">
-                        <span>Discount ({{ discount.code }})</span>
-                        <span class="font-medium">-{{ discount_amount|currency }}</span>
-                    </div>
-                    {% endif %}
-                    
-                    <div class="flex justify-between text-lg font-bold pt-2 border-t border-gray-200/50">
-                        <span class="text-gray-900">Total</span>
-                        <span class="text-gray-900">{{ total|currency }}</span>
-                    </div>
+
+                <!-- Optional Notes -->
+                <div class="bg-white rounded-2xl border border-stone-200/60 shadow-sm p-6">
+                    <label class="block text-sm font-medium text-stone-700 mb-2">
+                        Order Notes <span class="text-stone-400 font-normal">(optional)</span>
+                    </label>
+                    <textarea name="customer_notes"
+                              rows="3"
+                              class="w-full px-4 py-2.5 border border-stone-300 rounded-xl text-sm
+                                     focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500
+                                     transition-colors placeholder-stone-400"
+                              placeholder="Any special requests or notes..."></textarea>
                 </div>
-                
-                <button type="submit" 
-                        class="w-full py-3 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition-smooth mb-3 shadow-sm hover:shadow-md">
-                    {% if total == 0 %}
-                    Complete Free Enrollment
-                    {% else %}
-                    Proceed to Payment
-                    {% endif %}
-                </button>
-                
-                <a href="{% url 'shop:cart_detail' %}" 
-                   class="block w-full py-3 bg-gray-100 text-gray-900 text-center font-medium rounded-lg hover:bg-gray-200 transition-smooth">
-                    Back to Cart
-                </a>
-                
-                <!-- Security Badge -->
-                <div class="mt-6 pt-6 border-t border-gray-200/50">
-                    <div class="flex items-center justify-center gap-2 text-xs text-gray-600">
-                        <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                        </svg>
-                        <span>Secure 256-bit SSL encryption</span>
+                {% endif %}
+
+            </div>
+
+            <!-- Right: Order Summary -->
+            <div class="lg:col-span-1">
+                <div class="bg-white rounded-2xl border border-stone-200/60 shadow-sm p-6 sticky top-24">
+                    <h2 class="text-lg font-semibold text-stone-900 mb-5">Order Summary</h2>
+
+                    <!-- Items -->
+                    <div class="space-y-3 mb-5">
+                        {% for item in cart %}
+                        <div class="flex items-start gap-3 pb-3 border-b border-stone-100 last:border-0">
+                            <div class="shrink-0 w-11 h-11 bg-stone-100 rounded-xl overflow-hidden">
+                                {% if item.product.image %}
+                                <img src="{{ item.product.image.url }}"
+                                     alt="{{ item.product.name }}"
+                                     class="w-full h-full object-cover">
+                                {% else %}
+                                <div class="w-full h-full flex items-center justify-center">
+                                    <svg class="w-5 h-5 text-stone-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                                    </svg>
+                                </div>
+                                {% endif %}
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <p class="text-sm font-medium text-stone-900 truncate">{{ item.product.name }}</p>
+                                <p class="text-xs text-stone-400 mt-0.5">Qty: {{ item.quantity }}</p>
+                            </div>
+                            <span class="text-sm font-semibold text-stone-900 shrink-0">
+                                {{ item.total_price|currency }}
+                            </span>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Pricing -->
+                    <div class="space-y-2 mb-5">
+                        <div class="flex justify-between text-sm">
+                            <span class="text-stone-500">Subtotal</span>
+                            <span class="font-medium text-stone-900">{{ subtotal|currency }}</span>
+                        </div>
+                        {% if discount %}
+                        <div class="flex justify-between text-sm text-amber-700">
+                            <span>Discount ({{ discount.code }})</span>
+                            <span class="font-medium">-{{ discount_amount|currency }}</span>
+                        </div>
+                        {% endif %}
+                        <div class="flex justify-between text-lg font-bold pt-3 border-t border-stone-100">
+                            <span class="text-stone-900">Total</span>
+                            <span class="text-stone-900">{{ total|currency }}</span>
+                        </div>
+                    </div>
+
+                    <!-- Submit -->
+                    <button type="submit"
+                            class="w-full py-3 bg-amber-600 hover:bg-amber-500 text-white font-semibold
+                                   rounded-xl transition-colors shadow-sm mb-3">
+                        {% if total == 0 %}
+                            Complete Free Enrolment
+                        {% else %}
+                            Proceed to Payment
+                        {% endif %}
+                    </button>
+
+                    <a href="{% url 'shop:cart_detail' %}"
+                       class="block w-full py-3 bg-stone-100 hover:bg-stone-200 text-stone-700
+                              text-center font-medium rounded-xl transition-colors">
+                        Back to Cart
+                    </a>
+
+                    <!-- Security -->
+                    <div class="mt-5 pt-5 border-t border-stone-100">
+                        <div class="flex items-center justify-center gap-2 text-xs text-stone-400">
+                            <svg class="w-4 h-4 text-amber-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                            </svg>
+                            <span>Secure 256-bit SSL encryption</span>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-    </form>
+
+        </form>
+    </div>
 </div>
 {% endblock %}

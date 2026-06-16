@@ -6,38 +6,38 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
 
     <!-- ==================== PRIMARY SEO ==================== -->
-    <title>{% block title %}Scholr{% endblock %} — {% block title_suffix %}Learning Management Platform{% endblock %}</title>
+    <title>{% block title %}Judea Harvest{% endblock %} — {% block title_suffix %}Equipping African Church Leaders{% endblock %}</title>
 
     <meta name="description"
-          content="{% block meta_description %}Scholr is a modern learning management platform for African educational institutions — combining school management, theological education, and online learning in one place.{% endblock %}">
+          content="{% block meta_description %}Judea Harvest equips ministry leaders across Africa with accredited theological training. Access courses in Biblical Studies, Theology, Church History, Practical Ministry, and Leadership — from any device.{% endblock %}">
 
     <meta name="keywords"
-          content="{% block meta_keywords %}online learning, LMS, school management system, Africa, South Africa, theological education, e-learning, Moodle{% endblock %}">
+          content="{% block meta_keywords %}theological education, Africa, pastoral training, online learning, biblical studies, church leaders, Judea Harvest, ministry training{% endblock %}">
 
-    <meta name="author" content="Scholr">
+    <meta name="author" content="Judea Harvest">
     <meta name="robots" content="{% block robots %}index, follow{% endblock %}">
-    <meta name="theme-color" content="#2563eb">
+    <meta name="theme-color" content="#d4a843">
 
     <!-- Canonical URL -->
     <link rel="canonical" href="{% block canonical %}{{ request.build_absolute_uri }}{% endblock %}">
 
     <!-- ==================== OPEN GRAPH ==================== -->
     <meta property="og:type"        content="{% block og_type %}website{% endblock %}">
-    <meta property="og:site_name"   content="Scholr">
+    <meta property="og:site_name"   content="Judea Harvest">
     <meta property="og:url"         content="{{ request.build_absolute_uri }}">
-    <meta property="og:title"       content="{% block og_title %}{% block title_og %}Scholr{% endblock %} — Learning Management Platform{% endblock %}">
-    <meta property="og:description" content="{% block og_description %}Modern learning management for African educational institutions.{% endblock %}">
-    <meta property="og:image"       content="{% block og_image %}{{ request.scheme }}://{{ request.get_host }}/static/images/scholr-og.png{% endblock %}">
+    <meta property="og:title"       content="{% block og_title %}{% block title_og %}Judea Harvest{% endblock %} — Equipping African Church Leaders{% endblock %}">
+    <meta property="og:description" content="{% block og_description %}Accredited theological training for African ministry leaders — accessible from any device, in any village, across 40 nations.{% endblock %}">
+    <meta property="og:image"       content="{% block og_image %}{{ request.scheme }}://{{ request.get_host }}/static/images/judea-og.png{% endblock %}">
     <meta property="og:image:width"  content="1200">
     <meta property="og:image:height" content="630">
     <meta property="og:locale"      content="en_ZA">
 
     <!-- ==================== TWITTER / X ==================== -->
     <meta name="twitter:card"        content="summary_large_image">
-    <meta name="twitter:site"        content="@scholrlearn">
-    <meta name="twitter:title"       content="{% block twitter_title %}Scholr — Learning Management Platform{% endblock %}">
-    <meta name="twitter:description" content="{% block twitter_description %}Modern learning management for African educational institutions.{% endblock %}">
-    <meta name="twitter:image"       content="{% block twitter_image %}{{ request.scheme }}://{{ request.get_host }}/static/images/scholr-og.png{% endblock %}">
+    <meta name="twitter:site"        content="@judeaharvest">
+    <meta name="twitter:title"       content="{% block twitter_title %}Judea Harvest — Equipping African Church Leaders{% endblock %}">
+    <meta name="twitter:description" content="{% block twitter_description %}Accredited theological training for African ministry leaders across 40 nations.{% endblock %}">
+    <meta name="twitter:image"       content="{% block twitter_image %}{{ request.scheme }}://{{ request.get_host }}/static/images/judea-og.png{% endblock %}">
 
     <!-- ==================== STRUCTURED DATA ==================== -->
     {% block structured_data %}
@@ -45,28 +45,33 @@
     {
       "@context": "https://schema.org",
       "@type": "EducationalOrganization",
-      "name": "Scholr",
-      "description": "Modern learning management platform for African educational institutions",
+      "name": "Judea Harvest",
+      "description": "Equipping African church leaders with accredited theological training since 1999",
       "url": "{{ request.scheme }}://{{ request.get_host }}",
-      "sameAs": []
+      "foundingDate": "1999",
+      "areaServed": "Africa",
+      "sameAs": [
+        "https://www.judeaharvest.org"
+      ]
     }
     </script>
     {% endblock %}
 
     <!-- ==================== FAVICON ==================== -->
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%232563eb' stroke-width='2'><path stroke-linecap='round' stroke-linejoin='round' d='M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253'/></svg>">
+    <!-- Amber book icon matching the platform's warm colour palette -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23d4a843' stroke-width='2'><path stroke-linecap='round' stroke-linejoin='round' d='M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253'/></svg>">
 
     <!-- ==================== STYLES ==================== -->
     <script src="https://cdn.tailwindcss.com"></script>
 
-    <!-- Alpine.js — loaded once here, not in navbar -->
+    <!-- Alpine.js — loaded once here, not in the navbar include -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
     {% block extra_head %}{% endblock %}
 </head>
 <body class="bg-slate-50 antialiased min-h-screen flex flex-col">
 
-    <!-- Navbar — shown to everyone (guest nav is handled inside) -->
+    <!-- Navbar — guest vs authenticated rendering is handled inside the partial -->
     {% include 'base/navbar.html' %}
 
     <!-- ==================== FLASH MESSAGES ==================== -->
@@ -89,7 +94,6 @@
              {% elif message.tags == 'success' %}bg-green-50 border-green-200
              {% else %}bg-blue-50 border-blue-200{% endif %}">
 
-            <!-- Icon -->
             <div class="shrink-0 mt-0.5">
                 {% if message.tags == 'error' %}
                 <svg class="h-4 w-4 text-red-500" fill="currentColor" viewBox="0 0 20 20">
@@ -110,7 +114,6 @@
                 {% endif %}
             </div>
 
-            <!-- Text -->
             <p class="flex-1 text-sm font-medium
                 {% if message.tags == 'error' %}text-red-800
                 {% elif message.tags == 'warning' %}text-amber-800
@@ -119,7 +122,6 @@
                 {{ message }}
             </p>
 
-            <!-- Dismiss button -->
             <button @click="visible = false"
                     class="shrink-0 rounded-full p-0.5 transition-colors
                     {% if message.tags == 'error' %}text-red-400 hover:bg-red-100
@@ -143,7 +145,7 @@
     <!-- Footer -->
     {% include 'base/footer.html' %}
 
-    <!-- Cart counter (commercial LMS students only) -->
+    <!-- Cart counter shown only to verified students with LMS access -->
     {% if user.is_authenticated and user.role == 'student' %}
         {% include 'base/cart_counter.html' %}
     {% endif %}
