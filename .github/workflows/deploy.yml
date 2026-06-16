@@ -1,0 +1,254 @@
+name: CI/CD Pipeline
+
+# Triggers:
+# - Every push to main deploys to production (after CI passes)
+# - Every PR to main runs CI only (no deployment)
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+env:
+  PYTHON_VERSION: '3.13'
+
+# ============================================================
+# STAGE 1 — CODE QUALITY & SECURITY
+# Runs on every push and PR. Blocks deployment on failure.
+# ============================================================
+jobs:
+  lint:
+    name: Code Quality & Security
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+
+      - name: Install quality tools
+        run: pip install flake8 bandit
+
+      # Only catch real errors (syntax, undefined names) — not style opinions.
+      # Style enforcement belongs in a pre-commit hook, not a deployment gate.
+      - name: Check for syntax errors and undefined names
+        run: |
+          flake8 . \
+            --count \
+            --select=E9,F63,F7,F82 \
+            --exclude=venv,migrations,staticfiles,media \
+            --show-source \
+            --statistics
+
+      # Flag medium+ severity security issues in application code only.
+      # venv and test directories are excluded to avoid noise.
+      - name: Security scan (bandit)
+        run: |
+          bandit -r . \
+            --exclude=./venv,./staticfiles,./media \
+            --severity-level medium \
+            --confidence-level medium \
+            -q
+
+
+  # ============================================================
+  # STAGE 2 — DJANGO CHECKS & TEST SUITE
+  # Spins up real PostgreSQL + Redis via Docker services.
+  # Runs Django system check, migration integrity, then tests.
+  # ============================================================
+  test:
+    name: Django Checks & Tests
+    runs-on: ubuntu-latest
+    needs: lint
+
+    # Real infrastructure matching production as closely as possible
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: scholr
+          POSTGRES_PASSWORD: ci_password
+          POSTGRES_DB: scholr_ci
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+      redis:
+        image: redis:7
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+    env:
+      SECRET_KEY: ci-only-secret-key-never-used-in-production
+      DEBUG: 'True'
+      DATABASE_URL: postgresql://scholr:ci_password@localhost/scholr_ci
+      REDIS_URL: redis://localhost:6379
+      ALLOWED_HOSTS: localhost,127.0.0.1
+      CSRF_TRUSTED_ORIGINS: http://localhost
+      SCHOLR_LMS_ENABLED: 'True'
+      SCHOLR_ACADEMICS_ENABLED: 'True'
+      SCHOLR_ENROLLMENT_ENABLED: 'False'
+      SCHOLR_BURSARY_ENABLED: 'False'
+      MOODLE_URL: http://localhost/mylearn
+      MOODLE_WS_TOKEN: dummy
+      STATIC_ROOT: /tmp/scholr_static
+      MEDIA_ROOT: /tmp/scholr_media
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      # Catches misconfigured settings, missing apps, broken URL patterns
+      # and other issues before they ever reach production.
+      - name: Django system check
+        run: python manage.py check
+
+      - name: Apply migrations
+        run: python manage.py migrate --noinput
+
+      # Fails if any model changes exist without a corresponding migration.
+      # Catches the common mistake of forgetting to run makemigrations.
+      - name: Check for missing migrations
+        run: python manage.py makemigrations --check --dry-run
+
+      - name: Run test suite
+        run: python manage.py test --verbosity=2
+
+
+  # ============================================================
+  # STAGE 3 — DEPLOY TO PRODUCTION
+  # Only runs on push to main (not PRs) and only if CI passes.
+  # Zero-downtime gunicorn reload + automatic git rollback on failure.
+  # ============================================================
+  deploy:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: test
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+    # Ties this job to a GitHub Environment named "production".
+    # Configure at: Settings -> Environments -> production
+    # Add required reviewers there if you want manual approval before deploy.
+    environment:
+      name: production
+      url: https://judea.uorivo.com
+
+    steps:
+      - name: Deploy to server
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script_stop: true
+          script: |
+            set -e
+            cd /var/www/scholr
+
+            # ── Record current state for rollback ──────────────────────────
+            ROLLBACK_COMMIT=$(git rev-parse HEAD)
+            echo "Current commit (rollback target): $ROLLBACK_COMMIT"
+
+            # ── Rollback function ──────────────────────────────────────────
+            # Called automatically via trap if any command exits non-zero.
+            # Reverts code, reinstalls deps, reloads gunicorn cleanly.
+            rollback() {
+              echo ""
+              echo "!!! DEPLOYMENT FAILED — rolling back to $ROLLBACK_COMMIT !!!"
+              git checkout "$ROLLBACK_COMMIT"
+              source venv/bin/activate
+              pip install -r requirements.txt --quiet
+              python manage.py collectstatic --noinput --clear 2>/dev/null || true
+              systemctl reload gunicorn
+              echo "Rollback complete. Server restored to $ROLLBACK_COMMIT"
+            }
+            trap rollback ERR
+
+            # ── Pull latest code ───────────────────────────────────────────
+            echo ""
+            echo "=== [1/6] Pulling latest code ==="
+            git fetch origin main
+            git reset --hard origin/main
+            NEW_COMMIT=$(git rev-parse HEAD)
+            echo "Deploying: $NEW_COMMIT"
+
+            # ── Install/update dependencies ────────────────────────────────
+            echo ""
+            echo "=== [2/6] Installing dependencies ==="
+            source venv/bin/activate
+            pip install -r requirements.txt --quiet
+
+            # ── Run migrations only if pending ────────────────────────────
+            # migrate --check exits 1 if unapplied migrations exist.
+            echo ""
+            echo "=== [3/6] Database migrations ==="
+            if python manage.py migrate --check --noinput 2>/dev/null; then
+              echo "No pending migrations."
+            else
+              echo "Applying pending migrations..."
+              python manage.py migrate --noinput
+            fi
+
+            # ── Collect static files ───────────────────────────────────────
+            echo ""
+            echo "=== [4/6] Collecting static files ==="
+            python manage.py collectstatic --noinput --clear
+
+            # ── Reload services (zero downtime) ───────────────────────────
+            # systemctl reload gunicorn sends SIGHUP — workers finish their
+            # in-flight requests before restarting. No dropped connections.
+            # Celery workers restart is acceptable; tasks requeue automatically.
+            echo ""
+            echo "=== [5/6] Reloading services ==="
+            systemctl reload gunicorn
+            systemctl restart celery celerybeat
+            echo "Services reloaded."
+
+            # ── Post-deploy health check ───────────────────────────────────
+            # Hits the app directly on 127.0.0.1 (bypasses Cloudflare) with
+            # the correct Host header. Waits 5s for gunicorn workers to boot.
+            # Any non-2xx/3xx response triggers the rollback trap above.
+            echo ""
+            echo "=== [6/6] Health check ==="
+            sleep 5
+            HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" \
+              -H "Host: judea.uorivo.com" \
+              http://127.0.0.1/)
+
+            if [ "$HTTP_CODE" != "200" ] && \
+               [ "$HTTP_CODE" != "301" ] && \
+               [ "$HTTP_CODE" != "302" ]; then
+              echo "Health check returned HTTP $HTTP_CODE — triggering rollback."
+              exit 1
+            fi
+
+            echo ""
+            echo "============================================"
+            echo " DEPLOYMENT SUCCESSFUL"
+            echo " Commit : $NEW_COMMIT"
+            echo " Health : HTTP $HTTP_CODE"
+            echo " URL    : https://judea.uorivo.com"
+            echo "============================================"
