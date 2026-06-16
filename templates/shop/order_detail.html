@@ -1,188 +1,219 @@
-{% extends 'shop/base/_base.html' %}
+{% extends 'base/base.html' %}
 {% load shop_tags %}
 
-{% block title %}Order #{{ order.order_number }} - scholr{% endblock %}
+{% block title %}Order {{ order.order_number }}{% endblock %}
+{% block title_suffix %}Judea Harvest{% endblock %}
 
 {% block content %}
-<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-    
-    <!-- Header -->
-    <div class="mb-8">
-        <a href="{% url 'shop:order_list' %}" 
-           class="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-primary transition-smooth mb-4">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-            </svg>
-            Back to Orders
-        </a>
-        
-        <div class="flex items-start justify-between">
-            <div>
-                <h1 class="text-3xl font-bold text-gray-900 text-display mb-2">
-                    Order #{{ order.order_number }}
-                </h1>
-                <p class="text-gray-600">Placed on {{ order.created_at|date:"F j, Y \a\t g:i A" }}</p>
-            </div>
-            
-            <!-- Status Badge -->
-            {% if order.status == 'completed' or order.status == 'free' %}
-            <span class="px-4 py-2 bg-green-100 text-green-700 text-sm font-semibold rounded-full">
-                Completed
-            </span>
-            {% elif order.status == 'pending' %}
-            <span class="px-4 py-2 bg-yellow-100 text-yellow-700 text-sm font-semibold rounded-full">
-                Pending Payment
-            </span>
-            {% elif order.status == 'processing' %}
-            <span class="px-4 py-2 bg-blue-100 text-blue-700 text-sm font-semibold rounded-full">
-                Processing
-            </span>
-            {% elif order.status == 'failed' %}
-            <span class="px-4 py-2 bg-red-100 text-red-700 text-sm font-semibold rounded-full">
-                Failed
-            </span>
-            {% endif %}
-        </div>
-    </div>
-    
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        
-        <!-- Order Items -->
-        <div class="lg:col-span-2 space-y-6">
-            <div class="glass-card rounded-2xl p-6">
-                <h2 class="text-xl font-semibold text-gray-900 mb-4">Order Items</h2>
-                
-                <div class="space-y-4">
-                    {% for item in order.items.all %}
-                    <div class="flex gap-4 pb-4 {% if not forloop.last %}border-b border-gray-200/50{% endif %}">
-                        <!-- Product Image -->
-                        <div class="flex-shrink-0 w-20 h-20 bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg overflow-hidden">
-                            {% if item.product.image %}
-                            <img src="{{ item.product.image.url }}" 
-                                 alt="{{ item.product.name }}"
-                                 class="w-full h-full object-cover">
-                            {% else %}
-                            <div class="flex items-center justify-center h-full">
-                                <svg class="w-8 h-8 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                                </svg>
-                            </div>
-                            {% endif %}
-                        </div>
-                        
-                        <!-- Product Info -->
-                        <div class="flex-grow">
-                            <h3 class="font-semibold text-gray-900 mb-1">{{ item.product.name }}</h3>
-                            <div class="flex items-center gap-2 text-xs text-gray-600 mb-2">
-                                {% if item.product.grade_level %}
-                                <span>{{ item.product.grade_level.name }}</span>
-                                {% endif %}
-                                {% if item.product.subject %}
-                                <span>•</span>
-                                <span>{{ item.product.subject.name }}</span>
-                                {% endif %}
-                            </div>
-                            <div class="text-sm text-gray-600">
-                                Quantity: {{ item.quantity }} × {{ item.unit_price|currency }}
-                            </div>
-                        </div>
-                        
-                        <!-- Price -->
-                        <div class="text-right">
-                            <div class="font-semibold text-gray-900">{{ item.subtotal|currency }}</div>
-                        </div>
-                    </div>
-                    {% endfor %}
+<div class="min-h-screen bg-stone-50">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+
+        <!-- Header -->
+        <div class="mb-8">
+            <a href="{% url 'shop:order_list' %}"
+               class="inline-flex items-center gap-1.5 text-sm text-stone-500 hover:text-stone-800 transition-colors mb-5">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                </svg>
+                Back to Orders
+            </a>
+
+            <div class="flex items-start justify-between gap-4">
+                <div>
+                    <h1 class="text-2xl font-bold text-stone-900 mb-1">
+                        Order {{ order.order_number }}
+                    </h1>
+                    <p class="text-stone-400 text-sm">Placed on {{ order.created_at|date:"j F Y \a\t g:i A" }}</p>
                 </div>
+
+                <!-- Status Badge -->
+                {% if order.status == 'completed' or order.status == 'free' %}
+                <span class="shrink-0 px-3 py-1.5 bg-stone-100 text-stone-700 text-xs font-semibold rounded-full border border-stone-200">
+                    Completed
+                </span>
+                {% elif order.status == 'pending' %}
+                <span class="shrink-0 px-3 py-1.5 bg-amber-50 text-amber-800 text-xs font-semibold rounded-full border border-amber-200/60">
+                    Pending Payment
+                </span>
+                {% elif order.status == 'processing' %}
+                <span class="shrink-0 px-3 py-1.5 bg-blue-50 text-blue-700 text-xs font-semibold rounded-full border border-blue-200/60">
+                    Processing
+                </span>
+                {% elif order.status == 'failed' %}
+                <span class="shrink-0 px-3 py-1.5 bg-red-50 text-red-700 text-xs font-semibold rounded-full border border-red-200/60">
+                    Failed
+                </span>
+                {% elif order.status == 'refunded' %}
+                <span class="shrink-0 px-3 py-1.5 bg-stone-100 text-stone-500 text-xs font-semibold rounded-full border border-stone-200">
+                    Refunded
+                </span>
+                {% endif %}
             </div>
-            
-            <!-- Enrollment Status -->
-            {% if order.enrollment_processed %}
-            <div class="glass-card rounded-2xl p-6">
-                <div class="flex items-start gap-4">
-                    <div class="flex-shrink-0 w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
-                        <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+            <!-- Left: Items + Enrolment -->
+            <div class="lg:col-span-2 space-y-6">
+
+                <!-- Order Items -->
+                <div class="bg-white rounded-2xl border border-stone-200/60 shadow-sm p-6">
+                    <h2 class="text-base font-semibold text-stone-900 mb-5">Items ordered</h2>
+
+                    <div class="space-y-4">
+                        {% for item in order.items.all %}
+                        <div class="flex gap-4 pb-4 {% if not forloop.last %}border-b border-stone-100{% endif %}">
+
+                            <!-- Thumbnail -->
+                            <div class="shrink-0 w-16 h-16 bg-stone-100 rounded-xl overflow-hidden">
+                                {% if item.product.image %}
+                                <img src="{{ item.product.image.url }}"
+                                     alt="{{ item.product.name }}"
+                                     class="w-full h-full object-cover">
+                                {% else %}
+                                <div class="w-full h-full flex items-center justify-center">
+                                    <svg class="w-7 h-7 text-stone-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                              d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                                    </svg>
+                                </div>
+                                {% endif %}
+                            </div>
+
+                            <!-- Info -->
+                            <div class="flex-1 min-w-0">
+                                <p class="font-semibold text-stone-900 text-sm mb-1">{{ item.product.name }}</p>
+                                <div class="flex flex-wrap items-center gap-1.5 text-xs text-stone-400 mb-2">
+                                    {% if item.product.grade_level %}
+                                    <span>{{ item.product.grade_level.name }}</span>
+                                    {% endif %}
+                                    {% if item.product.grade_level and item.product.subject %}
+                                    <span>·</span>
+                                    {% endif %}
+                                    {% if item.product.subject %}
+                                    <span>{{ item.product.subject.name }}</span>
+                                    {% endif %}
+                                </div>
+                                <p class="text-xs text-stone-400">
+                                    Qty {{ item.quantity }} × {{ item.unit_price|currency }}
+                                </p>
+                            </div>
+
+                            <!-- Subtotal -->
+                            <div class="shrink-0 text-right">
+                                <p class="font-semibold text-stone-900 text-sm">{{ item.subtotal|currency }}</p>
+                            </div>
+                        </div>
+                        {% endfor %}
                     </div>
-                    <div class="flex-grow">
-                        <h3 class="font-semibold text-gray-900 mb-1">Enrollment Complete</h3>
-                        <p class="text-sm text-gray-600 mb-3">
-                            You've been enrolled in all courses. Start learning now!
-                        </p>
-                        <a href="{% url 'shop:my_courses' %}" 
-                           class="inline-flex items-center gap-2 text-sm font-medium text-primary hover:text-primary-dark">
-                            Access My Courses
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                </div>
+
+                <!-- Enrolment Status -->
+                {% if order.enrollment_processed %}
+                <div class="bg-white rounded-2xl border border-stone-200/60 shadow-sm p-6">
+                    <div class="flex items-start gap-4">
+                        <div class="shrink-0 w-10 h-10 bg-amber-900/10 border border-amber-800/20
+                                    rounded-xl flex items-center justify-center">
+                            <svg class="w-5 h-5 text-amber-600" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
                             </svg>
-                        </a>
+                        </div>
+                        <div class="flex-1">
+                            <p class="font-semibold text-stone-900 text-sm mb-1">Enrolment complete</p>
+                            <p class="text-sm text-stone-500 mb-3">
+                                You've been enrolled in all courses from this order.
+                            </p>
+                            <a href="{% url 'shop:my_courses' %}"
+                               class="inline-flex items-center gap-1.5 text-sm font-medium text-amber-700 hover:text-amber-600 transition-colors">
+                                Access my courses
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                </svg>
+                            </a>
+                        </div>
                     </div>
                 </div>
+                {% endif %}
+
+                {% if order.enrollment_error %}
+                <div class="bg-red-50 rounded-2xl border border-red-200/60 p-6">
+                    <p class="font-semibold text-red-800 text-sm mb-1">Enrolment issue</p>
+                    <p class="text-sm text-red-600 mb-3">
+                        There was a problem processing your enrolment. Please contact us and we'll resolve it.
+                    </p>
+                    <a href="mailto:info@judeaharvest.co.za"
+                       class="text-sm font-medium text-red-700 hover:text-red-600 transition-colors">
+                        info@judeaharvest.co.za →
+                    </a>
+                </div>
+                {% endif %}
+
             </div>
-            {% endif %}
-        </div>
-        
-        <!-- Order Summary -->
-        <div class="lg:col-span-1 space-y-6">
-            <div class="glass-card rounded-2xl p-6">
-                <h2 class="text-lg font-semibold text-gray-900 mb-4">Summary</h2>
-                
-                <div class="space-y-3 mb-4">
-                    <div class="flex justify-between text-sm">
-                        <span class="text-gray-600">Subtotal</span>
-                        <span class="font-medium text-gray-900">{{ order.subtotal|currency }}</span>
-                    </div>
-                    
-                    {% if order.discount_amount > 0 %}
-                    <div class="flex justify-between text-sm text-green-600">
-                        <span>Discount</span>
-                        <span class="font-medium">-{{ order.discount_amount|currency }}</span>
-                    </div>
-                    {% endif %}
-                    
-                    <div class="flex justify-between text-lg font-bold pt-3 border-t border-gray-200/50">
-                        <span class="text-gray-900">Total</span>
-                        <span class="text-gray-900">{{ order.total_amount|currency }}</span>
+
+            <!-- Right: Summary + Payment + Notes -->
+            <div class="lg:col-span-1 space-y-6">
+
+                <!-- Order Summary -->
+                <div class="bg-white rounded-2xl border border-stone-200/60 shadow-sm p-6">
+                    <h2 class="text-base font-semibold text-stone-900 mb-4">Summary</h2>
+
+                    <div class="space-y-2.5 mb-4">
+                        <div class="flex justify-between text-sm">
+                            <span class="text-stone-500">Subtotal</span>
+                            <span class="font-medium text-stone-900">{{ order.subtotal|currency }}</span>
+                        </div>
+
+                        {% if order.discount_amount > 0 %}
+                        <div class="flex justify-between text-sm text-amber-700">
+                            <span>Discount</span>
+                            <span class="font-medium">-{{ order.discount_amount|currency }}</span>
+                        </div>
+                        {% endif %}
+
+                        <div class="flex justify-between text-base font-bold pt-3 border-t border-stone-100">
+                            <span class="text-stone-900">Total</span>
+                            <span class="text-stone-900">{{ order.total_amount|currency }}</span>
+                        </div>
                     </div>
                 </div>
-            </div>
-            
-            <!-- Payment Info -->
-            {% if not order.is_free_order %}
-            <div class="glass-card rounded-2xl p-6">
-                <h3 class="font-semibold text-gray-900 mb-4">Payment Details</h3>
-                
-                <div class="space-y-2 text-sm">
-                    <div class="flex justify-between">
-                        <span class="text-gray-600">Method</span>
-                        <span class="font-medium text-gray-900 capitalize">{{ order.payment_method }}</span>
+
+                <!-- Payment Details -->
+                {% if not order.is_free_order %}
+                <div class="bg-white rounded-2xl border border-stone-200/60 shadow-sm p-6">
+                    <h3 class="text-base font-semibold text-stone-900 mb-4">Payment</h3>
+
+                    <div class="space-y-2.5">
+                        <div class="flex justify-between text-sm">
+                            <span class="text-stone-500">Method</span>
+                            <span class="font-medium text-stone-900 capitalize">{{ order.payment_method }}</span>
+                        </div>
+
+                        {% if order.payment_reference %}
+                        <div class="flex justify-between text-sm">
+                            <span class="text-stone-500">Reference</span>
+                            <span class="font-mono text-xs text-stone-700">{{ order.payment_reference|truncatechars:20 }}</span>
+                        </div>
+                        {% endif %}
+
+                        {% if order.paid_at %}
+                        <div class="flex justify-between text-sm">
+                            <span class="text-stone-500">Paid on</span>
+                            <span class="font-medium text-stone-900">{{ order.paid_at|date:"j M Y" }}</span>
+                        </div>
+                        {% endif %}
                     </div>
-                    
-                    {% if order.payment_reference %}
-                    <div class="flex justify-between">
-                        <span class="text-gray-600">Reference</span>
-                        <span class="font-medium text-gray-900 font-mono text-xs">{{ order.payment_reference|truncatechars:20 }}</span>
-                    </div>
-                    {% endif %}
-                    
-                    {% if order.paid_at %}
-                    <div class="flex justify-between">
-                        <span class="text-gray-600">Paid On</span>
-                        <span class="font-medium text-gray-900">{{ order.paid_at|date:"M j, Y" }}</span>
-                    </div>
-                    {% endif %}
                 </div>
+                {% endif %}
+
+                <!-- Customer Notes -->
+                {% if order.customer_notes %}
+                <div class="bg-white rounded-2xl border border-stone-200/60 shadow-sm p-6">
+                    <h3 class="text-base font-semibold text-stone-900 mb-2">Your notes</h3>
+                    <p class="text-sm text-stone-500 leading-relaxed">{{ order.customer_notes }}</p>
+                </div>
+                {% endif %}
+
             </div>
-            {% endif %}
-            
-            <!-- Customer Notes -->
-            {% if order.customer_notes %}
-            <div class="glass-card rounded-2xl p-6">
-                <h3 class="font-semibold text-gray-900 mb-2">Your Notes</h3>
-                <p class="text-sm text-gray-600">{{ order.customer_notes }}</p>
-            </div>
-            {% endif %}
         </div>
     </div>
 </div>

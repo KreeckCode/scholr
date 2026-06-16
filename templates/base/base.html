@@ -4,80 +4,145 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="color-scheme" content="light">
+    <meta name="referrer" content="strict-origin-when-cross-origin">
 
-    <!-- ==================== PRIMARY SEO ==================== -->
+   
     <title>{% block title %}Judea Harvest{% endblock %} — {% block title_suffix %}Equipping African Church Leaders{% endblock %}</title>
 
     <meta name="description"
           content="{% block meta_description %}Judea Harvest equips ministry leaders across Africa with accredited theological training. Access courses in Biblical Studies, Theology, Church History, Practical Ministry, and Leadership — from any device.{% endblock %}">
 
     <meta name="keywords"
-          content="{% block meta_keywords %}theological education, Africa, pastoral training, online learning, biblical studies, church leaders, Judea Harvest, ministry training{% endblock %}">
+          content="{% block meta_keywords %}theological education Africa, pastoral training, online learning Africa, biblical studies, church leaders training, Judea Harvest, ministry training, African pastors{% endblock %}">
 
     <meta name="author" content="Judea Harvest">
-    <meta name="robots" content="{% block robots %}index, follow{% endblock %}">
+    <meta name="robots" content="{% block robots %}index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1{% endblock %}">
     <meta name="theme-color" content="#d4a843">
 
-    <!-- Canonical URL -->
+    <!-- Canonical URL — prevents duplicate content penalties -->
     <link rel="canonical" href="{% block canonical %}{{ request.build_absolute_uri }}{% endblock %}">
 
-    <!-- ==================== OPEN GRAPH ==================== -->
-    <meta property="og:type"        content="{% block og_type %}website{% endblock %}">
-    <meta property="og:site_name"   content="Judea Harvest">
-    <meta property="og:url"         content="{{ request.build_absolute_uri }}">
-    <meta property="og:title"       content="{% block og_title %}{% block title_og %}Judea Harvest{% endblock %} — Equipping African Church Leaders{% endblock %}">
-    <meta property="og:description" content="{% block og_description %}Accredited theological training for African ministry leaders — accessible from any device, in any village, across 40 nations.{% endblock %}">
-    <meta property="og:image"       content="{% block og_image %}{{ request.scheme }}://{{ request.get_host }}/static/images/judea-og.png{% endblock %}">
-    <meta property="og:image:width"  content="1200">
-    <meta property="og:image:height" content="630">
-    <meta property="og:locale"      content="en_ZA">
+    <!-- ==================== OPEN GRAPH (Facebook, WhatsApp, LinkedIn, iMessage) ==================== -->
+    <meta property="og:type"          content="{% block og_type %}website{% endblock %}">
+    <meta property="og:site_name"     content="Judea Harvest">
+    <meta property="og:url"           content="{{ request.build_absolute_uri }}">
+    <meta property="og:title"         content="{% block og_title %}{% block title_og %}Judea Harvest{% endblock %} — Equipping African Church Leaders{% endblock %}">
+    <meta property="og:description"   content="{% block og_description %}Accredited theological training for African ministry leaders — accessible from any device, in any village, across 40 nations.{% endblock %}">
+    <meta property="og:image"         content="{% block og_image %}{{ request.scheme }}://{{ request.get_host }}/static/images/judea-og.png{% endblock %}">
+    <meta property="og:image:secure_url" content="{% block og_image_secure %}{{ request.scheme }}://{{ request.get_host }}/static/images/judea-og.png{% endblock %}">
+    <meta property="og:image:width"   content="1200">
+    <meta property="og:image:height"  content="630">
+    <meta property="og:image:type"    content="image/png">
+    <meta property="og:image:alt"     content="{% block og_image_alt %}Judea Harvest — Equipping African Church Leaders{% endblock %}">
+    <meta property="og:locale"        content="en_ZA">
 
     <!-- ==================== TWITTER / X ==================== -->
+    <!-- summary_large_image shows the full-width banner card in feeds -->
     <meta name="twitter:card"        content="summary_large_image">
     <meta name="twitter:site"        content="@judeaharvest">
+    <meta name="twitter:creator"     content="@judeaharvest">
     <meta name="twitter:title"       content="{% block twitter_title %}Judea Harvest — Equipping African Church Leaders{% endblock %}">
     <meta name="twitter:description" content="{% block twitter_description %}Accredited theological training for African ministry leaders across 40 nations.{% endblock %}">
     <meta name="twitter:image"       content="{% block twitter_image %}{{ request.scheme }}://{{ request.get_host }}/static/images/judea-og.png{% endblock %}">
+    <meta name="twitter:image:alt"   content="{% block twitter_image_alt %}Judea Harvest — Equipping African Church Leaders{% endblock %}">
 
     <!-- ==================== STRUCTURED DATA ==================== -->
     {% block structured_data %}
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
-      "@type": "EducationalOrganization",
-      "name": "Judea Harvest",
-      "description": "Equipping African church leaders with accredited theological training since 1999",
-      "url": "{{ request.scheme }}://{{ request.get_host }}",
-      "foundingDate": "1999",
-      "areaServed": "Africa",
-      "sameAs": [
-        "https://www.judeaharvest.org"
+      "@graph": [
+        {
+          "@type": "EducationalOrganization",
+          "@id": "{{ request.scheme }}://{{ request.get_host }}/#organization",
+          "name": "Judea Harvest",
+          "alternateName": "Judea Harvest Learning Platform",
+          "description": "Equipping African church leaders with accredited theological training since 1999",
+          "url": "{{ request.scheme }}://{{ request.get_host }}",
+          "foundingDate": "1999",
+          "areaServed": "Africa",
+          "numberOfEmployees": { "@type": "QuantitativeValue", "value": "40+" },
+          "knowsAbout": [
+            "Biblical Studies",
+            "Theology",
+            "Church History",
+            "Practical Ministry",
+            "Leadership"
+          ],
+          "sameAs": [
+            "https://www.judeaharvest.org"
+          ],
+          "contactPoint": {
+            "@type": "ContactPoint",
+            "email": "info@judeaharvest.co.za",
+            "contactType": "customer support",
+            "availableLanguage": "English"
+          }
+        },
+        {
+          "@type": "WebSite",
+          "@id": "{{ request.scheme }}://{{ request.get_host }}/#website",
+          "url": "{{ request.scheme }}://{{ request.get_host }}",
+          "name": "Judea Harvest",
+          "description": "Theological training for African church leaders",
+          "publisher": {
+            "@id": "{{ request.scheme }}://{{ request.get_host }}/#organization"
+          },
+          "inLanguage": "en-ZA"
+        },
+        {
+          "@type": "WebPage",
+          "@id": "{{ request.build_absolute_uri }}#webpage",
+          "url": "{{ request.build_absolute_uri }}",
+          "isPartOf": {
+            "@id": "{{ request.scheme }}://{{ request.get_host }}/#website"
+          },
+          "about": {
+            "@id": "{{ request.scheme }}://{{ request.get_host }}/#organization"
+          },
+          "inLanguage": "en-ZA"
+        }
       ]
     }
     </script>
     {% endblock %}
 
+    <!-- Page-level structured data override (product pages, course pages, etc.) -->
+    {% block extra_schema %}{% endblock %}
+
     <!-- ==================== FAVICON ==================== -->
-    <!-- Amber book icon matching the platform's warm colour palette -->
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23d4a843' stroke-width='2'><path stroke-linecap='round' stroke-linejoin='round' d='M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253'/></svg>">
+    <link rel="icon" type="image/svg+xml"
+          href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23d4a843' stroke-width='2'><path stroke-linecap='round' stroke-linejoin='round' d='M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253'/></svg>">
+    <!-- Place a judea-apple-touch-icon.png (180×180px) in /static/images/ and uncomment: -->
+    <!-- <link rel="apple-touch-icon" sizes="180x180" href="{% static 'images/judea-apple-touch-icon.png' %}"> -->
+
+    <!-- ==================== RESOURCE HINTS ==================== -->
+    <!-- Tell the browser to establish connections to CDN origins early -->
+    <link rel="preconnect" href="https://cdn.tailwindcss.com">
+    <link rel="preconnect" href="https://cdn.jsdelivr.net">
+    <link rel="dns-prefetch" href="https://cdn.tailwindcss.com">
+    <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
 
     <!-- ==================== STYLES ==================== -->
     <script src="https://cdn.tailwindcss.com"></script>
 
-    <!-- Alpine.js — loaded once here, not in the navbar include -->
+    <!-- Alpine.js — deferred so it never blocks rendering -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
     {% block extra_head %}{% endblock %}
 </head>
-<body class="bg-slate-50 antialiased min-h-screen flex flex-col">
+<body class="bg-stone-50 antialiased min-h-screen flex flex-col">
 
-    <!-- Navbar — guest vs authenticated rendering is handled inside the partial -->
     {% include 'base/navbar.html' %}
 
     <!-- ==================== FLASH MESSAGES ==================== -->
     {% if messages %}
     <div class="mx-auto w-full max-w-3xl px-4 sm:px-6 pt-4 pb-0 space-y-2 z-40 relative"
-         id="messages-container">
+         id="messages-container"
+         role="alert"
+         aria-live="polite">
         {% for message in messages %}
         <div x-data="{ visible: true }"
              x-show="visible"
@@ -94,7 +159,7 @@
              {% elif message.tags == 'success' %}bg-green-50 border-green-200
              {% else %}bg-blue-50 border-blue-200{% endif %}">
 
-            <div class="shrink-0 mt-0.5">
+            <div class="shrink-0 mt-0.5" aria-hidden="true">
                 {% if message.tags == 'error' %}
                 <svg class="h-4 w-4 text-red-500" fill="currentColor" viewBox="0 0 20 20">
                     <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
@@ -123,6 +188,7 @@
             </p>
 
             <button @click="visible = false"
+                    aria-label="Dismiss"
                     class="shrink-0 rounded-full p-0.5 transition-colors
                     {% if message.tags == 'error' %}text-red-400 hover:bg-red-100
                     {% elif message.tags == 'warning' %}text-amber-400 hover:bg-amber-100
@@ -138,14 +204,12 @@
     {% endif %}
 
     <!-- ==================== MAIN CONTENT ==================== -->
-    <main class="flex-1">
+    <main class="flex-1" id="main-content">
         {% block content %}{% endblock %}
     </main>
 
-    <!-- Footer -->
     {% include 'base/footer.html' %}
 
-    <!-- Cart counter shown only to verified students with LMS access -->
     {% if user.is_authenticated and user.role == 'student' %}
         {% include 'base/cart_counter.html' %}
     {% endif %}
