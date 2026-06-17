@@ -11,4 +11,6 @@ staticfiles/
 # Ignore the .env file and SQLite database
 *.sqlite3
 *.env
-
+celerybeat-schedule-wal
+*celerybeat-schedule-wal
+celerybeat-schedule-wal
