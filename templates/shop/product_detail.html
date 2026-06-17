@@ -5,6 +5,70 @@
 {% block title_suffix %}Judea Harvest{% endblock %}
 {% block meta_description %}{{ product.short_description|default:product.description|truncatechars:160 }}{% endblock %}
 
+{# ==================== SEO OVERRIDES ==================== #}
+
+{% block og_type %}website{% endblock %}
+
+{% block og_title %}{{ product.name }} — Judea Harvest{% endblock %}
+{% block og_description %}{{ product.short_description|default:product.description|truncatechars:200 }}{% endblock %}
+
+{% if product.image %}
+{% block og_image %}{{ request.scheme }}://{{ request.get_host }}{{ product.image.url }}{% endblock %}
+{% block og_image_secure %}{{ request.scheme }}://{{ request.get_host }}{{ product.image.url }}{% endblock %}
+{% block og_image_alt %}{{ product.name }} — Judea Harvest{% endblock %}
+{% endif %}
+
+{% block twitter_title %}{{ product.name }} — Judea Harvest{% endblock %}
+{% block twitter_description %}{{ product.short_description|default:product.description|truncatechars:200 }}{% endblock %}
+
+{% if product.image %}
+{% block twitter_image %}{{ request.scheme }}://{{ request.get_host }}{{ product.image.url }}{% endblock %}
+{% block twitter_image_alt %}{{ product.name }}{% endblock %}
+{% endif %}
+
+{% block canonical %}{{ request.scheme }}://{{ request.get_host }}{% url 'shop:product_detail' product.slug %}{% endblock %}
+
+{% block extra_schema %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Course",
+  "name": "{{ product.name|escapejs }}",
+  "description": "{{ product.short_description|default:product.description|truncatechars:500|escapejs }}",
+  "url": "{{ request.scheme }}://{{ request.get_host }}{% url 'shop:product_detail' product.slug %}",
+  {% if product.image %}
+  "image": "{{ request.scheme }}://{{ request.get_host }}{{ product.image.url }}",
+  {% endif %}
+  "provider": {
+    "@type": "EducationalOrganization",
+    "name": "Judea Harvest",
+    "url": "{{ request.scheme }}://{{ request.get_host }}",
+    "sameAs": "https://www.judeaharvest.org"
+  },
+  "educationalLevel": "{% if product.grade_level %}{{ product.grade_level.name|escapejs }}{% else %}All levels{% endif %}",
+  "about": "{% if product.subject %}{{ product.subject.name|escapejs }}{% else %}Theology{% endif %}",
+  "timeRequired": "P{{ product.duration_months }}M",
+  "hasCourseInstance": {
+    "@type": "CourseInstance",
+    "courseMode": "online",
+    "inLanguage": "en"
+  },
+  "offers": {
+    "@type": "Offer",
+    {% if product.is_free %}
+    "price": "0",
+    "priceCurrency": "ZAR",
+    {% else %}
+    "price": "{{ product.price }}",
+    "priceCurrency": "ZAR",
+    {% endif %}
+    "availability": "https://schema.org/InStock",
+    "url": "{{ request.scheme }}://{{ request.get_host }}{% url 'shop:product_detail' product.slug %}"
+  }
+}
+</script>
+{% endblock %}
+
 {% block content %}
 <div class="min-h-screen bg-stone-50">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
