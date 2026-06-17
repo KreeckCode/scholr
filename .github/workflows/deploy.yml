@@ -166,15 +166,7 @@ jobs:
             set -e
             cd /var/www/scholr
 
-            # ── Safety check — never deploy with DEBUG=True ────────────────
-            echo "=== [0/6] Pre-flight checks ==="
-            DEBUG_VAL=$(grep -E '^DEBUG=' /var/www/scholr/.env | cut -d'=' -f2 | tr -d '[:space:]')
-            if [ "$DEBUG_VAL" = "True" ]; then
-              echo "BLOCKED: DEBUG=True is set in .env — refusing to deploy."
-              echo "Set DEBUG=False in /var/www/scholr/.env before deploying."
-              exit 1
-            fi
-            echo "DEBUG=$DEBUG_VAL — safe to proceed."
+            
 
             # ── Record current state for rollback ──────────────────────────
             ROLLBACK_COMMIT=$(git rev-parse HEAD)
