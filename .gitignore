@@ -7,3 +7,8 @@ __pycache__/
 # Static files
 staticfiles/
 !static/
+\.env|sqlite
+# Ignore the .env file and SQLite database
+*.sqlite3
+*.env
+

@@ -784,6 +784,18 @@ class Order(models.Model):
         blank=True,
         help_text="Error message if enrollment failed"
     )
+    # Proof of payment (manual EFT flow)
+    proof_of_payment = models.FileField(
+        upload_to='proofs_of_payment/%Y/%m/',
+        blank=True,
+        null=True,
+        help_text="Customer uploaded proof of payment"
+    )
+    pop_submitted_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="When customer submitted proof of payment"
+    )
     
     # Notes
     customer_notes = models.TextField(blank=True)

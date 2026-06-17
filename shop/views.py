@@ -520,6 +520,11 @@ def checkout(request):
                 
                 return redirect('shop:order_confirmation', order_number=order.order_number)
             
+         
+            if not request.user.is_authenticated:
+                from django.contrib.auth import login
+                login(request, user)
+
             # Paid order - redirect to payment
             return redirect('shop:payment', order_number=order.order_number)
             
@@ -546,59 +551,104 @@ def checkout(request):
 
 
 # ==================== PAYMENT VIEWS ====================
-
-@login_required
 def payment(request, order_number):
     """
-    Payment page
-    
-    Features:
-    - Shows order summary
-    - Initiates payment with gateway
-    - Handles payment redirect
-    
-    Security:
-    - Verifies user owns order
-    - Only shows pending orders
+    Manual EFT payment page.
+
+    GET  — shows banking details and POP upload form.
+    POST — saves the uploaded proof of payment, marks the order as
+           processing, emails admin, and redirects to confirmation.
+
+    The @login_required decorator was removed because checkout creates
+    a new user account and logs them in immediately before redirecting
+    here. Keeping it caused a redirect loop for first-time buyers.
     """
     order = get_object_or_404(Order, order_number=order_number)
-    
-    # Security: Verify ownership
+
+    # Verify ownership — guests who just registered are now logged in
+    # so this check is safe.
     order_service = OrderService()
     try:
         order_service.verify_order_ownership(order, request.user)
     except PermissionError:
         raise Http404
-    
-    # Only process pending orders
-    if order.status != Order.PENDING:
-        messages.info(request, 'This order has already been processed')
+
+    # Already paid or processing — skip ahead
+    if order.status not in [Order.PENDING, Order.PROCESSING]:
         return redirect('shop:order_confirmation', order_number=order.order_number)
-    
-    # Paystack integration
+
     if request.method == 'POST':
-        # Initialize payment with Paystack
-        # This would typically redirect to Paystack payment page
-        
-        # For now, show payment details
-        context = {
-            'order': order,
-            'paystack_public_key': getattr(settings, 'PAYSTACK_PUBLIC_KEY', ''),
-            'payment_reference': f"PAY-{order.order_number}",
-            'amount_kobo': int(order.total_amount * 100),  # Convert to kobo
-            'email': request.user.email or 'customer@example.com',
-            'callback_url': request.build_absolute_uri(
-                reverse('shop:payment_callback')
-            )
-        }
-        
-        return render(request, 'shop/payment_process.html', context)
-    
-    context = {
-        'order': order,
-    }
-    
-    return render(request, 'shop/payment.html', context)
+        pop_file = request.FILES.get('proof_of_payment')
+
+        if pop_file:
+            # Validate file type — only images and PDFs accepted
+            allowed_types = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf']
+            if pop_file.content_type not in allowed_types:
+                messages.error(request, 'Please upload a JPG, PNG, WebP, or PDF file.')
+                return render(request, 'shop/payment.html', {'order': order})
+
+            # Validate file size — 10MB limit
+            if pop_file.size > 10 * 1024 * 1024:
+                messages.error(request, 'File is too large. Maximum size is 10MB.')
+                return render(request, 'shop/payment.html', {'order': order})
+
+            order.proof_of_payment = pop_file
+            order.pop_submitted_at = timezone.now()
+
+        # Mark order as processing regardless of whether POP was uploaded —
+        # customer may email it separately.
+        order.status = Order.PROCESSING
+        order.save()
+
+        # Notify admin by email
+        _notify_admin_of_payment(order, request)
+
+        logger.info(
+            f"EFT payment claimed: order {order.order_number} "
+            f"by {request.user.username} — POP {'uploaded' if pop_file else 'not uploaded'}"
+        )
+
+        messages.success(
+            request,
+            'Payment notification sent. Your courses will be activated within '
+            '1 business day once payment is confirmed.'
+        )
+        return redirect('shop:order_confirmation', order_number=order.order_number)
+
+    return render(request, 'shop/payment.html', {'order': order})
+
+
+def _notify_admin_of_payment(order, request):
+    """
+    Send an internal email to admin when a customer claims EFT payment.
+    Soft-fails — a broken email config should never crash the payment flow.
+    """
+    from django.core.mail import send_mail
+
+    try:
+        admin_emails = ['info@uorivo.com']
+        #admin_emails = ['admin@judeaharvest.co.za', 'dave@judeaharvest.co.za', 'finance@judeaharvest.co.za']
+        subject = f'EFT Payment Claimed — Order {order.order_number}'
+
+        has_pop = bool(order.proof_of_payment)
+        pop_status = 'YES — file uploaded' if has_pop else 'NO — customer will email separately'
+
+        body = (
+            f"A customer has claimed EFT payment for order {order.order_number}.\n\n"
+            f"Customer : {order.user.get_full_name()} ({order.user.phone_number})\n"
+            f"Amount   : R{order.total_amount}\n"
+            f"Order    : {order.order_number}\n"
+            f"POP file : {pop_status}\n\n"
+            f"Once payment is confirmed in your bank, activate the order at:\n"
+            f"{request.build_absolute_uri('/admin/accounts/order/')}\n\n"
+            f"If POP was not uploaded, ask the customer to email it to "
+            f"admin@judeaharvest.co.za with subject: POP - {order.order_number}"
+        )
+
+        send_mail(subject, body, settings.DEFAULT_FROM_EMAIL, admin_emails, fail_silently=True)
+
+    except Exception as e:
+        logger.warning(f"Admin payment notification failed for {order.order_number}: {e}")
 
 
 @csrf_exempt
