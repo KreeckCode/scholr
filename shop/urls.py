@@ -23,6 +23,7 @@ urlpatterns = [
     path('payment/<str:order_number>/', views.payment, name='payment'),
     path('payment/webhook/', views.payment_webhook, name='payment_webhook'),
     path('payment/callback/', views.payment_callback, name='payment_callback'),
+    path('admin/eft-payments/', views.EFTPaymentQueueView.as_view(), name='eft_payment_queue'),
     
     # ==================== ORDERS ====================
     path('orders/', views.OrderListView.as_view(), name='order_list'),

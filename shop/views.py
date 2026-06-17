@@ -650,7 +650,80 @@ def _notify_admin_of_payment(order, request):
     except Exception as e:
         logger.warning(f"Admin payment notification failed for {order.order_number}: {e}")
 
+class EFTPaymentQueueView(AdminRequiredMixin, View):
+    """
+    Admin: EFT payment confirmation queue.
 
+    Lists all orders where the customer has claimed payment (status=PROCESSING)
+    but admin hasn't confirmed yet (enrollment_processed=False).
+    Provides single-click confirm-and-enrol per order.
+    """
+
+    template_name = 'shop/admin/eft_payments.html'
+
+    def get(self, request):
+        pending = Order.objects.filter(
+            status=Order.PROCESSING,
+            enrollment_processed=False
+        ).select_related('user').prefetch_related(
+            'items__product'
+        ).order_by('created_at')
+
+        context = {
+            'pending_orders': pending,
+            'pending_count': pending.count(),
+        }
+        return render(request, self.template_name, context)
+
+    def post(self, request):
+        """
+        Confirm a single EFT order and process enrolment.
+        Receives order_id via POST body.
+        """
+        from shop.services import EnrollmentService
+
+        order_id = request.POST.get('order_id')
+        if not order_id:
+            messages.error(request, 'No order specified.')
+            return redirect('shop:eft_payment_queue')
+
+        try:
+            order = Order.objects.get(
+                id=order_id,
+                status__in=[Order.PENDING, Order.PROCESSING],
+                enrollment_processed=False
+            )
+        except Order.DoesNotExist:
+            messages.error(request, 'Order not found or already processed.')
+            return redirect('shop:eft_payment_queue')
+
+        try:
+            order.status = Order.COMPLETED
+            order.paid_at = timezone.now()
+            order.payment_method = order.payment_method or 'eft'
+            order.save()
+
+            service = EnrollmentService()
+            service.process_order_enrollment(order)
+
+            logger.info(
+                f"EFT confirmed by {request.user.username}: "
+                f"order {order.order_number} for {order.user.get_full_name()}"
+            )
+
+            messages.success(
+                request,
+                f'Order {order.order_number} confirmed — '
+                f'{order.user.get_full_name()} has been enrolled.'
+            )
+
+        except Exception as e:
+            logger.error(f"EFT confirmation error for order {order_id}: {str(e)}", exc_info=True)
+            messages.error(request, f'Error confirming order: {str(e)}')
+
+        return redirect('shop:eft_payment_queue')
+    
+    
 @csrf_exempt
 @require_POST
 def payment_webhook(request):

@@ -218,7 +218,7 @@ class OrderAdmin(admin.ModelAdmin):
     
     inlines = [OrderItemInline]
     
-    actions = ['mark_as_completed', 'process_enrollment']
+    actions = ['confirm_eft_and_enroll', 'mark_as_completed', 'process_enrollment']
     
     def enrollment_status(self, obj):
         """
@@ -241,30 +241,51 @@ class OrderAdmin(admin.ModelAdmin):
 
     enrollment_status.short_description = 'Enrollment'
     
+    
     def mark_as_completed(self, request, queryset):
-        """Bulk mark orders as completed (admin override)"""
-        count = queryset.filter(status=Order.PENDING).update(
+        """
+        Mark orders as completed without triggering enrolment.
+        Use 'Confirm EFT payment and enrol' instead for normal payment confirmations.
+        This is an override/correction tool only.
+        """
+        # Fixed: was filtering PENDING only, now includes PROCESSING
+        count = queryset.filter(
+            status__in=[Order.PENDING, Order.PROCESSING]
+        ).update(
             status=Order.COMPLETED,
             paid_at=timezone.now()
         )
-        self.message_user(request, f"{count} orders marked as completed")
-    mark_as_completed.short_description = "Mark as completed (override)"
-    
+        self.message_user(request, f"{count} order(s) marked as completed (no enrolment triggered).")
+
+    mark_as_completed.short_description = "Mark as completed — no enrolment (correction only)"
+
+
     def process_enrollment(self, request, queryset):
-        """Manually trigger enrollment processing"""
+        """
+        Re-process enrolment for already-completed orders that failed.
+        Only works on COMPLETED/FREE orders — use 'Confirm EFT' for new payments.
+        """
         from shop.services import EnrollmentService
         service = EnrollmentService()
-        
+
         count = 0
-        for order in queryset.filter(enrollment_processed=False):
+        for order in queryset.filter(
+            status__in=[Order.COMPLETED, Order.FREE],
+            enrollment_processed=False
+        ):
             try:
                 service.process_order_enrollment(order)
                 count += 1
             except Exception as e:
-                self.message_user(request, f"Error processing {order.order_number}: {str(e)}", level='error')
-        
-        self.message_user(request, f"{count} orders processed")
-    process_enrollment.short_description = "Process enrollment"
+                self.message_user(
+                    request,
+                    f"Error processing {order.order_number}: {str(e)}",
+                    level='error'
+                )
+
+        self.message_user(request, f"{count} enrolment(s) processed.")
+
+    process_enrollment.short_description = "Re-process enrolment (for failed COMPLETED orders)"
     
     fieldsets = (
         ('Order Information', {
@@ -274,7 +295,10 @@ class OrderAdmin(admin.ModelAdmin):
             'fields': ('subtotal', 'discount_amount', 'total_amount', 'currency')
         }),
         ('Payment', {
-            'fields': ('payment_method', 'payment_reference', 'payment_metadata', 'paid_at')
+            'fields': (
+                'payment_method', 'payment_reference', 'payment_metadata',
+                'paid_at', 'proof_of_payment', 'pop_submitted_at'
+            )
         }),
         ('Enrollment', {
             'fields': ('enrollment_processed', 'enrollment_processed_at', 'enrollment_error')
