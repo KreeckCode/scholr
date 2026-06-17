@@ -202,10 +202,9 @@ jobs:
             pip install -r requirements.txt --quiet
 
             # ── Run migrations only if pending ────────────────────────────
-            # migrate --check exits 1 if unapplied migrations exist.
             echo ""
             echo "=== [3/6] Database migrations ==="
-            if python manage.py migrate --check --noinput 2>/dev/null; then
+            if python manage.py migrate --check --noinput; then
               echo "No pending migrations."
             else
               echo "Applying pending migrations..."
