@@ -1,494 +1,310 @@
 {% extends 'base/base.html' %}
-{% block title %}Judea Harvest{% endblock %}
-{% block title_suffix %}Equipping African Church Leaders{% endblock %}
-{% block meta_description %}Since 1999, Judea Harvest has been equipping ministry leaders across Africa. Our learning platform gives pastors and church elders access to accredited theological training — wherever they are.{% endblock %}
-{% load scholr_extras %}
 
-{% block extra_head %}
-<style>
-.hero-texture {
-    background-color: #0c0a06;
-    background-image: radial-gradient(circle at 1px 1px, rgba(212,168,67,0.08) 1px, transparent 0);
-    background-size: 28px 28px;
-}
-.gt {
-    background: linear-gradient(135deg, #d4a843 0%, #e8c56a 50%, #c99320 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-}
-.glass-warm {
-    background: rgba(212,168,67,0.06);
-    backdrop-filter: blur(8px);
-    border: 1px solid rgba(212,168,67,0.12);
-}
-.sr { opacity:0; transform:translateY(24px); transition:opacity 0.65s cubic-bezier(.16,1,.3,1), transform 0.65s cubic-bezier(.16,1,.3,1); }
-.sr.visible { opacity:1; transform:translateY(0); }
-.sr-d1 { transition-delay:0.08s; }
-.sr-d2 { transition-delay:0.16s; }
-.sr-d3 { transition-delay:0.24s; }
-.sr-d4 { transition-delay:0.32s; }
-@keyframes pulse-dot {
-    0%,100%{opacity:1;transform:scale(1)}
-    50%{opacity:0.6;transform:scale(1.15)}
-}
-.pulse { animation:pulse-dot 2.2s ease-in-out infinite; }
-.discipline-card {
-    transition: transform 0.25s cubic-bezier(.16,1,.3,1), border-color 0.2s ease;
-}
-.discipline-card:hover {
-    transform: translateY(-3px);
-    border-color: rgba(212,168,67,0.3);
-}
-@keyframes tw-blink { 0%,100%{opacity:1} 50%{opacity:0} }
-.tw-cursor::after {
-    content:'|';
-    animation:tw-blink 1s step-end infinite;
-    color:#d4a843;
-    margin-left:1px;
-}
-.step-line::after {
-    content:'';
-    position:absolute;
-    left:50%;
-    top:100%;
-    width:1px;
-    height:32px;
-    background:linear-gradient(to bottom, rgba(212,168,67,0.3), transparent);
-    transform:translateX(-50%);
-}
-</style>
-{% endblock %}
+{% block title %}Judea Snap Uplift Training Platform{% endblock %}
+{% block title_suffix %}Pastoral Development for Africa's Church Leaders{% endblock %}
+{% block meta_description %}Practical, affordable pastoral development for church leaders across Africa. Learn at your own pace and pay only when you're ready to claim your certificate.{% endblock %}
 
 {% block content %}
+<div class="bg-stone-50">
 
-<!-- ================================================================
-     HERO
-     ================================================================ -->
-<section class="hero-texture relative min-h-[92vh] flex items-center overflow-hidden">
+    <section class="relative overflow-hidden">
+        <div class="absolute -top-32 -right-32 w-[28rem] h-[28rem] rounded-full bg-amber-200/40 blur-3xl"></div>
+        <div class="absolute -bottom-24 -left-24 w-80 h-80 rounded-full bg-stone-200/60 blur-3xl"></div>
 
-    <div class="absolute inset-0 pointer-events-none">
-        <div class="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-amber-950/20 via-transparent to-stone-950/40"></div>
-        <div class="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-stone-950 to-transparent"></div>
-        <div class="absolute top-1/3 right-0 w-80 h-80 rounded-full bg-amber-900/8 blur-3xl"></div>
-    </div>
+        <div class="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-16 sm:pt-28 sm:pb-24 text-center">
 
-    <div class="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-24 w-full">
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
+            <span class="inline-block px-4 py-1.5 bg-white border border-amber-200 text-amber-800
+                         text-xs font-semibold uppercase tracking-wider rounded-full mb-6">
+                Judea Snap Uplift Training Platform
+            </span>
 
-            <div>
-                <div class="inline-flex items-center gap-2.5 glass-warm rounded-full px-4 py-2 text-sm text-amber-300/80 mb-8">
-                    <span class="pulse w-2 h-2 rounded-full bg-amber-400 inline-block"></span>
-                    Serving 40 countries across Africa since 1999
-                </div>
+            <h1 class="font-serif text-4xl sm:text-5xl lg:text-6xl font-bold text-stone-900 mb-6 leading-tight">
+                Grow as a Shepherd,
+                <span class="block text-amber-700">grow the flock God gave you</span>
+            </h1>
 
-                <h1 class="text-5xl sm:text-6xl font-bold text-white leading-[1.06] tracking-tight mb-6">
-                    Training the leaders<br>
-                    Africa <span id="tw" class="gt tw-cursor"></span>
-                </h1>
+            <p class="text-lg text-stone-600 leading-relaxed max-w-2xl mx-auto mb-10">
+                Practical pastoral development for church leaders across Africa. Learn at your
+                own pace, then pay only when you're ready to claim your certificate.
+            </p>
 
-                <p class="text-stone-400 text-lg leading-relaxed mb-3 max-w-lg">
-                    90% of church leaders in Africa have never received formal theological training. Judea Harvest's learning platform is changing that — one leader at a time.
-                </p>
-                <p class="text-stone-500 text-base leading-relaxed mb-10 max-w-lg">
-                    Access accredited courses in Biblical Studies, Theology, Church History, Practical Ministry and Leadership — from any device, in any village.
-                </p>
-
-                <div class="flex flex-wrap gap-3 mb-10">
-                    <a href="{% url 'accounts:register' %}"
-                       class="inline-flex items-center gap-2 px-6 py-3.5 bg-amber-600 hover:bg-amber-500
-                              text-white font-semibold rounded-xl transition-all hover:-translate-y-0.5
-                              shadow-lg shadow-amber-900/30">
-                        Start learning — it's free
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
-                    </a>
-                    <a href="{% url 'shop:catalog' %}"
-                       class="inline-flex items-center gap-2 px-6 py-3.5 glass-warm border border-stone-700
-                              text-stone-300 font-medium rounded-xl hover:border-amber-600/40
-                              hover:text-amber-300 transition-all">
-                        Browse courses
-                    </a>
-                    <a href="{% url 'accounts:login' %}"
-                       class="inline-flex items-center px-6 py-3.5 text-stone-500
-                              hover:text-stone-300 font-medium transition-colors text-sm">
-                        Sign in →
-                    </a>
-                </div>
-
-                <div class="flex flex-wrap gap-5 text-sm text-stone-600">
-                    <span class="flex items-center gap-1.5">
-                        <svg class="w-3.5 h-3.5 text-amber-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
-                        No upfront cost
-                    </span>
-                    <span class="flex items-center gap-1.5">
-                        <svg class="w-3.5 h-3.5 text-amber-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
-                        Works on 3G
-                    </span>
-                    <span class="flex items-center gap-1.5">
-                        <svg class="w-3.5 h-3.5 text-amber-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
-                        Contextualised for Africa
-                    </span>
-                </div>
-            </div>
-
-            <!-- Right: Mission map / stat card -->
-            <div class="hidden lg:block relative">
-                <div class="glass-warm rounded-2xl border border-amber-900/20 p-8 relative">
-                    <div class="text-xs text-stone-600 font-semibold uppercase tracking-widest mb-6">Impact since 1999</div>
-                    <div class="space-y-5">
-                        <div class="flex items-end justify-between border-b border-stone-800/60 pb-5">
-                            <div>
-                                <p class="text-5xl font-bold text-white tracking-tight">36,000<span class="text-amber-600 text-3xl">+</span></p>
-                                <p class="text-stone-500 text-sm mt-1">New churches planted across Africa</p>
-                            </div>
-                            <div class="w-12 h-12 rounded-xl bg-amber-900/30 border border-amber-800/30 flex items-center justify-center">
-                                <svg class="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
-                            </div>
-                        </div>
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <p class="text-3xl font-bold text-white">40</p>
-                                <p class="text-stone-500 text-xs mt-0.5">Countries reached</p>
-                            </div>
-                            <div>
-                                <p class="text-3xl font-bold text-white">26<span class="text-lg text-amber-600"> yrs</span></p>
-                                <p class="text-stone-500 text-xs mt-0.5">In ministry</p>
-                            </div>
-                            <div class="col-span-2 bg-amber-900/10 border border-amber-900/20 rounded-xl p-4">
-                                <p class="text-amber-400 text-sm font-semibold mb-1">The gap this platform addresses</p>
-                                <div class="flex items-center gap-2 mb-1.5">
-                                    <div class="flex-1 bg-stone-800 rounded-full h-2 overflow-hidden">
-                                        <div class="bg-amber-600 h-full rounded-full" style="width:90%"></div>
-                                    </div>
-                                    <span class="text-amber-400 text-sm font-bold">90%</span>
-                                </div>
-                                <p class="text-stone-500 text-xs">of African church leaders have no formal theological training</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <!-- Floating card -->
-                <div class="absolute -bottom-5 -left-8 glass-warm border border-amber-900/20 rounded-xl px-4 py-3 shadow-xl">
-                    <p class="text-xs font-semibold text-white">John Journey Programme</p>
-                    <p class="text-xs text-stone-500">Church-planting training — 40 nations</p>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
-
-
-<!-- ================================================================
-     THE PROBLEM — EDITORIAL TREATMENT
-     ================================================================ -->
-<section class="bg-stone-950 py-24 border-t border-stone-800/40">
-    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
-            <div class="sr">
-                <span class="inline-block text-amber-700 text-xs font-semibold uppercase tracking-widest mb-5">The Challenge</span>
-                <h2 class="text-4xl font-bold text-white leading-tight mb-6">
-                    Most pastors lead without ever being trained to.
-                </h2>
-                <p class="text-stone-400 text-lg leading-relaxed mb-5">
-                    Across sub-Saharan Africa, millions of men and women carry the weight of leading churches, planting communities, and discipling entire villages — with no access to the theological foundations they need.
-                </p>
-                <p class="text-stone-500 leading-relaxed">
-                    Geography isolates them. Economic pressure prevents travel. Bible colleges require years away from their congregations. The result: passionate, called leaders left without tools.
-                </p>
-            </div>
-            <div class="space-y-4 sr sr-d1">
-                <div class="border border-stone-800 rounded-xl p-5 hover:border-amber-900/40 transition-colors">
-                    <div class="flex items-center gap-3 mb-2">
-                        <div class="w-8 h-8 rounded-lg bg-amber-900/20 flex items-center justify-center shrink-0">
-                            <svg class="w-4 h-4 text-amber-700" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/></svg>
-                        </div>
-                        <p class="text-stone-300 font-medium">No access to Bible colleges</p>
-                    </div>
-                    <p class="text-stone-600 text-sm pl-11">Rural pastors are often hours from the nearest city, and colleges cost more than a year's income.</p>
-                </div>
-                <div class="border border-stone-800 rounded-xl p-5 hover:border-amber-900/40 transition-colors">
-                    <div class="flex items-center gap-3 mb-2">
-                        <div class="w-8 h-8 rounded-lg bg-amber-900/20 flex items-center justify-center shrink-0">
-                            <svg class="w-4 h-4 text-amber-700" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/></svg>
-                        </div>
-                        <p class="text-stone-300 font-medium">Cannot leave their congregation</p>
-                    </div>
-                    <p class="text-stone-600 text-sm pl-11">Many lead churches of 50–200 members who depend on them week to week. Absence isn't an option.</p>
-                </div>
-                <div class="border border-stone-800 rounded-xl p-5 hover:border-amber-900/40 transition-colors">
-                    <div class="flex items-center gap-3 mb-2">
-                        <div class="w-8 h-8 rounded-lg bg-amber-900/20 flex items-center justify-center shrink-0">
-                            <svg class="w-4 h-4 text-amber-700" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414-1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/></svg>
-                        </div>
-                        <p class="text-stone-300 font-medium">Existing resources aren't contextualised</p>
-                    </div>
-                    <p class="text-stone-600 text-sm pl-11">Western curricula rarely speak to the realities of African church life, culture, or context.</p>
-                </div>
-                <div class="border border-amber-900/30 bg-amber-950/20 rounded-xl p-5">
-                    <div class="flex items-center gap-3 mb-2">
-                        <div class="w-8 h-8 rounded-lg bg-amber-900/30 flex items-center justify-center shrink-0">
-                            <svg class="w-4 h-4 text-amber-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
-                        </div>
-                        <p class="text-amber-400 font-medium">This platform changes that</p>
-                    </div>
-                    <p class="text-stone-400 text-sm pl-11">Courses delivered online, in their own time, from any phone — built specifically for African ministry leaders.</p>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
-
-
-<!-- ================================================================
-     DISCIPLINES / COURSE AREAS
-     ================================================================ -->
-<section class="bg-stone-950 py-24 border-t border-stone-800/30">
-    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex flex-col sm:flex-row items-start sm:items-end justify-between gap-6 mb-12 sr">
-            <div>
-                <span class="inline-block text-amber-700 text-xs font-semibold uppercase tracking-widest mb-3">Course Disciplines</span>
-                <h2 class="text-4xl font-bold text-white">Five pillars of pastoral training</h2>
-            </div>
-            <a href="{% url 'shop:catalog' %}"
-               class="shrink-0 inline-flex items-center gap-2 text-sm text-stone-400 hover:text-amber-400 transition-colors font-medium">
-                View all courses
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-            </a>
-        </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
-
-            <div class="discipline-card border border-stone-800/60 rounded-2xl p-6 sr">
-                <div class="w-10 h-10 rounded-xl bg-stone-800/60 flex items-center justify-center mb-5">
-                    <svg class="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
-                </div>
-                <h3 class="text-white font-semibold mb-2">Biblical Studies</h3>
-                <p class="text-stone-500 text-sm leading-relaxed">Old and New Testament, hermeneutics, and expository preaching.</p>
-            </div>
-
-            <div class="discipline-card border border-stone-800/60 rounded-2xl p-6 sr sr-d1">
-                <div class="w-10 h-10 rounded-xl bg-stone-800/60 flex items-center justify-center mb-5">
-                    <svg class="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
-                </div>
-                <h3 class="text-white font-semibold mb-2">Theology</h3>
-                <p class="text-stone-500 text-sm leading-relaxed">Systematic theology, doctrine, and Christian worldview formation.</p>
-            </div>
-
-            <div class="discipline-card border border-stone-800/60 rounded-2xl p-6 sr sr-d2">
-                <div class="w-10 h-10 rounded-xl bg-stone-800/60 flex items-center justify-center mb-5">
-                    <svg class="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                </div>
-                <h3 class="text-white font-semibold mb-2">Church History</h3>
-                <p class="text-stone-500 text-sm leading-relaxed">African church history, global Christianity, and movements of revival.</p>
-            </div>
-
-            <div class="discipline-card border border-stone-800/60 rounded-2xl p-6 sr sr-d3">
-                <div class="w-10 h-10 rounded-xl bg-stone-800/60 flex items-center justify-center mb-5">
-                    <svg class="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                </div>
-                <h3 class="text-white font-semibold mb-2">Practical Ministry</h3>
-                <p class="text-stone-500 text-sm leading-relaxed">Pastoral care, counselling, church planting, and evangelism.</p>
-            </div>
-
-            <div class="discipline-card border border-amber-900/20 bg-amber-950/10 rounded-2xl p-6 sr sr-d4">
-                <div class="w-10 h-10 rounded-xl bg-amber-900/20 flex items-center justify-center mb-5">
-                    <svg class="w-5 h-5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
-                </div>
-                <h3 class="text-amber-400 font-semibold mb-2">Leadership</h3>
-                <p class="text-stone-500 text-sm leading-relaxed">Church governance, financial stewardship, and community development.</p>
-            </div>
-
-        </div>
-    </div>
-</section>
-
-
-<!-- ================================================================
-     HOW IT WORKS
-     ================================================================ -->
-<section class="bg-[#0a0806] py-24 border-t border-stone-800/30">
-    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-        <span class="inline-block text-amber-700 text-xs font-semibold uppercase tracking-widest mb-4 sr">How it works</span>
-        <h2 class="text-4xl font-bold text-white mb-16 sr sr-d1">From registration to learning in minutes</h2>
-
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-8 relative">
-
-            <div class="sr relative">
-                <div class="relative flex flex-col items-center">
-                    <div class="w-14 h-14 rounded-2xl bg-amber-900/20 border border-amber-800/30
-                                flex items-center justify-center mb-4 relative step-line">
-                        <span class="text-amber-500 font-bold text-lg">1</span>
-                    </div>
-                    <h3 class="text-white font-semibold mb-2">Register your account</h3>
-                    <p class="text-stone-500 text-sm leading-relaxed">
-                        Sign up with your phone number. A dean will verify your account within 24 hours — no paperwork required.
-                    </p>
-                </div>
-            </div>
-
-            <div class="sr sr-d1 relative">
-                <div class="flex flex-col items-center">
-                    <div class="w-14 h-14 rounded-2xl bg-amber-900/20 border border-amber-800/30
-                                flex items-center justify-center mb-4 relative step-line">
-                        <span class="text-amber-500 font-bold text-lg">2</span>
-                    </div>
-                    <h3 class="text-white font-semibold mb-2">Enrol in your courses</h3>
-                    <p class="text-stone-500 text-sm leading-relaxed">
-                        Browse the catalogue and enrol in the disciplines that match your calling. Many courses are completely free.
-                    </p>
-                </div>
-            </div>
-
-            <div class="sr sr-d2">
-                <div class="flex flex-col items-center">
-                    <div class="w-14 h-14 rounded-2xl bg-amber-900/20 border border-amber-800/30
-                                flex items-center justify-center mb-4">
-                        <span class="text-amber-500 font-bold text-lg">3</span>
-                    </div>
-                    <h3 class="text-white font-semibold mb-2">Access the learning platform</h3>
-                    <p class="text-stone-500 text-sm leading-relaxed">
-                        One click takes you into Moodle with video lessons, quizzes, PDFs, and progress tracking — no second login needed.
-                    </p>
-                </div>
-            </div>
-
-        </div>
-
-        <div class="mt-14 sr sr-d3">
-            <a href="{% url 'accounts:register' %}"
-               class="inline-flex items-center gap-2 px-8 py-4 bg-amber-600 hover:bg-amber-500
-                      text-white font-semibold rounded-xl text-lg transition-all hover:-translate-y-0.5
-                      shadow-xl shadow-amber-900/30">
-                Register now — free
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
-            </a>
-        </div>
-    </div>
-</section>
-
-
-<!-- ================================================================
-     ABOUT JUDEA HARVEST
-     ================================================================ -->
-<section class="bg-stone-950 py-24 border-t border-stone-800/30">
-    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-            <div class="sr">
-                <span class="inline-block text-amber-700 text-xs font-semibold uppercase tracking-widest mb-5">About Judea Harvest</span>
-                <h2 class="text-4xl font-bold text-white leading-tight mb-6">
-                    26 years of equipping<br>African ministry
-                </h2>
-                <p class="text-stone-400 leading-relaxed mb-5">
-                    Since 1999, Judea Harvest has mobilised, equipped, and resourced ministry leaders across Africa — so that their communities may experience the fullness of Jesus Christ.
-                </p>
-                <p class="text-stone-500 leading-relaxed mb-8">
-                    Through programmes like John Journey (soul-winning and church-planting training), Tent Churches, SNAP Churches, and the Untrained Pastor initiative, we have seen almost 36,000 new churches established in 40 countries. This digital platform is our next step: bringing the same equipping online, to every leader with a phone.
-                </p>
-                <a href="https://www.judeaharvest.org" target="_blank" rel="noopener"
-                   class="inline-flex items-center gap-2 text-amber-600 hover:text-amber-400 transition-colors text-sm font-medium">
-                    Learn more about our ground-level work
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+            <div class="flex flex-wrap items-center justify-center gap-3 mb-10">
+                <a href="{% url 'shop:catalog' %}"
+                   class="inline-flex items-center gap-2 px-7 py-3.5 bg-amber-600 hover:bg-amber-500
+                          text-white font-semibold rounded-xl shadow-sm transition-colors">
+                    Browse Courses
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
+                    </svg>
+                </a>
+                <a href="{% url 'accounts:login' %}"
+                   class="text-sm text-stone-500 hover:text-stone-700 underline underline-offset-4 transition-colors">
+                    Already have an account? Sign in
                 </a>
             </div>
 
-            <div class="space-y-4 sr sr-d1">
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="bg-stone-900/60 border border-stone-800/60 rounded-xl p-5">
-                        <p class="text-3xl font-bold text-white mb-1">36K<span class="text-amber-600">+</span></p>
-                        <p class="text-stone-500 text-xs">Churches established</p>
-                    </div>
-                    <div class="bg-stone-900/60 border border-stone-800/60 rounded-xl p-5">
-                        <p class="text-3xl font-bold text-white mb-1">40</p>
-                        <p class="text-stone-500 text-xs">African countries</p>
-                    </div>
-                    <div class="bg-stone-900/60 border border-stone-800/60 rounded-xl p-5">
-                        <p class="text-3xl font-bold text-white mb-1">26<span class="text-amber-600 text-lg">yr</span></p>
-                        <p class="text-stone-500 text-xs">In active ministry</p>
-                    </div>
-                    <div class="bg-stone-900/60 border border-stone-800/60 rounded-xl p-5">
-                        <p class="text-3xl font-bold text-white mb-1">5</p>
-                        <p class="text-stone-500 text-xs">Active training programmes</p>
-                    </div>
+            {# Trust row — only claims Dave can actually stand behind, no generic filler #}
+            <div class="flex flex-wrap items-center justify-center gap-x-8 gap-y-3 pt-8 border-t border-stone-200">
+                <div class="flex items-center gap-2 text-sm text-stone-500">
+                    <svg class="w-4 h-4 text-amber-600" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                    </svg>
+                    Pay only for your certificate
                 </div>
-
-                <div class="space-y-2">
-                    {% for prog in 'John Journey — Soul-winning & church-planting,The Jesus Story — children\'s discipleship material,Elevate ECD — early childhood development,Tent Churches — mobile congregations,SNAP Churches — simple church model'|split:"," %}
-                    <div class="flex items-center gap-3 text-stone-400 text-sm py-2 border-b border-stone-800/40 last:border-0">
-                        <svg class="w-3.5 h-3.5 text-amber-700 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
-                        {{ prog }}
-                    </div>
-                    {% endfor %}
+                <div class="flex items-center gap-2 text-sm text-stone-500">
+                    <svg class="w-4 h-4 text-amber-600" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                    </svg>
+                    Learn at your own pace
+                </div>
+                <div class="flex items-center gap-2 text-sm text-stone-500">
+                    <svg class="w-4 h-4 text-amber-600" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                    </svg>
+                    No credit card needed — simple bank transfer
                 </div>
             </div>
+
         </div>
-    </div>
-</section>
+    </section>
+
+    <section class="py-20 sm:py-24 bg-white border-t border-stone-200">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+
+            <div class="text-center max-w-xl mx-auto mb-14">
+                <span class="text-xs font-semibold uppercase tracking-wider text-amber-700">Getting started</span>
+                <h2 class="font-serif text-3xl sm:text-4xl font-bold text-stone-900 mt-2">
+                    Three simple steps
+                </h2>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-8">
+
+                <div class="text-center">
+                    <div class="w-12 h-12 rounded-full bg-amber-600 text-white font-serif text-lg font-bold
+                                flex items-center justify-center mx-auto mb-5">1</div>
+                    <h3 class="font-semibold text-stone-900 mb-2">Create your account</h3>
+                    <p class="text-sm text-stone-500 leading-relaxed">
+                        Sign up in a couple of minutes and browse the full course list straight away.
+                    </p>
+                </div>
+
+                <div class="text-center">
+                    <div class="w-12 h-12 rounded-full bg-amber-600 text-white font-serif text-lg font-bold
+                                flex items-center justify-center mx-auto mb-5">2</div>
+                    <h3 class="font-semibold text-stone-900 mb-2">Choose your course</h3>
+                    <p class="text-sm text-stone-500 leading-relaxed">
+                        Work through one course at a time, or commit to the full pathway from the start.
+                    </p>
+                </div>
+
+                <div class="text-center">
+                    <div class="w-12 h-12 rounded-full bg-amber-600 text-white font-serif text-lg font-bold
+                                flex items-center justify-center mx-auto mb-5">3</div>
+                    <h3 class="font-semibold text-stone-900 mb-2">Pay for your certificate</h3>
+                    <p class="text-sm text-stone-500 leading-relaxed">
+                        Once you've completed a course, pay by EFT to receive your official certificate.
+                    </p>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+ 
+    <section class="py-20 sm:py-24 bg-stone-50 border-t border-stone-200">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+
+            <div class="text-center max-w-xl mx-auto mb-14">
+                <span class="text-xs font-semibold uppercase tracking-wider text-amber-700">Pricing</span>
+                <h2 class="font-serif text-3xl sm:text-4xl font-bold text-stone-900 mt-2 mb-3">
+                    Honest, simple pricing
+                </h2>
+                {# I'm assuming course access itself is free and the fee is purely for the
+                   certificate, based on what you told me. Flag it if that's wrong and I'll
+                   adjust the copy below. #}
+                <p class="text-stone-500 leading-relaxed">
+                    Course access doesn't cost anything — you only pay when you're ready
+                    to claim your certificate.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+
+                <div class="bg-white rounded-2xl border-2 border-amber-600 shadow-sm p-8 relative">
+                    <span class="absolute -top-3 left-8 px-3 py-1 bg-amber-600 text-white text-xs
+                                 font-semibold rounded-full">Best value</span>
+                    <p class="text-sm font-medium text-stone-500 mb-2">Full pathway</p>
+                    <p class="font-serif text-5xl font-bold text-stone-900 mb-1">R600</p>
+                    <p class="text-sm text-stone-400 mb-6">for the whole programme</p>
+                    <ul class="space-y-3 mb-8">
+                        <li class="flex items-start gap-2 text-sm text-stone-600">
+                            <svg class="w-4 h-4 text-amber-600 shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                            </svg>
+                            Every course in the pathway
+                        </li>
+                        <li class="flex items-start gap-2 text-sm text-stone-600">
+                            <svg class="w-4 h-4 text-amber-600 shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                            </svg>
+                            A certificate for each course you complete
+                        </li>
+                        <li class="flex items-start gap-2 text-sm text-stone-600">
+                            <svg class="w-4 h-4 text-amber-600 shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                            </svg>
+                            Works out to R100 per course certificate
+                        </li>
+                    </ul>
+                    <a href="{% url 'shop:catalog' %}"
+                       class="block w-full text-center py-3 bg-amber-600 hover:bg-amber-500 text-white
+                              font-semibold rounded-xl transition-colors">
+                        Start the full pathway
+                    </a>
+                </div>
+
+                <div class="bg-white rounded-2xl border border-stone-200 shadow-sm p-8">
+                    <p class="text-sm font-medium text-stone-500 mb-2">Single course</p>
+                    <p class="font-serif text-5xl font-bold text-stone-900 mb-1">R250</p>
+                    <p class="text-sm text-stone-400 mb-6">per course</p>
+                    <ul class="space-y-3 mb-8">
+                        <li class="flex items-start gap-2 text-sm text-stone-600">
+                            <svg class="w-4 h-4 text-stone-400 shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                            </svg>
+                            Register for just one course at a time
+                        </li>
+                        <li class="flex items-start gap-2 text-sm text-stone-600">
+                            <svg class="w-4 h-4 text-stone-400 shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                            </svg>
+                            Certificate issued on completion
+                        </li>
+                        <li class="flex items-start gap-2 text-sm text-stone-600">
+                            <svg class="w-4 h-4 text-stone-400 shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                            </svg>
+                            Add more courses whenever you're ready
+                        </li>
+                    </ul>
+                    <a href="{% url 'shop:catalog' %}"
+                       class="block w-full text-center py-3 bg-stone-100 hover:bg-stone-200 text-stone-700
+                              font-semibold rounded-xl transition-colors">
+                        Browse single courses
+                    </a>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <section class="py-20 sm:py-24 bg-white border-t border-stone-200">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+
+            <div class="text-center max-w-xl mx-auto mb-14">
+                <span class="text-xs font-semibold uppercase tracking-wider text-amber-700">Pastoral development</span>
+                <h2 class="font-serif text-3xl sm:text-4xl font-bold text-stone-900 mt-2">
+                    Practical growth for real ministry
+                </h2>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+
+                <div class="text-center p-6 rounded-xl border border-stone-200 bg-stone-50">
+                    <div class="w-11 h-11 bg-amber-100 rounded-xl flex items-center justify-center mx-auto mb-4">
+                        <svg class="w-5 h-5 text-amber-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7h8m-8 5h8m-8 5h5M5 3h14a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2z"/>
+                        </svg>
+                    </div>
+                    <h3 class="font-semibold text-stone-900 mb-2 text-sm">Preaching &amp; Teaching</h3>
+                    <p class="text-xs text-stone-500 leading-relaxed">
+                        Sharpen how you study, prepare, and deliver God's word.
+                    </p>
+                </div>
+
+                <div class="text-center p-6 rounded-xl border border-stone-200 bg-stone-50">
+                    <div class="w-11 h-11 bg-amber-100 rounded-xl flex items-center justify-center mx-auto mb-4">
+                        <svg class="w-5 h-5 text-amber-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16.5 8.25a3.5 3.5 0 11-7 0 3.5 3.5 0 017 0zM5 20.25a7 7 0 1114 0H5z"/>
+                        </svg>
+                    </div>
+                    <h3 class="font-semibold text-stone-900 mb-2 text-sm">Pastoral Care &amp; Counselling</h3>
+                    <p class="text-xs text-stone-500 leading-relaxed">
+                        Walk alongside your congregation through real-life struggles.
+                    </p>
+                </div>
+
+                <div class="text-center p-6 rounded-xl border border-stone-200 bg-stone-50">
+                    <div class="w-11 h-11 bg-amber-100 rounded-xl flex items-center justify-center mx-auto mb-4">
+                        <svg class="w-5 h-5 text-amber-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2M5 21H3m4-14h2m-2 4h2m-2 4h2m6-8h2m-2 4h2m-2 4h2"/>
+                        </svg>
+                    </div>
+                    <h3 class="font-semibold text-stone-900 mb-2 text-sm">Church Leadership &amp; Administration</h3>
+                    <p class="text-xs text-stone-500 leading-relaxed">
+                        Lead and organise your church with wisdom and good order.
+                    </p>
+                </div>
+
+                <div class="text-center p-6 rounded-xl border border-stone-200 bg-stone-50">
+                    <div class="w-11 h-11 bg-amber-100 rounded-xl flex items-center justify-center mx-auto mb-4">
+                        <svg class="w-5 h-5 text-amber-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                    </div>
+                    <h3 class="font-semibold text-stone-900 mb-2 text-sm">Outreach &amp; Missions</h3>
+                    <p class="text-xs text-stone-500 leading-relaxed">
+                        Reach your community and beyond with the gospel.
+                    </p>
+                </div>
+
+            </div>
+        </div>
+    </section>
 
 
-<!-- ================================================================
-     FINAL CTA
-     ================================================================ -->
-<section class="relative py-24 overflow-hidden bg-[#0c0a06]">
-    <div class="hero-texture absolute inset-0 opacity-40"></div>
-    <div class="absolute inset-0 bg-gradient-to-br from-amber-950/30 via-transparent to-stone-950/50"></div>
-
-    <div class="relative max-w-3xl mx-auto px-4 sm:px-6 text-center sr">
-        <h2 class="text-4xl sm:text-5xl font-bold text-white mb-5 leading-tight">
-            Your congregation deserves<br>
-            <span class="gt">a trained leader.</span>
-        </h2>
-        <p class="text-stone-400 text-lg mb-10 max-w-xl mx-auto leading-relaxed">
-            Registration is free. Courses are available in English with African-contextualised content. All you need is a phone and a calling.
-        </p>
-        <div class="flex flex-wrap justify-center gap-4">
-            <a href="{% url 'accounts:register' %}"
-               class="inline-flex items-center gap-2 px-8 py-4 bg-amber-600 hover:bg-amber-500
-                      text-white font-bold text-lg rounded-xl shadow-xl shadow-amber-900/40
-                      transition-all hover:-translate-y-0.5">
-                Create your free account
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
-            </a>
-            <a href="{% url 'shop:catalog' %}"
-               class="inline-flex items-center gap-2 px-8 py-4 glass-warm border border-stone-700
-                      text-stone-300 font-semibold text-lg rounded-xl hover:border-amber-800/60
-                      hover:text-amber-300 transition-all">
-                Browse courses first
+    <section class="py-16 bg-stone-50 border-t border-stone-200">
+        <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <h2 class="font-serif text-2xl font-bold text-stone-900 mb-2">Questions?</h2>
+            <p class="text-stone-500 mb-4">
+                Get in touch and we'll help you find the right course.
+            </p>
+            <a href="mailto:snap@judeaharvest.co.za"
+               class="inline-flex items-center gap-2 text-amber-700 hover:text-amber-600 font-medium transition-colors">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                </svg>
+                snap@judeaharvest.co.za
             </a>
         </div>
-        <p class="text-stone-700 text-sm mt-8">
-            Questions? Contact us at <a href="mailto:info@judeaharvest.co.za" class="text-stone-500 hover:text-amber-700 transition-colors">info@judeaharvest.co.za</a>
-        </p>
-    </div>
-</section>
+    </section>
 
+    <section class="py-20 sm:py-24 bg-stone-900">
+        <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <h2 class="font-serif text-3xl sm:text-4xl font-bold text-white mb-4">
+                Ready to grow as a shepherd?
+            </h2>
+            <p class="text-stone-300 leading-relaxed mb-8">
+                Join church leaders across Africa being equipped to lead with wisdom and care.
+            </p>
+            <div class="flex flex-wrap items-center justify-center gap-3">
+                <a href="{% url 'accounts:register' %}"
+                   class="inline-flex items-center gap-2 px-7 py-3.5 bg-amber-600 hover:bg-amber-500
+                          text-white font-semibold rounded-xl transition-colors">
+                    Create your account
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
+                    </svg>
+                </a>
+                <a href="{% url 'shop:catalog' %}"
+                   class="inline-flex items-center gap-2 px-7 py-3.5 bg-transparent border border-stone-600
+                          text-stone-200 hover:border-stone-400 font-semibold rounded-xl transition-colors">
+                    View Courses
+                </a>
+            </div>
+        </div>
+    </section>
 
-<!-- ================================================================
-     JAVASCRIPT
-     ================================================================ -->
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-
-    const tw = document.getElementById('tw');
-    if (tw) {
-        const words = ['needs', 'is raising', 'deserves', 'is calling'];
-        let wi = 0, ci = 0, del = false;
-        function type() {
-            const w = words[wi % words.length];
-            tw.textContent = del ? w.slice(0, ci--) : w.slice(0, ci++);
-            let delay = del ? 55 : 95;
-            if (!del && ci > w.length) { delay = 2000; del = true; }
-            if (del && ci < 0) { del = false; wi++; ci = 0; delay = 450; }
-            setTimeout(type, delay);
-        }
-        type();
-    }
-
-    const obs = new IntersectionObserver(entries => {
-        entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
-    }, { threshold: 0.08, rootMargin: '0px 0px -50px 0px' });
-    document.querySelectorAll('.sr').forEach(el => obs.observe(el));
-
-});
-</script>
-
+</div>
 {% endblock %}
