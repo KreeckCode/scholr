@@ -14,3 +14,6 @@ staticfiles/
 celerybeat-schedule-wal
 *celerybeat-schedule-wal
 celerybeat-schedule-wal
+celerybeat-schedule
+.gitignore
+.DS_Store
