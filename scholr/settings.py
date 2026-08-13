@@ -1,6 +1,6 @@
 from pathlib import Path
 import os
-
+from django.core.exceptions import ImproperlyConfigured
 # Load environment variables from .env file
 from dotenv import load_dotenv
 load_dotenv()
@@ -84,23 +84,20 @@ SCHOLR_ACADEMICS_ENABLED = os.getenv('SCHOLR_ACADEMICS_ENABLED', 'True') == 'Tru
 # Use DATABASE_URL for easy configuration
 import dj_database_url
 
-if os.getenv('DATABASE_URL'):
-    # Production - PostgreSQL from environment
-    DATABASES = {
-        'default': dj_database_url.config(
-            default=os.getenv('DATABASE_URL'),
-            conn_max_age=600,
-            conn_health_checks=True,
-        )
-    }
+DATABASE_URL = os.getenv('DATABASE_URL')
+
+if DATABASE_URL:
+    DATABASES = {'default': dj_database_url.config(
+        default=DATABASE_URL, conn_max_age=600, conn_health_checks=True,
+    )}
+elif DEBUG:
+    # SQLite is only ever acceptable for local development
+    DATABASES = {'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+    }}
 else:
-    # Fallback to SQLite for local dev (should never happen in production)
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
-        }
-    }
+    raise ImproperlyConfigured('DATABASE_URL must be set when DEBUG is off.')
 
 # PASSWORD VALIDATION
 AUTH_PASSWORD_VALIDATORS = [
