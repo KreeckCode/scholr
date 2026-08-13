@@ -1,194 +1,457 @@
 {% extends 'base/base.html' %}
+{% load static %}
 
-{% block title %}Judea Snap Uplift Training Platform{% endblock %}
-{% block title_suffix %}Pastoral Development for Africa's Church Leaders{% endblock %}
-{% block meta_description %}Practical, affordable pastoral development for church leaders across Africa. Learn at your own pace and pay only when you're ready to claim your certificate.{% endblock %}
+{% block title %}SNAP Uplift{% endblock %}
+{% block title_suffix %}Training for the pastors of Judea Harvest SNAP churches{% endblock %}
+{% block meta_description %}A SNAP church goes up in a week. Growing the pastor inside it takes longer. Practical, affordable training for church leaders across Africa.{% endblock %}
 
 {% block content %}
-<div class="bg-stone-50">
 
-    <section class="relative overflow-hidden">
-        <div class="absolute -top-32 -right-32 w-[28rem] h-[28rem] rounded-full bg-amber-200/40 blur-3xl"></div>
-        <div class="absolute -bottom-24 -left-24 w-80 h-80 rounded-full bg-stone-200/60 blur-3xl"></div>
+{# I'm loading the type here. If base.html has an extra_head block, move these two links there. #}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 
-        <div class="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-16 sm:pt-28 sm:pb-24 text-center">
+<style>
+    /* Palette pulled from the Judea Harvest logo and site icons, not invented.
+       Navy from the logo tile, teal from the stat icons, orange from the swoosh. */
+    :root {
+        --snap-navy:        #0E1B33;
+        --snap-navy-deep:   #08111F;
+        --snap-navy-soft:   #1B2C4D;
+        --snap-teal:        #12A594;
+        --snap-teal-bright: #16C2AE;
+        --snap-orange:      #F26A21;
+        --snap-paper:       #EDF1F5;
+        --snap-slate:       #4A5A73;
+        --snap-line:        rgba(14, 27, 51, 0.10);
+    }
 
-            <span class="inline-block px-4 py-1.5 bg-white border border-amber-200 text-amber-800
-                         text-xs font-semibold uppercase tracking-wider rounded-full mb-6">
-                Judea Snap Uplift Training Platform
-            </span>
+    .snap-page          { font-family: 'Inter', system-ui, sans-serif; color: var(--snap-slate); }
+    .snap-display       { font-family: 'Poppins', system-ui, sans-serif; letter-spacing: -0.02em; }
+    .snap-eyebrow       { font-family: 'Poppins', sans-serif; font-weight: 600; font-size: 0.72rem;
+                          letter-spacing: 0.16em; text-transform: uppercase; }
 
-            <h1 class="font-serif text-4xl sm:text-5xl lg:text-6xl font-bold text-stone-900 mb-6 leading-tight">
-                Grow as a Shepherd,
-                <span class="block text-amber-700">grow the flock God gave you</span>
-            </h1>
+    .bg-navy            { background-color: var(--snap-navy); }
+    .bg-navy-deep       { background-color: var(--snap-navy-deep); }
+    .bg-paper           { background-color: var(--snap-paper); }
+    .bg-teal            { background-color: var(--snap-teal); }
+    .text-navy          { color: var(--snap-navy); }
+    .text-teal          { color: var(--snap-teal); }
+    .text-teal-bright   { color: var(--snap-teal-bright); }
+    .text-orange        { color: var(--snap-orange); }
+    .text-slate-body    { color: var(--snap-slate); }
+    .border-hair        { border-color: var(--snap-line); }
 
-            <p class="text-lg text-stone-600 leading-relaxed max-w-2xl mx-auto mb-10">
-                Practical pastoral development for church leaders across Africa. Learn at your
-                own pace, then pay only when you're ready to claim your certificate.
-            </p>
+    /* The signature moment: a rule that draws itself in as the section arrives,
+       echoing a SNAP panel being set in place. */
+    .snap-rule          { position: relative; height: 3px; width: 64px; background: var(--snap-line);
+                          overflow: hidden; border-radius: 2px; }
+    .snap-rule::after   { content: ''; position: absolute; inset: 0; background: var(--snap-orange);
+                          transform: scaleX(0); transform-origin: left;
+                          transition: transform 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) 0.15s; }
+    .is-visible .snap-rule::after { transform: scaleX(1); }
 
-            <div class="flex flex-wrap items-center justify-center gap-3 mb-10">
-                <a href="{% url 'shop:catalog' %}"
-                   class="inline-flex items-center gap-2 px-7 py-3.5 bg-amber-600 hover:bg-amber-500
-                          text-white font-semibold rounded-xl shadow-sm transition-colors">
-                    Browse Courses
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
-                    </svg>
-                </a>
-                <a href="{% url 'accounts:login' %}"
-                   class="text-sm text-stone-500 hover:text-stone-700 underline underline-offset-4 transition-colors">
-                    Already have an account? Sign in
-                </a>
+    /* Buttons */
+    .btn-primary        { background: var(--snap-teal); color: #fff; transition: background 0.2s, transform 0.2s; }
+    .btn-primary:hover  { background: var(--snap-teal-bright); transform: translateY(-1px); }
+    .btn-ghost          { border: 1px solid rgba(255,255,255,0.28); color: #E8EDF3; transition: border-color 0.2s, background 0.2s; }
+    .btn-ghost:hover    { border-color: rgba(255,255,255,0.6); background: rgba(255,255,255,0.06); }
+    .btn-solid-navy     { background: var(--snap-navy); color: #fff; transition: background 0.2s, transform 0.2s; }
+    .btn-solid-navy:hover { background: var(--snap-navy-soft); transform: translateY(-1px); }
+
+    /* Hero photograph with a navy scrim so the type stays readable over any image. */
+    .hero-frame         { position: relative; background-color: var(--snap-navy-deep); }
+    .hero-photo         { position: absolute; inset: 0; width: 100%; height: 100%;
+                          object-fit: cover; opacity: 0.42; }
+    .hero-scrim         { position: absolute; inset: 0;
+                          background: linear-gradient(105deg,
+                                      rgba(8,17,31,0.94) 0%,
+                                      rgba(8,17,31,0.80) 45%,
+                                      rgba(8,17,31,0.42) 100%); }
+
+    /* Track cards lead with a photograph, which is what the current page is missing. */
+    .track-card         { background: #fff; border: 1px solid var(--snap-line); border-radius: 1rem;
+                          overflow: hidden; transition: transform 0.25s, box-shadow 0.25s; }
+    .track-card:hover   { transform: translateY(-4px);
+                          box-shadow: 0 18px 40px -22px rgba(14,27,51,0.45); }
+    .track-photo        { aspect-ratio: 4 / 3; width: 100%; object-fit: cover;
+                          background-color: #D6DEE7; }
+
+    .photo-tile         { width: 100%; height: 100%; object-fit: cover; background-color: #D6DEE7; }
+
+    /* Scroll reveal. Everything sits visible by default so the page never depends on JS. */
+    .reveal             { opacity: 1; transform: none; }
+    .js-on .reveal      { opacity: 0; transform: translateY(18px);
+                          transition: opacity 0.6s ease, transform 0.6s cubic-bezier(0.2,0.8,0.2,1); }
+    .js-on .reveal.is-visible { opacity: 1; transform: none; }
+
+    @media (prefers-reduced-motion: reduce) {
+        .js-on .reveal, .js-on .reveal.is-visible { opacity: 1; transform: none; transition: none; }
+        .snap-rule::after { transition: none; transform: scaleX(1); }
+        .track-card:hover, .btn-primary:hover, .btn-solid-navy:hover { transform: none; }
+    }
+
+    /* Keyboard focus stays visible everywhere. */
+    .snap-page a:focus-visible,
+    .snap-page button:focus-visible { outline: 3px solid var(--snap-teal-bright); outline-offset: 3px; }
+</style>
+
+<div class="snap-page bg-white">
+
+    <section class="hero-frame">
+        <img src="{% static 'photos/congri.jpeg' %}"
+             alt=""
+             class="hero-photo"
+             aria-hidden="true">
+        <div class="hero-scrim"></div>
+
+        <div class="relative max-w-6xl mx-auto px-5 sm:px-8 pt-20 pb-16 sm:pt-28 sm:pb-24">
+            <div class="max-w-2xl">
+
+                <p class="snap-eyebrow text-teal-bright mb-6">Judea Harvest &middot; SNAP Uplift</p>
+
+                <h1 class="snap-display text-4xl sm:text-5xl lg:text-[3.4rem] font-bold text-white leading-[1.08] mb-6">
+                    A SNAP church goes up in a week.
+                    <span class="block text-teal-bright mt-2">Growing the pastor takes longer.</span>
+                </h1>
+
+                <p class="text-lg text-slate-200 leading-relaxed mb-9 max-w-xl">
+                    Judea Harvest has raised 292 SNAP church buildings across Africa. This is where
+                    the leaders inside them keep learning &mdash; preaching, pastoral care, running
+                    a church well. Study at your own pace, pay only when you claim your certificate.
+                </p>
+
+                <div class="flex flex-wrap items-center gap-3 mb-4">
+                    <a href="{% url 'accounts:register' %}"
+                       class="snap-display inline-flex items-center gap-2 px-7 py-3.5 rounded-xl font-semibold btn-primary">
+                        Start learning
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
+                        </svg>
+                    </a>
+                    <a href="{% url 'shop:catalog' %}"
+                       class="snap-display inline-flex items-center px-7 py-3.5 rounded-xl font-semibold btn-ghost">
+                        See the courses
+                    </a>
+                </div>
+
+                <p class="text-sm text-slate-400">
+                    Already registered?
+                    <a href="{% url 'accounts:login' %}" class="text-teal-bright underline underline-offset-4 hover:text-white transition-colors">Sign in</a>
+                </p>
             </div>
+        </div>
 
-            {# Trust row — only claims Dave can actually stand behind, no generic filler #}
-            <div class="flex flex-wrap items-center justify-center gap-x-8 gap-y-3 pt-8 border-t border-stone-200">
-                <div class="flex items-center gap-2 text-sm text-stone-500">
-                    <svg class="w-4 h-4 text-amber-600" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-                    </svg>
-                    Pay only for your certificate
-                </div>
-                <div class="flex items-center gap-2 text-sm text-stone-500">
-                    <svg class="w-4 h-4 text-amber-600" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-                    </svg>
-                    Learn at your own pace
-                </div>
-                <div class="flex items-center gap-2 text-sm text-stone-500">
-                    <svg class="w-4 h-4 text-amber-600" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-                    </svg>
-                    No credit card needed — simple bank transfer
-                </div>
+        <!-- The real Judea Harvest numbers. These carry more weight than any stock claim. -->
+        <div class="relative border-t" style="border-color: rgba(255,255,255,0.12);">
+            <div class="max-w-6xl mx-auto px-5 sm:px-8">
+                <dl class="grid grid-cols-3 divide-x" style="border-color: rgba(255,255,255,0.12);">
+                    <div class="py-6 pr-4 sm:py-8">
+                        <dt class="snap-display text-2xl sm:text-3xl font-bold text-white">292</dt>
+                        <dd class="text-xs sm:text-sm text-slate-400 mt-1">SNAP churches planted</dd>
+                    </div>
+                    <div class="py-6 px-4 sm:py-8" style="border-color: rgba(255,255,255,0.12);">
+                        <dt class="snap-display text-2xl sm:text-3xl font-bold text-white">22,372<span class="text-teal-bright">+</span></dt>
+                        <dd class="text-xs sm:text-sm text-slate-400 mt-1">Tent gatherings held</dd>
+                    </div>
+                    <div class="py-6 pl-4 sm:py-8" style="border-color: rgba(255,255,255,0.12);">
+                        <dt class="snap-display text-2xl sm:text-3xl font-bold text-white">24</dt>
+                        <dd class="text-xs sm:text-sm text-slate-400 mt-1">Hope Community Centres</dd>
+                    </div>
+                </dl>
             </div>
-
         </div>
     </section>
 
-    <section class="py-20 sm:py-24 bg-white border-t border-stone-200">
-        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
 
-            <div class="text-center max-w-xl mx-auto mb-14">
-                <span class="text-xs font-semibold uppercase tracking-wider text-amber-700">Getting started</span>
-                <h2 class="font-serif text-3xl sm:text-4xl font-bold text-stone-900 mt-2">
-                    Three simple steps
-                </h2>
-            </div>
+    <!-- ============================================================
+         WHO THIS IS FOR
+         Text on the left, a photograph cluster on the right.
+         ============================================================ -->
+    <section class="py-20 sm:py-28 bg-white">
+        <div class="max-w-6xl mx-auto px-5 sm:px-8">
+            <div class="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
 
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-8">
-
-                <div class="text-center">
-                    <div class="w-12 h-12 rounded-full bg-amber-600 text-white font-serif text-lg font-bold
-                                flex items-center justify-center mx-auto mb-5">1</div>
-                    <h3 class="font-semibold text-stone-900 mb-2">Create your account</h3>
-                    <p class="text-sm text-stone-500 leading-relaxed">
-                        Sign up in a couple of minutes and browse the full course list straight away.
+                <div class="reveal">
+                    <div class="snap-rule mb-7"></div>
+                    <h2 class="snap-display text-3xl sm:text-4xl font-bold text-navy leading-tight mb-6">
+                        Built for the pastor already doing the work
+                    </h2>
+                    <p class="text-base leading-relaxed mb-5">
+                        Most of the leaders we train were called into ministry long before anyone
+                        offered them a classroom. They are preaching every Sunday, sitting with
+                        grieving families on Tuesday, and keeping the lights on the rest of the week.
                     </p>
+                    <p class="text-base leading-relaxed mb-8">
+                        SNAP Uplift fits around that. Short courses you can work through on a phone,
+                        in your own time, with no deadline pushing you. Nothing to pay until you have
+                        finished and want the certificate in your hand.
+                    </p>
+
+                    <ul class="space-y-3">
+                        <li class="flex items-start gap-3">
+                            <span class="mt-1.5 w-1.5 h-1.5 rounded-full bg-teal shrink-0"></span>
+                            <span class="text-sm">Works on a low-cost phone and a slow connection</span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <span class="mt-1.5 w-1.5 h-1.5 rounded-full bg-teal shrink-0"></span>
+                            <span class="text-sm">No card required &mdash; pay by bank transfer</span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <span class="mt-1.5 w-1.5 h-1.5 rounded-full bg-teal shrink-0"></span>
+                            <span class="text-sm">Start and stop whenever ministry demands it</span>
+                        </li>
+                    </ul>
                 </div>
 
-                <div class="text-center">
-                    <div class="w-12 h-12 rounded-full bg-amber-600 text-white font-serif text-lg font-bold
-                                flex items-center justify-center mx-auto mb-5">2</div>
-                    <h3 class="font-semibold text-stone-900 mb-2">Choose your course</h3>
-                    <p class="text-sm text-stone-500 leading-relaxed">
-                        Work through one course at a time, or commit to the full pathway from the start.
-                    </p>
-                </div>
-
-                <div class="text-center">
-                    <div class="w-12 h-12 rounded-full bg-amber-600 text-white font-serif text-lg font-bold
-                                flex items-center justify-center mx-auto mb-5">3</div>
-                    <h3 class="font-semibold text-stone-900 mb-2">Pay for your certificate</h3>
-                    <p class="text-sm text-stone-500 leading-relaxed">
-                        Once you've completed a course, pay by EFT to receive your official certificate.
-                    </p>
+                <!-- A three-photo cluster. This is the section that fixes the "no images" note. -->
+                <div class="reveal grid grid-cols-2 gap-4 h-[420px] sm:h-[480px]">
+                    <div class="rounded-2xl overflow-hidden row-span-2">
+                        <img src="{% static 'photos/photo7.jpg' %}"
+                             alt="A pastor teaching a group under a Judea Harvest tent"
+                             class="photo-tile" loading="lazy">
+                    </div>
+                    <div class="rounded-2xl overflow-hidden">
+                        <img src="{% static 'photos/photo3.jpg' %}"
+                             alt="A completed SNAP church building"
+                             class="photo-tile" loading="lazy">
+                    </div>
+                    <div class="rounded-2xl overflow-hidden">
+                        <img src="{% static 'photos/photo4.jpg' %}"
+                             alt="A congregation gathered outside their new church"
+                             class="photo-tile" loading="lazy">
+                    </div>
                 </div>
 
             </div>
         </div>
     </section>
 
- 
-    <section class="py-20 sm:py-24 bg-stone-50 border-t border-stone-200">
-        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
 
-            <div class="text-center max-w-xl mx-auto mb-14">
-                <span class="text-xs font-semibold uppercase tracking-wider text-amber-700">Pricing</span>
-                <h2 class="font-serif text-3xl sm:text-4xl font-bold text-stone-900 mt-2 mb-3">
-                    Honest, simple pricing
+
+    <section class="py-20 sm:py-28 bg-paper">
+        <div class="max-w-6xl mx-auto px-5 sm:px-8">
+
+            <div class="reveal max-w-2xl mb-14">
+                <div class="snap-rule mb-7"></div>
+                <h2 class="snap-display text-3xl sm:text-4xl font-bold text-navy leading-tight mb-4">
+                    Four areas of ministry
                 </h2>
-                
-                <p class="text-stone-500 leading-relaxed">
-                    Course access doesn't cost anything — you only pay when you're ready
-                    to claim your certificate.
+                <p class="text-base leading-relaxed">
+                    Every course sits in one of these. Take them in any order, or work through
+                    the whole pathway from the beginning.
                 </p>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
 
-                <div class="bg-white rounded-2xl border-2 border-amber-600 shadow-sm p-8 relative">
-                    <span class="absolute -top-3 left-8 px-3 py-1 bg-amber-600 text-white text-xs
-                                 font-semibold rounded-full">Best value</span>
-                    <p class="text-sm font-medium text-stone-500 mb-2">Full pathway</p>
-                    <p class="font-serif text-5xl font-bold text-stone-900 mb-1">R600</p>
-                    <p class="text-sm text-stone-400 mb-6">for the whole programme</p>
+                <article class="reveal track-card">
+                    <img src="{% static 'photos/photo5.jpg' %}"
+                         alt="A pastor preaching from an open Bible"
+                         class="track-photo" loading="lazy">
+                    <div class="p-6">
+                        <h3 class="snap-display font-semibold text-navy mb-2">Preaching and teaching</h3>
+                        <p class="text-sm leading-relaxed">
+                            How to study a passage, build a sermon around it, and hold a room
+                            while you deliver it.
+                        </p>
+                    </div>
+                </article>
+
+                <article class="reveal track-card">
+                    <img src="{% static 'photos/photo4.jpg' %}"
+                         alt="Two people talking together in a pastoral conversation"
+                         class="track-photo" loading="lazy">
+                    <div class="p-6">
+                        <h3 class="snap-display font-semibold text-navy mb-2">Pastoral care</h3>
+                        <p class="text-sm leading-relaxed">
+                            Sitting with people through grief, illness, conflict and marriage
+                            without carrying it all yourself.
+                        </p>
+                    </div>
+                </article>
+
+                <article class="reveal track-card">
+                    <img src="{% static 'photos/photo.avif' %}"
+                         alt="Church leaders meeting around a table"
+                         class="track-photo" loading="lazy">
+                    <div class="p-6">
+                        <h3 class="snap-display font-semibold text-navy mb-2">Leading a church</h3>
+                        <p class="text-sm leading-relaxed">
+                            Money, records, teams and governance. The unglamorous work that keeps
+                            a congregation standing.
+                        </p>
+                    </div>
+                </article>
+
+                <article class="reveal track-card">
+                    <img src="{% static 'photos/photo7.jpg' %}"
+                         alt="An outreach gathering in a community"
+                         class="track-photo" loading="lazy">
+                    <div class="p-6">
+                        <h3 class="snap-display font-semibold text-navy mb-2">Outreach and missions</h3>
+                        <p class="text-sm leading-relaxed">
+                            Reaching the community around your building, and planting further
+                            than it.
+                        </p>
+                    </div>
+                </article>
+
+            </div>
+        </div>
+    </section>
+
+
+    <section class="py-20 sm:py-28 bg-white">
+        <div class="max-w-5xl mx-auto px-5 sm:px-8">
+
+            <div class="reveal max-w-2xl mb-14">
+                <div class="snap-rule mb-7"></div>
+                <h2 class="snap-display text-3xl sm:text-4xl font-bold text-navy leading-tight">
+                    Three steps, in order
+                </h2>
+            </div>
+
+            <ol class="grid sm:grid-cols-3 gap-10 sm:gap-8">
+                <li class="reveal">
+                    <span class="snap-display block text-5xl font-bold text-orange mb-4 leading-none">01</span>
+                    <h3 class="snap-display font-semibold text-navy mb-2">Create your account</h3>
+                    <p class="text-sm leading-relaxed">
+                        A name, a phone number and two minutes. The full course list opens
+                        straight afterwards.
+                    </p>
+                </li>
+                <li class="reveal">
+                    <span class="snap-display block text-5xl font-bold text-orange mb-4 leading-none">02</span>
+                    <h3 class="snap-display font-semibold text-navy mb-2">Work through a course</h3>
+                    <p class="text-sm leading-relaxed">
+                        One at a time or the whole pathway. Your progress is saved, so you can
+                        stop and come back.
+                    </p>
+                </li>
+                <li class="reveal">
+                    <span class="snap-display block text-5xl font-bold text-orange mb-4 leading-none">03</span>
+                    <h3 class="snap-display font-semibold text-navy mb-2">Claim your certificate</h3>
+                    <p class="text-sm leading-relaxed">
+                        Once a course is finished, pay by bank transfer and we issue your
+                        certificate.
+                    </p>
+                </li>
+            </ol>
+        </div>
+    </section>
+
+
+  
+    <section class="py-20 sm:py-24 bg-navy">
+        <div class="max-w-5xl mx-auto px-5 sm:px-8">
+            <div class="reveal grid md:grid-cols-3 gap-10 items-center">
+
+                <div class="md:col-span-1">
+                    <div class="rounded-2xl overflow-hidden aspect-square max-w-[240px]">
+                        <img src="{% static 'photos/kola.jpeg' %}"
+                             alt="Portrait of a SNAP church pastor"
+                             class="photo-tile" loading="lazy">
+                    </div>
+                </div>
+
+                <blockquote class="md:col-span-2">
+                    <p class="snap-display text-xl sm:text-2xl text-white leading-snug mb-6">
+                        &ldquo;Devote yourselves to prayer, being watchful and thankful.&rdquo;
+                    </p>
+                    <footer class="text-sm text-slate-400">
+                        <span class="text-teal-bright font-medium">Dr Kola De Klerk</span>
+                        &nbsp;&middot;&nbsp; Judea Harvest
+                    </footer>
+                </blockquote>
+
+            </div>
+        </div>
+    </section>
+
+
+    <!-- ============================================================
+         PRICING
+         ============================================================ -->
+    <section class="py-20 sm:py-28 bg-paper">
+        <div class="max-w-4xl mx-auto px-5 sm:px-8">
+
+            <div class="reveal max-w-2xl mb-12">
+                <div class="snap-rule mb-7"></div>
+                <h2 class="snap-display text-3xl sm:text-4xl font-bold text-navy leading-tight mb-4">
+                    You pay for the certificate, not the course
+                </h2>
+                <p class="text-base leading-relaxed">
+                    Studying costs nothing. The fee only applies when you have finished and want
+                    your completion recognised on paper.
+                </p>
+            </div>
+
+            <div class="reveal grid sm:grid-cols-2 gap-6">
+
+                <div class="bg-white rounded-2xl p-8 border-2 relative" style="border-color: var(--snap-teal);">
+                    <span class="snap-eyebrow absolute -top-3 left-8 px-3 py-1 bg-teal text-white rounded-full"
+                          style="font-size: 0.65rem;">Best value</span>
+                    <p class="text-sm font-medium mb-2">Full pathway</p>
+                    <p class="snap-display text-5xl font-bold text-navy mb-1">R900</p>
+                    <p class="text-sm text-slate-400 mb-7">Every course, every certificate</p>
+
                     <ul class="space-y-3 mb-8">
-                        <li class="flex items-start gap-2 text-sm text-stone-600">
-                            <svg class="w-4 h-4 text-amber-600 shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                        <li class="flex items-start gap-2.5 text-sm">
+                            <svg class="w-4 h-4 text-teal shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
                                 <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
                             </svg>
                             Every course in the pathway
                         </li>
-                        <li class="flex items-start gap-2 text-sm text-stone-600">
-                            <svg class="w-4 h-4 text-amber-600 shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                        <li class="flex items-start gap-2.5 text-sm">
+                            <svg class="w-4 h-4 text-teal shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
                                 <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
                             </svg>
-                            A certificate for each course you complete
+                            A certificate for each one you complete
                         </li>
-                        <li class="flex items-start gap-2 text-sm text-stone-600">
-                            <svg class="w-4 h-4 text-amber-600 shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                        <li class="flex items-start gap-2.5 text-sm">
+                            <svg class="w-4 h-4 text-teal shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
                                 <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
                             </svg>
-                            Works out to R100 per course certificate
+                            Works out at R100 a certificate
                         </li>
                     </ul>
+
                     <a href="{% url 'shop:catalog' %}"
-                       class="block w-full text-center py-3 bg-amber-600 hover:bg-amber-500 text-white
-                              font-semibold rounded-xl transition-colors">
+                       class="snap-display block w-full text-center py-3 rounded-xl font-semibold btn-primary">
                         Start the full pathway
                     </a>
                 </div>
 
-                <div class="bg-white rounded-2xl border border-stone-200 shadow-sm p-8">
-                    <p class="text-sm font-medium text-stone-500 mb-2">Single course</p>
-                    <p class="font-serif text-5xl font-bold text-stone-900 mb-1">R250</p>
-                    <p class="text-sm text-stone-400 mb-6">per course</p>
+                <div class="bg-white rounded-2xl p-8 border border-hair">
+                    <p class="text-sm font-medium mb-2">Single course</p>
+                    <p class="snap-display text-5xl font-bold text-navy mb-1">R250</p>
+                    <p class="text-sm text-slate-400 mb-7">One certificate</p>
+
                     <ul class="space-y-3 mb-8">
-                        <li class="flex items-start gap-2 text-sm text-stone-600">
-                            <svg class="w-4 h-4 text-stone-400 shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                        <li class="flex items-start gap-2.5 text-sm">
+                            <svg class="w-4 h-4 text-slate-400 shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
                                 <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
                             </svg>
-                            Register for just one course at a time
+                            Register for one course at a time
                         </li>
-                        <li class="flex items-start gap-2 text-sm text-stone-600">
-                            <svg class="w-4 h-4 text-stone-400 shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                        <li class="flex items-start gap-2.5 text-sm">
+                            <svg class="w-4 h-4 text-slate-400 shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
                                 <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
                             </svg>
                             Certificate issued on completion
                         </li>
-                        <li class="flex items-start gap-2 text-sm text-stone-600">
-                            <svg class="w-4 h-4 text-stone-400 shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                        <li class="flex items-start gap-2.5 text-sm">
+                            <svg class="w-4 h-4 text-slate-400 shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
                                 <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
                             </svg>
-                            Add more courses whenever you're ready
+                            Add more courses whenever you are ready
                         </li>
                     </ul>
+
                     <a href="{% url 'shop:catalog' %}"
-                       class="block w-full text-center py-3 bg-stone-100 hover:bg-stone-200 text-stone-700
-                              font-semibold rounded-xl transition-colors">
+                       class="snap-display block w-full text-center py-3 rounded-xl font-semibold btn-solid-navy">
                         Browse single courses
                     </a>
                 </div>
@@ -197,112 +460,67 @@
         </div>
     </section>
 
-    <section class="py-20 sm:py-24 bg-white border-t border-stone-200">
-        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
 
-            <div class="text-center max-w-xl mx-auto mb-14">
-                <span class="text-xs font-semibold uppercase tracking-wider text-amber-700">Pastoral development</span>
-                <h2 class="font-serif text-3xl sm:text-4xl font-bold text-stone-900 mt-2">
-                    Practical growth for real ministry
-                </h2>
-            </div>
+    <!-- ============================================================
+         CLOSING CALL TO ACTION
+         ============================================================ -->
+    <section class="hero-frame">
+        <img src="{% static 'images/snap/cta-band.jpg' %}"
+             alt=""
+             class="hero-photo"
+             aria-hidden="true">
+        <div class="hero-scrim"></div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-
-                <div class="text-center p-6 rounded-xl border border-stone-200 bg-stone-50">
-                    <div class="w-11 h-11 bg-amber-100 rounded-xl flex items-center justify-center mx-auto mb-4">
-                        <svg class="w-5 h-5 text-amber-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7h8m-8 5h8m-8 5h5M5 3h14a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2z"/>
-                        </svg>
-                    </div>
-                    <h3 class="font-semibold text-stone-900 mb-2 text-sm">Preaching &amp; Teaching</h3>
-                    <p class="text-xs text-stone-500 leading-relaxed">
-                        Sharpen how you study, prepare, and deliver God's word.
-                    </p>
-                </div>
-
-                <div class="text-center p-6 rounded-xl border border-stone-200 bg-stone-50">
-                    <div class="w-11 h-11 bg-amber-100 rounded-xl flex items-center justify-center mx-auto mb-4">
-                        <svg class="w-5 h-5 text-amber-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16.5 8.25a3.5 3.5 0 11-7 0 3.5 3.5 0 017 0zM5 20.25a7 7 0 1114 0H5z"/>
-                        </svg>
-                    </div>
-                    <h3 class="font-semibold text-stone-900 mb-2 text-sm">Pastoral Care &amp; Counselling</h3>
-                    <p class="text-xs text-stone-500 leading-relaxed">
-                        Walk alongside your congregation through real-life struggles.
-                    </p>
-                </div>
-
-                <div class="text-center p-6 rounded-xl border border-stone-200 bg-stone-50">
-                    <div class="w-11 h-11 bg-amber-100 rounded-xl flex items-center justify-center mx-auto mb-4">
-                        <svg class="w-5 h-5 text-amber-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2M5 21H3m4-14h2m-2 4h2m-2 4h2m6-8h2m-2 4h2m-2 4h2"/>
-                        </svg>
-                    </div>
-                    <h3 class="font-semibold text-stone-900 mb-2 text-sm">Church Leadership &amp; Administration</h3>
-                    <p class="text-xs text-stone-500 leading-relaxed">
-                        Lead and organise your church with wisdom and good order.
-                    </p>
-                </div>
-
-                <div class="text-center p-6 rounded-xl border border-stone-200 bg-stone-50">
-                    <div class="w-11 h-11 bg-amber-100 rounded-xl flex items-center justify-center mx-auto mb-4">
-                        <svg class="w-5 h-5 text-amber-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                        </svg>
-                    </div>
-                    <h3 class="font-semibold text-stone-900 mb-2 text-sm">Outreach &amp; Missions</h3>
-                    <p class="text-xs text-stone-500 leading-relaxed">
-                        Reach your community and beyond with the gospel.
-                    </p>
-                </div>
-
-            </div>
-        </div>
-    </section>
-
-
-    <section class="py-16 bg-stone-50 border-t border-stone-200">
-        <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <h2 class="font-serif text-2xl font-bold text-stone-900 mb-2">Questions?</h2>
-            <p class="text-stone-500 mb-4">
-                Get in touch and we'll help you find the right course.
-            </p>
-            <a href="mailto:snap@judeaharvest.co.za"
-               class="inline-flex items-center gap-2 text-amber-700 hover:text-amber-600 font-medium transition-colors">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
-                </svg>
-                snap@judeaharvest.co.za
-            </a>
-        </div>
-    </section>
-
-    <section class="py-20 sm:py-24 bg-stone-900">
-        <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <h2 class="font-serif text-3xl sm:text-4xl font-bold text-white mb-4">
-                Ready to grow as a shepherd?
+        <div class="relative max-w-3xl mx-auto px-5 sm:px-8 py-24 sm:py-32 text-center">
+            <h2 class="snap-display text-3xl sm:text-4xl font-bold text-white leading-tight mb-5">
+                The building is standing. Keep growing into it.
             </h2>
-            <p class="text-stone-300 leading-relaxed mb-8">
-                Join church leaders across Africa being equipped to lead with wisdom and care.
+            <p class="text-slate-300 leading-relaxed mb-9 max-w-xl mx-auto">
+                Join the church leaders across Africa being equipped through Judea Harvest.
             </p>
-            <div class="flex flex-wrap items-center justify-center gap-3">
+
+            <div class="flex flex-wrap items-center justify-center gap-3 mb-10">
                 <a href="{% url 'accounts:register' %}"
-                   class="inline-flex items-center gap-2 px-7 py-3.5 bg-amber-600 hover:bg-amber-500
-                          text-white font-semibold rounded-xl transition-colors">
+                   class="snap-display inline-flex items-center gap-2 px-7 py-3.5 rounded-xl font-semibold btn-primary">
                     Create your account
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
                     </svg>
                 </a>
                 <a href="{% url 'shop:catalog' %}"
-                   class="inline-flex items-center gap-2 px-7 py-3.5 bg-transparent border border-stone-600
-                          text-stone-200 hover:border-stone-400 font-semibold rounded-xl transition-colors">
-                    View Courses
+                   class="snap-display inline-flex items-center px-7 py-3.5 rounded-xl font-semibold btn-ghost">
+                    View courses
                 </a>
             </div>
+
+            <p class="text-sm text-slate-400">
+                Questions?
+                <a href="mailto:snap@judeaharvest.co.za"
+                   class="text-teal-bright underline underline-offset-4 hover:text-white transition-colors">snap@judeaharvest.co.za</a>
+            </p>
         </div>
     </section>
 
 </div>
+
+<script>
+    (function () {
+        var root = document.querySelector('.snap-page');
+        if (!root || !('IntersectionObserver' in window)) { return; }
+
+        root.classList.add('js-on');
+
+        var observer = new IntersectionObserver(function (entries) {
+            entries.forEach(function (entry) {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('is-visible');
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.12, rootMargin: '0px 0px -60px 0px' });
+
+        root.querySelectorAll('.reveal').forEach(function (el) { observer.observe(el); });
+    })();
+</script>
+
 {% endblock %}
