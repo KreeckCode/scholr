@@ -2,238 +2,322 @@
 {% load shop_tags %}
 
 {% block title %}Checkout{% endblock %}
-{% block title_suffix %}Judea Harvest{% endblock %}
+{% block title_suffix %}SNAP Uplift — Judea Harvest{% endblock %}
 
 {% block content %}
-<div class="min-h-screen bg-stone-50">
+
+{# Tokens repeated here so the page stands alone. Once these live in base.html head, delete this block. #}
+<style>
+    :root {
+        --snap-navy:        #0E1B33;
+        --snap-teal:        #12A594;
+        --snap-teal-bright: #16C2AE;
+        --snap-teal-deep:   #0C7A6D;
+        --snap-paper:       #EDF1F5;
+        --snap-slate:       #4A5A73;
+        --snap-muted:       #8494A8;
+        --snap-line:        rgba(14, 27, 51, 0.10);
+    }
+
+    .snap-checkout          { font-family: 'Inter', system-ui, sans-serif; color: var(--snap-slate); }
+    .snap-display           { font-family: 'Poppins', system-ui, sans-serif; letter-spacing: -0.02em; }
+
+    .snap-bg-paper          { background: var(--snap-paper); }
+    .snap-text-navy         { color: var(--snap-navy); }
+    .snap-text-muted        { color: var(--snap-muted); }
+    .snap-text-teal-deep    { color: var(--snap-teal-deep); }
+    .snap-card              { background: #fff; border: 1px solid var(--snap-line); }
+    .snap-rule              { border-top: 1px solid var(--snap-line); }
+    .snap-rule-b            { border-bottom: 1px solid var(--snap-line); }
+
+    /* Every widget styled from here, so the page holds together
+       regardless of what forms.py puts on each field. */
+    .snap-checkout input[type="text"],
+    .snap-checkout input[type="email"],
+    .snap-checkout input[type="tel"],
+    .snap-checkout select,
+    .snap-checkout textarea {
+        width: 100%;
+        background: #fff;
+        border: 1px solid var(--snap-line);
+        border-radius: 0.75rem;
+        padding: 0.625rem 0.875rem;
+        font-size: 0.875rem;
+        color: var(--snap-navy);
+        outline: none;
+        transition: border-color 0.18s, box-shadow 0.18s;
+    }
+    .snap-checkout select {
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' stroke='%238494A8' stroke-width='2' viewBox='0 0 24 24'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 0.75rem center;
+        background-size: 1rem;
+        padding-right: 2.25rem;
+    }
+    .snap-checkout textarea { min-height: 5.5rem; resize: vertical; }
+    .snap-checkout input:focus,
+    .snap-checkout select:focus,
+    .snap-checkout textarea:focus {
+        border-color: var(--snap-teal);
+        box-shadow: 0 0 0 3px rgba(18, 165, 148, 0.14);
+    }
+    .snap-checkout input::placeholder,
+    .snap-checkout textarea::placeholder { color: var(--snap-muted); }
+
+    .snap-checkout input[type="checkbox"] {
+        width: 1.05rem; height: 1.05rem; margin-top: 0.15rem;
+        accent-color: var(--snap-teal); flex-shrink: 0; cursor: pointer;
+    }
+
+    .snap-field-label       { font-size: 0.875rem; font-weight: 500; color: var(--snap-navy); }
+    .snap-req               { color: #DC2626; }
+    .snap-help              { font-size: 0.75rem; color: var(--snap-muted); }
+    .snap-error             { font-size: 0.75rem; color: #DC2626; }
+
+    .snap-btn-teal          { background: var(--snap-teal); color: #fff; transition: background 0.2s, box-shadow 0.2s; }
+    .snap-btn-teal:hover    { background: var(--snap-teal-bright); box-shadow: 0 10px 24px -12px rgba(18,165,148,0.9); }
+
+    .snap-btn-quiet         { background: var(--snap-paper); color: var(--snap-slate);
+                              transition: background 0.18s, color 0.18s; }
+    .snap-btn-quiet:hover   { background: #E2E8EE; color: var(--snap-navy); }
+
+    .snap-avatar            { background: var(--snap-navy); }
+
+    .snap-checkout a:focus-visible,
+    .snap-checkout button:focus-visible { outline: 3px solid var(--snap-teal); outline-offset: 2px; }
+</style>
+
+<div class="snap-checkout min-h-screen snap-bg-paper">
     <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
 
-        <h1 class="text-3xl font-bold text-stone-900 mb-8">Checkout</h1>
+        <h1 class="snap-display text-3xl font-bold snap-text-navy mb-8">Checkout</h1>
+
+        {# A single summary at the top, so errors further down the form are never missed #}
+        {% if form.errors %}
+        <div class="rounded-2xl p-4 mb-6" style="background: #FEF2F2; border: 1px solid #FECACA;">
+            <p class="text-sm font-medium" style="color: #B91C1C;">
+                Some details need fixing before you can continue. They are marked below.
+            </p>
+            {% if form.non_field_errors %}
+            <p class="text-sm mt-1" style="color: #B91C1C;">{{ form.non_field_errors.0 }}</p>
+            {% endif %}
+        </div>
+        {% endif %}
 
         <form method="post" class="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {% csrf_token %}
 
-            <!-- Left: Form -->
+            <!-- ===== Left: details ===== -->
             <div class="lg:col-span-2 space-y-6">
 
                 {% if not user_authenticated %}
-                <!-- Guest: Customer Information -->
-                <div class="bg-white rounded-2xl border border-stone-200/60 shadow-sm p-6">
-                    <h2 class="text-xl font-semibold text-stone-900 mb-6">Your Information</h2>
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="snap-card rounded-2xl shadow-sm p-6">
+                    <h2 class="snap-display text-xl font-semibold snap-text-navy mb-6">Your details</h2>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
 
                         <div>
-                            <label class="block text-sm font-medium text-stone-700 mb-2">
-                                First Name <span class="text-red-500">*</span>
+                            <label for="{{ form.first_name.id_for_label }}" class="snap-field-label block mb-2">
+                                First name <span class="snap-req">*</span>
                             </label>
                             {{ form.first_name }}
                             {% if form.first_name.errors %}
-                            <p class="mt-1 text-xs text-red-500">{{ form.first_name.errors.0 }}</p>
+                            <p class="snap-error mt-1">{{ form.first_name.errors.0 }}</p>
                             {% endif %}
                         </div>
 
                         <div>
-                            <label class="block text-sm font-medium text-stone-700 mb-2">
-                                Last Name <span class="text-red-500">*</span>
+                            <label for="{{ form.last_name.id_for_label }}" class="snap-field-label block mb-2">
+                                Last name <span class="snap-req">*</span>
                             </label>
                             {{ form.last_name }}
                             {% if form.last_name.errors %}
-                            <p class="mt-1 text-xs text-red-500">{{ form.last_name.errors.0 }}</p>
+                            <p class="snap-error mt-1">{{ form.last_name.errors.0 }}</p>
                             {% endif %}
                         </div>
 
                         <div>
-                            <label class="block text-sm font-medium text-stone-700 mb-2">
-                                Email Address
-                            </label>
-                            {{ form.email }}
-                            {% if form.email.errors %}
-                            <p class="mt-1 text-xs text-red-500">{{ form.email.errors.0 }}</p>
-                            {% endif %}
-                            {% if form.email.help_text %}
-                            <p class="mt-1 text-xs text-stone-400">{{ form.email.help_text }}</p>
-                            {% endif %}
-                        </div>
-
-                        <div>
-                            <label class="block text-sm font-medium text-stone-700 mb-2">
-                                Phone Number <span class="text-red-500">*</span>
+                            <label for="{{ form.phone_number.id_for_label }}" class="snap-field-label block mb-2">
+                                Phone number <span class="snap-req">*</span>
                             </label>
                             {{ form.phone_number }}
                             {% if form.phone_number.errors %}
-                            <p class="mt-1 text-xs text-red-500">{{ form.phone_number.errors.0 }}</p>
-                            {% endif %}
-                            {% if form.phone_number.help_text %}
-                            <p class="mt-1 text-xs text-stone-400">{{ form.phone_number.help_text }}</p>
+                            <p class="snap-error mt-1">{{ form.phone_number.errors.0 }}</p>
+                            {% elif form.phone_number.help_text %}
+                            <p class="snap-help mt-1">{{ form.phone_number.help_text }}</p>
                             {% endif %}
                         </div>
 
                         <div>
-                            <label class="block text-sm font-medium text-stone-700 mb-2">
-                                Country <span class="text-red-500">*</span>
+                            <label for="{{ form.email.id_for_label }}" class="snap-field-label block mb-2">
+                                Email address
+                            </label>
+                            {{ form.email }}
+                            {% if form.email.errors %}
+                            <p class="snap-error mt-1">{{ form.email.errors.0 }}</p>
+                            {% elif form.email.help_text %}
+                            <p class="snap-help mt-1">{{ form.email.help_text }}</p>
+                            {% endif %}
+                        </div>
+
+                        <div>
+                            <label for="{{ form.country.id_for_label }}" class="snap-field-label block mb-2">
+                                Country <span class="snap-req">*</span>
                             </label>
                             {{ form.country }}
                             {% if form.country.errors %}
-                            <p class="mt-1 text-xs text-red-500">{{ form.country.errors.0 }}</p>
+                            <p class="snap-error mt-1">{{ form.country.errors.0 }}</p>
                             {% endif %}
                         </div>
 
                         <div>
-                            <label class="block text-sm font-medium text-stone-700 mb-2">
-                                Church Name
+                            <label for="{{ form.church_name.id_for_label }}" class="snap-field-label block mb-2">
+                                Church name
                             </label>
                             {{ form.church_name }}
                             {% if form.church_name.errors %}
-                            <p class="mt-1 text-xs text-red-500">{{ form.church_name.errors.0 }}</p>
+                            <p class="snap-error mt-1">{{ form.church_name.errors.0 }}</p>
                             {% endif %}
                         </div>
 
                     </div>
 
                     <div class="mt-5">
-                        <label class="block text-sm font-medium text-stone-700 mb-2">
-                            Additional Notes
+                        <label for="{{ form.customer_notes.id_for_label }}" class="snap-field-label block mb-2">
+                            Anything we should know? <span class="snap-text-muted font-normal">(optional)</span>
                         </label>
                         {{ form.customer_notes }}
                         {% if form.customer_notes.errors %}
-                        <p class="mt-1 text-xs text-red-500">{{ form.customer_notes.errors.0 }}</p>
+                        <p class="snap-error mt-1">{{ form.customer_notes.errors.0 }}</p>
                         {% endif %}
                     </div>
                 </div>
 
-                <!-- Terms -->
-                <div class="bg-white rounded-2xl border border-stone-200/60 shadow-sm p-6">
+                <div class="snap-card rounded-2xl shadow-sm p-6">
                     <div class="flex items-start gap-3">
                         {{ form.accept_terms }}
-                        <label class="text-sm text-stone-600 leading-relaxed">
+                        <label for="{{ form.accept_terms.id_for_label }}" class="text-sm leading-relaxed cursor-pointer">
+                            {# TODO: point these at the real policy pages before launch #}
                             I accept the
-                            <a href="#" class="text-amber-700 hover:text-amber-600 font-medium transition-colors">Terms and Conditions</a>
+                            <a href="#" class="snap-text-teal-deep font-medium hover:underline">terms and conditions</a>
                             and
-                            <a href="#" class="text-amber-700 hover:text-amber-600 font-medium transition-colors">Privacy Policy</a>
-                            <span class="text-red-500"> *</span>
+                            <a href="#" class="snap-text-teal-deep font-medium hover:underline">privacy policy</a>
+                            <span class="snap-req">*</span>
                         </label>
                     </div>
                     {% if form.accept_terms.errors %}
-                    <p class="mt-2 text-xs text-red-500">{{ form.accept_terms.errors.0 }}</p>
+                    <p class="snap-error mt-2">{{ form.accept_terms.errors.0 }}</p>
                     {% endif %}
                 </div>
 
                 {% else %}
-                <!-- Authenticated: Account confirmation -->
-                <div class="bg-white rounded-2xl border border-stone-200/60 shadow-sm p-6">
-                    <div class="flex items-start gap-4">
-                        <div class="shrink-0 w-12 h-12 bg-amber-700 rounded-full flex items-center justify-center text-white font-bold text-sm">
+
+                <div class="snap-card rounded-2xl shadow-sm p-6">
+                    <div class="flex items-center gap-4">
+                        <div class="snap-avatar shrink-0 w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-sm">
                             {{ user.first_name.0|default:user.username.0|upper }}{{ user.last_name.0|default:''|upper }}
                         </div>
-                        <div>
-                            <h3 class="font-semibold text-stone-900 mb-0.5">
-                                Checking out as {{ user.get_full_name }}
-                            </h3>
-                            <p class="text-sm text-stone-500">{{ user.email|default:user.phone_number }}</p>
+                        <div class="min-w-0">
+                            <h2 class="snap-display font-semibold snap-text-navy mb-0.5">
+                                Checking out as {{ user.get_full_name|default:user.username }}
+                            </h2>
+                            <p class="text-sm snap-text-muted truncate">{{ user.email|default:user.phone_number }}</p>
                         </div>
-                        <div class="ml-auto shrink-0">
-                            <span class="inline-flex items-center gap-1.5 text-xs font-medium text-amber-700 bg-amber-50 border border-amber-200/60 rounded-full px-3 py-1">
-                                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
-                                Verified
-                            </span>
-                        </div>
+
+                        {# Only claim verified when the account actually is #}
+                        {% if user.is_verified %}
+                        <span class="ml-auto shrink-0 inline-flex items-center gap-1.5 text-xs font-medium rounded-full px-3 py-1"
+                              style="color: var(--snap-teal-deep); background: rgba(18,165,148,0.10); border: 1px solid rgba(18,165,148,0.22);">
+                            <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                            Verified
+                        </span>
+                        {% endif %}
                     </div>
                 </div>
 
-                <!-- Optional Notes -->
-                <div class="bg-white rounded-2xl border border-stone-200/60 shadow-sm p-6">
-                    <label class="block text-sm font-medium text-stone-700 mb-2">
-                        Order Notes <span class="text-stone-400 font-normal">(optional)</span>
+                <div class="snap-card rounded-2xl shadow-sm p-6">
+                    <label for="id_customer_notes" class="snap-field-label block mb-2">
+                        Anything we should know? <span class="snap-text-muted font-normal">(optional)</span>
                     </label>
-                    <textarea name="customer_notes"
-                              rows="3"
-                              class="w-full px-4 py-2.5 border border-stone-300 rounded-xl text-sm
-                                     focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500
-                                     transition-colors placeholder-stone-400"
-                              placeholder="Any special requests or notes..."></textarea>
+                    <textarea id="id_customer_notes" name="customer_notes" rows="3"
+                              placeholder="A note for the enrolment team"></textarea>
                 </div>
+
                 {% endif %}
 
             </div>
 
-            <!-- Right: Order Summary -->
+            <!-- ===== Right: order summary ===== -->
             <div class="lg:col-span-1">
-                <div class="bg-white rounded-2xl border border-stone-200/60 shadow-sm p-6 sticky top-24">
-                    <h2 class="text-lg font-semibold text-stone-900 mb-5">Order Summary</h2>
+                <div class="snap-card rounded-2xl shadow-sm p-6 sticky top-24">
+                    <h2 class="snap-display text-lg font-semibold snap-text-navy mb-5">Order summary</h2>
 
-                    <!-- Items -->
-                    <div class="space-y-3 mb-5">
+                    <div class="mb-5">
                         {% for item in cart %}
-                        <div class="flex items-start gap-3 pb-3 border-b border-stone-100 last:border-0">
-                            <div class="shrink-0 w-11 h-11 bg-stone-100 rounded-xl overflow-hidden">
+                        <div class="flex items-start gap-3 py-3 snap-rule-b last:border-0 first:pt-0">
+                            <div class="shrink-0 w-11 h-11 rounded-xl overflow-hidden snap-bg-paper">
                                 {% if item.product.image %}
                                 <img src="{{ item.product.image.url }}"
-                                     alt="{{ item.product.name }}"
+                                     alt=""
                                      class="w-full h-full object-cover">
-                                {% else %}
-                                <div class="w-full h-full flex items-center justify-center">
-                                    <svg class="w-5 h-5 text-stone-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
-                                    </svg>
-                                </div>
                                 {% endif %}
                             </div>
                             <div class="flex-1 min-w-0">
-                                <p class="text-sm font-medium text-stone-900 truncate">{{ item.product.name }}</p>
-                                <p class="text-xs text-stone-400 mt-0.5">Qty: {{ item.quantity }}</p>
+                                <p class="text-sm font-medium snap-text-navy leading-snug">{{ item.product.name }}</p>
+                                {% if item.quantity > 1 %}
+                                <p class="text-xs snap-text-muted mt-0.5">Quantity {{ item.quantity }}</p>
+                                {% endif %}
                             </div>
-                            <span class="text-sm font-semibold text-stone-900 shrink-0">
+                            <span class="text-sm font-semibold snap-text-navy shrink-0">
                                 {{ item.total_price|currency }}
                             </span>
                         </div>
                         {% endfor %}
                     </div>
 
-                    <!-- Pricing -->
-                    <div class="space-y-2 mb-5">
+                    <div class="space-y-2 mb-6">
                         <div class="flex justify-between text-sm">
-                            <span class="text-stone-500">Subtotal</span>
-                            <span class="font-medium text-stone-900">{{ subtotal|currency }}</span>
+                            <span class="snap-text-muted">Subtotal</span>
+                            <span class="font-medium snap-text-navy">{{ subtotal|currency }}</span>
                         </div>
                         {% if discount %}
-                        <div class="flex justify-between text-sm text-amber-700">
+                        <div class="flex justify-between text-sm snap-text-teal-deep">
                             <span>Discount ({{ discount.code }})</span>
                             <span class="font-medium">-{{ discount_amount|currency }}</span>
                         </div>
                         {% endif %}
-                        <div class="flex justify-between text-lg font-bold pt-3 border-t border-stone-100">
-                            <span class="text-stone-900">Total</span>
-                            <span class="text-stone-900">{{ total|currency }}</span>
+                        <div class="flex justify-between items-baseline snap-rule pt-3">
+                            <span class="snap-display text-base font-semibold snap-text-navy">Total</span>
+                            <span class="snap-display text-2xl font-bold snap-text-navy">{{ total|currency }}</span>
                         </div>
                     </div>
 
-                    <!-- Submit -->
                     <button type="submit"
-                            class="w-full py-3 bg-amber-600 hover:bg-amber-500 text-white font-semibold
-                                   rounded-xl transition-colors shadow-sm mb-3">
+                            class="snap-btn-teal snap-display w-full py-3 font-semibold rounded-xl mb-3">
                         {% if total == 0 %}
-                            Complete Free Enrolment
+                            Complete enrolment
                         {% else %}
-                            Proceed to Payment
+                            Continue to payment
                         {% endif %}
                     </button>
 
                     <a href="{% url 'shop:cart_detail' %}"
-                       class="block w-full py-3 bg-stone-100 hover:bg-stone-200 text-stone-700
-                              text-center font-medium rounded-xl transition-colors">
-                        Back to Cart
+                       class="snap-btn-quiet snap-display block w-full py-3 text-center font-medium rounded-xl">
+                        Back to cart
                     </a>
 
-                    <!-- Security -->
-                    <div class="mt-5 pt-5 border-t border-stone-100">
-                        <div class="flex items-center justify-center gap-2 text-xs text-stone-400">
-                            <svg class="w-4 h-4 text-amber-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
-                            </svg>
-                            <span>Secure 256-bit SSL encryption</span>
-                        </div>
-                    </div>
+                    {# What happens next, rather than a trust badge #}
+                    <p class="snap-rule mt-5 pt-5 text-xs snap-text-muted leading-relaxed">
+                        {% if total == 0 %}
+                            Your enrolment is confirmed straight away and the course opens in
+                            My Learning.
+                        {% else %}
+                            Next you will get our banking details and a reference number. Your
+                            certificate is issued once the transfer clears.
+                        {% endif %}
+                    </p>
                 </div>
             </div>
 
