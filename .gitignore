@@ -17,3 +17,5 @@ celerybeat-schedule-wal
 celerybeat-schedule
 .gitignore
 .DS_Store
+.env
+.env

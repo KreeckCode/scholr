@@ -1,344 +1,379 @@
 {% extends 'base/base.html' %}
 {% load static %}
 {% load progress_tags %}
-{% block title %}My Learning - African Pastoral Academy{% endblock %}
+
+{% block title %}My learning{% endblock %}
+{% block title_suffix %}SNAP Uplift — Judea Harvest{% endblock %}
 
 {% block content %}
-<div class="min-h-screen bg-gray-50">
-    <!-- Hero Section -->
-    <div class="bg-gradient-to-r from-purple-600 to-purple-700 text-white">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-            <div class="flex items-center justify-between">
+
+{# Tokens repeated here so the page stands alone. Once these live in base.html head, delete this block. #}
+<style>
+    :root {
+        --snap-navy:        #0E1B33;
+        --snap-teal:        #12A594;
+        --snap-teal-bright: #16C2AE;
+        --snap-teal-deep:   #0C7A6D;
+        --snap-orange:      #F26A21;
+        --snap-paper:       #EDF1F5;
+        --snap-slate:       #4A5A73;
+        --snap-muted:       #8494A8;
+        --snap-line:        rgba(14, 27, 51, 0.10);
+    }
+
+    .snap-learn             { font-family: 'Inter', system-ui, sans-serif; color: var(--snap-slate); }
+    .snap-display           { font-family: 'Poppins', system-ui, sans-serif; letter-spacing: -0.02em; }
+    .snap-eyebrow           { font-family: 'Poppins', sans-serif; font-weight: 600; font-size: 0.7rem;
+                              letter-spacing: 0.14em; text-transform: uppercase; }
+
+    .snap-bg-paper          { background: var(--snap-paper); }
+    .snap-bg-navy           { background: var(--snap-navy); }
+    .snap-text-navy         { color: var(--snap-navy); }
+    .snap-text-muted        { color: var(--snap-muted); }
+    .snap-text-teal-deep    { color: var(--snap-teal-deep); }
+    .snap-card              { background: #fff; border: 1px solid var(--snap-line); }
+    .snap-rule              { border-top: 1px solid var(--snap-line); }
+
+    /* Progress bars: flat teal. A gradient on a 3px bar reads as noise, not data. */
+    .snap-track             { background: #DDE4EC; border-radius: 999px; overflow: hidden; }
+    .snap-fill              { background: var(--snap-teal); height: 100%; border-radius: 999px;
+                              transition: width 0.4s ease; }
+    .snap-fill-done         { background: var(--snap-teal-deep); }
+
+    .snap-tag               { font-family: 'Poppins', sans-serif; font-size: 0.65rem; font-weight: 600;
+                              letter-spacing: 0.08em; text-transform: uppercase;
+                              padding: 0.25rem 0.6rem; border-radius: 999px; }
+    .snap-tag-bundle        { color: var(--snap-navy); background: var(--snap-paper); }
+    .snap-tag-free          { color: var(--snap-teal-deep); background: rgba(18,165,148,0.10); }
+
+    .snap-btn-teal          { background: var(--snap-teal); color: #fff; transition: background 0.2s, box-shadow 0.2s; }
+    .snap-btn-teal:hover    { background: var(--snap-teal-bright); box-shadow: 0 10px 24px -12px rgba(18,165,148,0.9); }
+
+    .snap-btn-quiet         { background: var(--snap-paper); color: var(--snap-slate);
+                              transition: background 0.18s, color 0.18s; }
+    .snap-btn-quiet:hover   { background: #E2E8EE; color: var(--snap-navy); }
+
+    .snap-btn-white         { background: #fff; color: var(--snap-navy); transition: background 0.18s; }
+    .snap-btn-white:hover   { background: #E8EEF4; }
+
+    .snap-inner-card        { background: #fff; border: 1px solid var(--snap-line);
+                              transition: border-color 0.18s; }
+    .snap-inner-card:hover  { border-color: rgba(18,165,148,0.35); }
+
+    .snap-learn a:focus-visible,
+    .snap-learn button:focus-visible { outline: 3px solid var(--snap-teal); outline-offset: 2px; }
+
+    @media (prefers-reduced-motion: reduce) {
+        .snap-fill { transition: none; }
+        .snap-spin { animation: none !important; }
+    }
+</style>
+
+<div class="snap-learn min-h-screen snap-bg-paper">
+
+    <!-- ===== Header band ===== -->
+    <div class="snap-bg-navy">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-20">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-5">
                 <div>
-                    <h1 class="text-3xl font-bold">My Learning</h1>
-                    <p class="mt-2 text-purple-100">Your enrolled courses and progress</p>
+                    <p class="snap-eyebrow mb-3" style="color: var(--snap-teal-bright);">Your courses</p>
+                    <h1 class="snap-display text-3xl font-bold text-white">My learning</h1>
                 </div>
-                <button onclick="refreshProgress()" 
-                        id="refreshBtn"
-                        class="inline-flex items-center px-4 py-2 bg-white text-purple-600 rounded-lg hover:bg-purple-50 transition-colors font-medium shadow-lg">
-                    <svg id="refreshIcon" class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+
+                <button type="button" id="refreshBtn"
+                        class="snap-btn-white snap-display inline-flex items-center gap-2 px-5 py-2.5
+                               rounded-xl text-sm font-semibold shrink-0">
+                    <svg id="refreshIcon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
                     </svg>
-                    <span id="refreshText">Refresh Progress</span>
+                    <span id="refreshText">Refresh progress</span>
                 </button>
             </div>
+
+            {# Status messages land here instead of a browser alert #}
+            <p id="refreshStatus" role="status" aria-live="polite"
+               class="text-sm mt-4 hidden" style="color: #FCA5A5;"></p>
         </div>
     </div>
-    
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-8 pb-12">
-        <!-- Stats Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <div class="bg-white rounded-xl shadow-md p-6">
-                <div class="flex items-center justify-between mb-2">
-                    <h3 class="text-sm font-medium text-gray-600">Total Courses</h3>
-                    <div class="bg-purple-100 rounded-lg p-2">
-                        <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                        </svg>
-                    </div>
-                </div>
-                <div class="text-3xl font-bold text-gray-900">{{ total_courses }}</div>
-                <p class="text-xs text-gray-500 mt-1">Enrolled courses</p>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-10 pb-16">
+
+        <!-- ===== Counts =====
+             Numbers only. An icon beside "Completed" tells you nothing the word doesn't. -->
+        <div class="grid grid-cols-3 snap-card rounded-2xl shadow-sm mb-8 overflow-hidden">
+            <div class="p-5 sm:p-6">
+                <p class="snap-display text-3xl font-bold snap-text-navy leading-none">{{ total_courses }}</p>
+                <p class="text-xs snap-text-muted mt-2">Enrolled</p>
             </div>
-            
-            <div class="bg-white rounded-xl shadow-md p-6">
-                <div class="flex items-center justify-between mb-2">
-                    <h3 class="text-sm font-medium text-gray-600">In Progress</h3>
-                    <div class="bg-blue-100 rounded-lg p-2">
-                        <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-                        </svg>
-                    </div>
-                </div>
-                <div class="text-3xl font-bold text-gray-900">{{ active_courses }}</div>
-                <p class="text-xs text-gray-500 mt-1">Active learning</p>
+            <div class="p-5 sm:p-6" style="border-left: 1px solid var(--snap-line);">
+                <p class="snap-display text-3xl font-bold snap-text-navy leading-none">{{ active_courses }}</p>
+                <p class="text-xs snap-text-muted mt-2">In progress</p>
             </div>
-            
-            <div class="bg-white rounded-xl shadow-md p-6">
-                <div class="flex items-center justify-between mb-2">
-                    <h3 class="text-sm font-medium text-gray-600">Completed</h3>
-                    <div class="bg-green-100 rounded-lg p-2">
-                        <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                    </div>
-                </div>
-                <div class="text-3xl font-bold text-gray-900">{{ completed_courses }}</div>
-                <p class="text-xs text-gray-500 mt-1">Finished courses</p>
+            <div class="p-5 sm:p-6" style="border-left: 1px solid var(--snap-line);">
+                <p class="snap-display text-3xl font-bold snap-text-teal-deep leading-none">{{ completed_courses }}</p>
+                <p class="text-xs snap-text-muted mt-2">Completed</p>
             </div>
         </div>
-        
+
         {% if enrollments %}
-        <!-- Courses List -->
-        <div class="space-y-6">
+        <div class="space-y-5">
             {% for enrollment in enrollments %}
+
                 {% if enrollment.product.product_type == 'bundle' %}
-                    <!-- Bundle Card with Expandable Courses -->
-                    <div class="bg-white rounded-xl shadow-md overflow-hidden">
-                        <!-- Bundle Header -->
-                        <div class="p-6 border-b border-gray-200">
-                            <div class="flex items-start justify-between">
-                                <div class="flex-1">
-                                    <div class="flex items-center space-x-2 mb-2">
-                                        <span class="px-3 py-1 bg-purple-100 text-purple-800 text-xs font-semibold rounded-full">
-                                            BUNDLE
-                                        </span>
-                                        {% if enrollment.is_free %}
-                                            <span class="px-3 py-1 bg-green-100 text-green-800 text-xs font-semibold rounded-full">
-                                                FREE
-                                            </span>
-                                        {% endif %}
+                <!-- ===== Bundle ===== -->
+                <div class="snap-card rounded-2xl shadow-sm overflow-hidden">
+
+                    <div class="p-6">
+                        <div class="flex items-start justify-between gap-4">
+                            <div class="flex-1 min-w-0">
+
+                                <div class="flex items-center gap-2 mb-3">
+                                    <span class="snap-tag snap-tag-bundle">Bundle</span>
+                                    {% if enrollment.is_free %}
+                                    <span class="snap-tag snap-tag-free">Free</span>
+                                    {% endif %}
+                                </div>
+
+                                <h2 class="snap-display text-xl font-bold snap-text-navy mb-2">
+                                    {{ enrollment.product.name }}
+                                </h2>
+                                {% if enrollment.product.short_description %}
+                                <p class="text-sm leading-relaxed mb-5">{{ enrollment.product.short_description }}</p>
+                                {% endif %}
+
+                                <div class="mb-5 max-w-md">
+                                    <div class="flex items-center justify-between mb-2">
+                                        <span class="text-xs font-medium snap-text-muted">Overall progress</span>
+                                        <span class="text-xs font-bold snap-text-navy">{{ enrollment.progress_percentage }}%</span>
                                     </div>
-                                    <h3 class="text-xl font-bold text-gray-900 mb-2">
-                                        {{ enrollment.product.name }}
-                                    </h3>
-                                    <p class="text-gray-600 text-sm mb-4">
-                                        {{ enrollment.product.short_description }}
-                                    </p>
-                                    
-                                    <!-- Bundle Progress -->
-                                    <div class="mb-4">
-                                        <div class="flex items-center justify-between mb-2">
-                                            <span class="text-sm font-medium text-gray-700">Overall Progress</span>
-                                            <span class="text-sm font-bold text-gray-900">{{ enrollment.progress_percentage }}%</span>
-                                        </div>
-                                        <div class="w-full bg-gray-200 rounded-full h-3">
-                                            <div class="bg-gradient-to-r from-purple-600 to-purple-500 h-3 rounded-full transition-all duration-300"
-                                                 style="width: {{ enrollment.progress_percentage }}%"></div>
-                                        </div>
-                                    </div>
-                                    
-                                    <!-- Access Info -->
-                                    <div class="flex items-center space-x-4 text-sm text-gray-500">
-                                        <span class="flex items-center">
-                                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                                            </svg>
-                                            Enrolled: {{ enrollment.created_at|date:"M d, Y" }}
-                                        </span>
-                                        <span class="flex items-center">
-                                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                            </svg>
-                                            {% if enrollment.is_expired %}
-                                                <span class="text-red-600 font-medium">Expired</span>
-                                            {% else %}
-                                                {{ enrollment.days_remaining }} days left
-                                            {% endif %}
-                                        </span>
+                                    <div class="snap-track h-2">
+                                        <div class="snap-fill" style="width: {{ enrollment.progress_percentage }}%"></div>
                                     </div>
                                 </div>
-                                
-                                <!-- Expand/Collapse Button -->
-                                <button onclick="toggleBundle('bundle-{{ enrollment.id }}')"
-                                        class="ml-4 p-2 hover:bg-gray-100 rounded-lg transition-colors">
-                                    <svg id="bundle-{{ enrollment.id }}-icon" class="w-6 h-6 text-gray-400 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-                                    </svg>
-                                </button>
+
+                                <div class="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs snap-text-muted">
+                                    <span>Enrolled {{ enrollment.created_at|date:"j M Y" }}</span>
+                                    {% if enrollment.is_expired %}
+                                    <span class="font-medium" style="color: #DC2626;">Access expired</span>
+                                    {% else %}
+                                    <span>{{ enrollment.days_remaining }} day{{ enrollment.days_remaining|pluralize }} of access left</span>
+                                    {% endif %}
+                                </div>
                             </div>
+
+                            <button type="button"
+                                    class="js-bundle-toggle snap-btn-quiet shrink-0 p-2 rounded-lg"
+                                    data-target="bundle-{{ enrollment.id }}"
+                                    aria-expanded="false"
+                                    aria-controls="bundle-{{ enrollment.id }}"
+                                    aria-label="Show courses in this bundle">
+                                <svg class="js-bundle-icon w-5 h-5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                                </svg>
+                            </button>
                         </div>
-                        
-                        <!-- Bundle Courses (Expandable) -->
-                        <div id="bundle-{{ enrollment.id }}-courses" class="hidden bg-gray-50">
-                            <div class="p-6">
-                                <h4 class="text-sm font-semibold text-gray-700 mb-4 uppercase tracking-wide">
-                                    Included Courses ({{ enrollment.product.bundle_items.count }})
-                                </h4>
-                                
-                                <div class="space-y-3">
-                                    {% for bundle_item in enrollment.product.bundle_items.all %}
-                                        {% with course=bundle_item.course %}
-                                            <!-- Individual Course in Bundle -->
-                                            <div class="bg-white rounded-lg p-4 border border-gray-200 hover:border-purple-300 transition-colors">
-                                                <div class="flex items-start justify-between">
-                                                    <div class="flex-1">
-                                                        <h5 class="font-semibold text-gray-900 mb-1">
-                                                            {{ course.title }}
-                                                        </h5>
-                                                        <p class="text-sm text-gray-600 mb-2">
-                                                            {{ course.short_name }} • {{ course.category.name }}
-                                                        </p>
-                                                        
-                                                        <!-- Course Progress -->
-                                                        {% get_course_progress user course as progress %}
-                                                        <div class="mb-3">
-                                                            <div class="flex items-center justify-between mb-1">
-                                                                <span class="text-xs font-medium text-gray-600">Course Progress</span>
-                                                                <span class="text-xs font-bold text-gray-900">{{ progress }}%</span>
-                                                            </div>
-                                                            <div class="w-full bg-gray-200 rounded-full h-2">
-                                                                <div class="bg-gradient-to-r from-blue-500 to-blue-600 h-2 rounded-full transition-all duration-300" 
-                                                                    style="width: {{ progress }}%"></div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    
-                                                    <!-- Access Course Button -->
-                                                    {% if user.is_verified and course.moodle_course_id %}
-                                                        <a href="{% url 'integration:access_lms' %}?course={{ course.moodle_course_id }}"
-                                                        class="ml-4 inline-flex items-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium">
-                                                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
-                                                            </svg>
-                                                            Access
-                                                        </a>
-                                                    {% else %}
-                                                        <span class="ml-4 px-4 py-2 bg-gray-200 text-gray-500 rounded-lg text-sm font-medium">
-                                                            Not Available
-                                                        </span>
-                                                    {% endif %}
+                    </div>
+
+                    <div id="bundle-{{ enrollment.id }}" class="hidden snap-bg-paper snap-rule">
+                        <div class="p-6">
+                            <h3 class="snap-eyebrow snap-text-muted mb-4">
+                                {{ enrollment.product.bundle_items.count }} course{{ enrollment.product.bundle_items.count|pluralize }} included
+                            </h3>
+
+                            <div class="space-y-3">
+                                {% for bundle_item in enrollment.product.bundle_items.all %}
+                                {% with course=bundle_item.course %}
+                                <div class="snap-inner-card rounded-xl p-4">
+                                    <div class="flex items-start justify-between gap-4">
+                                        <div class="flex-1 min-w-0">
+                                            <h4 class="snap-display font-semibold snap-text-navy text-sm mb-1">
+                                                {{ course.title }}
+                                            </h4>
+                                            <p class="text-xs snap-text-muted mb-3">
+                                                {{ course.short_name }} &middot; {{ course.category.name }}
+                                            </p>
+
+                                            {% get_course_progress user course as progress %}
+                                            <div class="max-w-xs">
+                                                <div class="flex items-center justify-between mb-1.5">
+                                                    <span class="text-xs snap-text-muted">Progress</span>
+                                                    <span class="text-xs font-bold snap-text-navy">{{ progress }}%</span>
+                                                </div>
+                                                <div class="snap-track h-1.5">
+                                                    <div class="snap-fill" style="width: {{ progress }}%"></div>
                                                 </div>
                                             </div>
-                                        {% endwith %}
-                                    {% endfor %}
+                                        </div>
+
+                                        <div class="shrink-0">
+                                            {% if user.is_verified and course.moodle_course_id %}
+                                            <a href="{% url 'integration:access_lms' %}?course={{ course.moodle_course_id }}"
+                                               class="snap-btn-teal snap-display inline-flex items-center px-4 py-2 rounded-lg text-sm font-medium">
+                                                Open
+                                            </a>
+                                            {% elif not user.is_verified %}
+                                            {# Say why it is locked, not just that it is #}
+                                            <span class="block text-xs snap-text-muted text-right max-w-[130px] leading-relaxed">
+                                                Available once your account is verified
+                                            </span>
+                                            {% else %}
+                                            <span class="block text-xs snap-text-muted text-right max-w-[130px] leading-relaxed">
+                                                Not yet published
+                                            </span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
                                 </div>
+                                {% endwith %}
+                                {% endfor %}
                             </div>
                         </div>
                     </div>
-                
+                </div>
+
                 {% else %}
-                    <!-- Single Course Card -->
-                    <div class="bg-white rounded-xl shadow-md p-6">
-                        <div class="flex items-start justify-between">
-                            <div class="flex-1">
-                                <div class="flex items-center space-x-2 mb-2">
-                                    <span class="px-3 py-1 bg-blue-100 text-blue-800 text-xs font-semibold rounded-full">
-                                        COURSE
-                                    </span>
-                                    {% if enrollment.is_free %}
-                                        <span class="px-3 py-1 bg-green-100 text-green-800 text-xs font-semibold rounded-full">
-                                            FREE
-                                        </span>
-                                    {% endif %}
+                <!-- ===== Single course ===== -->
+                <div class="snap-card rounded-2xl shadow-sm p-6">
+                    <div class="flex items-start justify-between gap-4">
+                        <div class="flex-1 min-w-0">
+
+                            <div class="flex items-center gap-2 mb-3">
+                                <span class="snap-tag snap-tag-bundle">Course</span>
+                                {% if enrollment.is_free %}
+                                <span class="snap-tag snap-tag-free">Free</span>
+                                {% endif %}
+                            </div>
+
+                            <h2 class="snap-display text-xl font-bold snap-text-navy mb-4">
+                                {{ enrollment.product.name }}
+                            </h2>
+
+                            <div class="max-w-md">
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="text-xs font-medium snap-text-muted">Progress</span>
+                                    <span class="text-xs font-bold snap-text-navy">{{ enrollment.progress_percentage }}%</span>
                                 </div>
-                                <h3 class="text-xl font-bold text-gray-900 mb-2">
-                                    {{ enrollment.product.name }}
-                                </h3>
-                                
-                                <!-- Progress -->
-                                <div class="mb-4">
-                                    <div class="flex items-center justify-between mb-2">
-                                        <span class="text-sm font-medium text-gray-700">Progress</span>
-                                        <span class="text-sm font-bold text-gray-900">{{ enrollment.progress_percentage }}%</span>
-                                    </div>
-                                    <div class="w-full bg-gray-200 rounded-full h-3">
-                                        <div class="bg-gradient-to-r from-blue-600 to-blue-500 h-3 rounded-full"
-                                             style="width: {{ enrollment.progress_percentage }}%"></div>
-                                    </div>
+                                <div class="snap-track h-2">
+                                    <div class="snap-fill" style="width: {{ enrollment.progress_percentage }}%"></div>
                                 </div>
                             </div>
-                            
+                        </div>
+
+                        <div class="shrink-0">
                             {% if enrollment.product.moodle_course and user.is_verified %}
-                                <a href="{% url 'integration:access_lms' %}?course={{ enrollment.product.moodle_course.moodle_course_id }}"
-                                class="ml-4 inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium">
-                                    Access Course
-                                </a>
+                            <a href="{% url 'integration:access_lms' %}?course={{ enrollment.product.moodle_course.moodle_course_id }}"
+                               class="snap-btn-teal snap-display inline-flex items-center px-6 py-3 rounded-xl font-semibold">
+                                Open course
+                            </a>
+                            {% elif not user.is_verified %}
+                            <span class="block text-xs snap-text-muted text-right max-w-[150px] leading-relaxed">
+                                Available once your account is verified
+                            </span>
                             {% endif %}
                         </div>
                     </div>
+                </div>
                 {% endif %}
+
             {% endfor %}
         </div>
-        
-        <!-- Pagination -->
+
+        <!-- ===== Pagination ===== -->
         {% if page_obj.has_other_pages %}
-            <div class="mt-8 flex items-center justify-between">
-                <div class="text-sm text-gray-700">
-                    Showing {{ page_obj.start_index }} to {{ page_obj.end_index }} of {{ page_obj.paginator.count }}
-                </div>
-                <div class="flex space-x-2">
-                    {% if page_obj.has_previous %}
-                        <a href="?page={{ page_obj.previous_page_number }}" 
-                           class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
-                            Previous
-                        </a>
-                    {% endif %}
-                    {% if page_obj.has_next %}
-                        <a href="?page={{ page_obj.next_page_number }}" 
-                           class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors">
-                            Next
-                        </a>
-                    {% endif %}
-                </div>
-            </div>
-        {% endif %}
-        
-        {% else %}
-        <!-- Empty State -->
-        <div class="bg-white rounded-xl shadow-md p-12 text-center">
-            <div class="bg-purple-100 rounded-full p-6 w-24 h-24 mx-auto mb-6 flex items-center justify-center">
-                <svg class="w-12 h-12 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                </svg>
-            </div>
-            <h2 class="text-2xl font-bold text-gray-900 mb-2">No Courses Yet</h2>
-            <p class="text-gray-600 mb-6 max-w-md mx-auto">
-                Start your theological education journey by enrolling in your first course
+        <div class="mt-8 flex items-center justify-between gap-4">
+            <p class="text-sm snap-text-muted">
+                Showing {{ page_obj.start_index }}&ndash;{{ page_obj.end_index }} of {{ page_obj.paginator.count }}
             </p>
-            <a href="{% url 'shop:catalog' %}" 
-               class="inline-flex items-center px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-lg transition-colors shadow-sm">
-                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+            <div class="flex gap-2">
+                {% if page_obj.has_previous %}
+                <a href="?page={{ page_obj.previous_page_number }}"
+                   class="snap-btn-quiet snap-display px-4 py-2 rounded-xl text-sm font-medium">Previous</a>
+                {% endif %}
+                {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}"
+                   class="snap-btn-teal snap-display px-4 py-2 rounded-xl text-sm font-medium">Next</a>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+        {% else %}
+        <!-- ===== Empty state ===== -->
+        <div class="snap-card rounded-2xl p-16 text-center">
+            <h2 class="snap-display text-2xl font-semibold snap-text-navy mb-3">Nothing here yet</h2>
+            <p class="snap-text-muted mb-8 max-w-sm mx-auto leading-relaxed">
+                Courses you enrol in will appear here with your progress. Browsing and
+                studying cost nothing.
+            </p>
+            <a href="{% url 'shop:catalog' %}"
+               class="snap-btn-teal snap-display inline-flex items-center gap-2 px-6 py-3 font-semibold rounded-xl">
+                Browse courses
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
                 </svg>
-                Browse Courses
             </a>
         </div>
         {% endif %}
+
     </div>
 </div>
 
 <script>
-function toggleBundle(bundleId) {
-    const coursesDiv = document.getElementById(bundleId + '-courses');
-    const icon = document.getElementById(bundleId + '-icon');
-    
-    if (coursesDiv.classList.contains('hidden')) {
-        coursesDiv.classList.remove('hidden');
-        icon.classList.add('rotate-180');
-    } else {
-        coursesDiv.classList.add('hidden');
-        icon.classList.remove('rotate-180');
-    }
-}
+(function () {
+    // Bundle expand and collapse, bound by data attribute rather than inline onclick
+    document.querySelectorAll('.js-bundle-toggle').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            var panel = document.getElementById(btn.dataset.target);
+            var icon  = btn.querySelector('.js-bundle-icon');
+            var open  = !panel.classList.contains('hidden');
 
-async function refreshProgress() {
-    const btn = document.getElementById('refreshBtn');
-    const icon = document.getElementById('refreshIcon');
-    const text = document.getElementById('refreshText');
-    
-    // Disable button and show loading
-    btn.disabled = true;
-    btn.classList.add('opacity-50', 'cursor-not-allowed');
-    icon.classList.add('animate-spin');
-    text.textContent = 'Syncing...';
-    
-    try {
-        const response = await fetch('{% url "shop:refresh_progress" %}', {
-            method: 'GET',
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest',
-            }
+            panel.classList.toggle('hidden', open);
+            icon.classList.toggle('rotate-180', !open);
+            btn.setAttribute('aria-expanded', String(!open));
+            btn.setAttribute('aria-label', open ? 'Show courses in this bundle' : 'Hide courses in this bundle');
         });
-        
-        const data = await response.json();
-        
-        if (data.success) {
-            // Reload page to show updated progress
-            window.location.reload();
-        } else {
-            alert('Error: ' + data.message);
-        }
-    } catch (error) {
-        console.error('Refresh error:', error);
-        alert('Failed to refresh progress. Please try again.');
-    } finally {
-        // Re-enable button
-        btn.disabled = false;
-        btn.classList.remove('opacity-50', 'cursor-not-allowed');
-        icon.classList.remove('animate-spin');
-        text.textContent = 'Refresh Progress';
+    });
+
+    // Progress refresh. Failures show inline rather than in a browser alert.
+    var btn    = document.getElementById('refreshBtn');
+    var icon   = document.getElementById('refreshIcon');
+    var text   = document.getElementById('refreshText');
+    var status = document.getElementById('refreshStatus');
+    if (!btn) { return; }
+
+    function showStatus(message) {
+        status.textContent = message;
+        status.classList.remove('hidden');
     }
-}
+
+    btn.addEventListener('click', async function () {
+        status.classList.add('hidden');
+        btn.disabled = true;
+        btn.classList.add('opacity-60', 'cursor-not-allowed');
+        icon.classList.add('animate-spin', 'snap-spin');
+        text.textContent = 'Syncing';
+
+        try {
+            var response = await fetch('{% url "shop:refresh_progress" %}', {
+                method: 'GET',
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            });
+            var data = await response.json();
+
+            if (data.success) {
+                window.location.reload();
+                return;
+            }
+            showStatus(data.message || 'Progress could not be updated. Try again shortly.');
+        } catch (error) {
+            showStatus('Progress could not be updated. Check your connection and try again.');
+        }
+
+        btn.disabled = false;
+        btn.classList.remove('opacity-60', 'cursor-not-allowed');
+        icon.classList.remove('animate-spin', 'snap-spin');
+        text.textContent = 'Refresh progress';
+    });
+})();
 </script>
 {% endblock %}

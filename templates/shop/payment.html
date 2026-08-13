@@ -1,141 +1,184 @@
 {% extends 'base/base.html' %}
 {% load shop_tags %}
 
-{% block title %}Complete Payment{% endblock %}
-{% block title_suffix %}Judea Harvest{% endblock %}
+{% block title %}Complete payment{% endblock %}
+{% block title_suffix %}SNAP Uplift — Judea Harvest{% endblock %}
 
 {% block content %}
-<div class="min-h-screen bg-stone-50">
+
+{# Tokens repeated here so the page stands alone. Once these live in base.html head, delete this block. #}
+<style>
+    :root {
+        --snap-navy:        #0E1B33;
+        --snap-teal:        #12A594;
+        --snap-teal-bright: #16C2AE;
+        --snap-teal-deep:   #0C7A6D;
+        --snap-orange:      #F26A21;
+        --snap-orange-deep: #B54708;
+        --snap-paper:       #EDF1F5;
+        --snap-slate:       #4A5A73;
+        --snap-muted:       #8494A8;
+        --snap-line:        rgba(14, 27, 51, 0.10);
+    }
+
+    .snap-pay               { font-family: 'Inter', system-ui, sans-serif; color: var(--snap-slate); }
+    .snap-display           { font-family: 'Poppins', system-ui, sans-serif; letter-spacing: -0.02em; }
+    .snap-mono              { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+
+    .snap-bg-paper          { background: var(--snap-paper); }
+    .snap-text-navy         { color: var(--snap-navy); }
+    .snap-text-muted        { color: var(--snap-muted); }
+    .snap-text-teal-deep    { color: var(--snap-teal-deep); }
+    .snap-card              { background: #fff; border: 1px solid var(--snap-line); }
+    .snap-rule              { border-top: 1px solid var(--snap-line); }
+
+    .snap-label             { font-family: 'Poppins', sans-serif; font-size: 0.68rem; font-weight: 600;
+                              letter-spacing: 0.1em; text-transform: uppercase; color: var(--snap-muted); }
+
+    /* The reference row is the one thing that must not be got wrong,
+       so it is the only element on the page carrying the orange accent. */
+    .snap-ref-row           { background: rgba(242,106,33,0.08); }
+    .snap-ref-label         { color: var(--snap-orange-deep); }
+    .snap-ref-value         { color: var(--snap-orange-deep); }
+
+    .snap-copy              { border: 1px solid var(--snap-line); background: #fff; color: var(--snap-slate);
+                              transition: border-color 0.18s, color 0.18s; }
+    .snap-copy:hover        { border-color: rgba(18,165,148,0.5); color: var(--snap-teal-deep); }
+
+    .snap-btn-teal          { background: var(--snap-teal); color: #fff; transition: background 0.2s, box-shadow 0.2s; }
+    .snap-btn-teal:hover    { background: var(--snap-teal-bright); box-shadow: 0 10px 24px -12px rgba(18,165,148,0.9); }
+
+    .snap-btn-quiet         { background: var(--snap-paper); color: var(--snap-slate);
+                              transition: background 0.18s, color 0.18s; }
+    .snap-btn-quiet:hover   { background: #E2E8EE; color: var(--snap-navy); }
+
+    /* The file input is visually hidden, so the drop zone shows its focus ring instead */
+    .snap-drop              { border: 2px dashed var(--snap-line); transition: border-color 0.18s, background 0.18s; }
+    label:hover .snap-drop  { border-color: rgba(18,165,148,0.45); background: rgba(18,165,148,0.04); }
+    label:focus-within .snap-drop { border-color: var(--snap-teal); background: rgba(18,165,148,0.06);
+                                    box-shadow: 0 0 0 3px rgba(18,165,148,0.14); }
+
+    .snap-pay a:focus-visible,
+    .snap-pay button:focus-visible { outline: 3px solid var(--snap-teal); outline-offset: 2px; }
+</style>
+
+<div class="snap-pay min-h-screen snap-bg-paper">
     <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
 
-        <!-- Header -->
         <div class="text-center mb-8">
-            <h1 class="text-2xl font-bold text-stone-900 mb-1">Complete your payment</h1>
-            <p class="text-stone-400 text-sm">Order {{ order.order_number }}</p>
+            <h1 class="snap-display text-2xl font-bold snap-text-navy mb-1">Complete your payment</h1>
+            <p class="text-sm snap-text-muted">Order {{ order.order_number }}</p>
         </div>
 
         <div class="space-y-6">
 
-            <!-- Order Summary -->
-            <div class="bg-white rounded-2xl border border-stone-200/60 shadow-sm p-6">
-                <h2 class="text-base font-semibold text-stone-900 mb-4">Order summary</h2>
+            <!-- ===== Order summary ===== -->
+            <div class="snap-card rounded-2xl shadow-sm p-6">
+                <h2 class="snap-display text-base font-semibold snap-text-navy mb-4">Order summary</h2>
+
                 <div class="space-y-2.5 mb-4">
                     {% for item in order.items.all %}
-                    <div class="flex justify-between text-sm">
-                        <span class="text-stone-600">{{ item.product.name }} × {{ item.quantity }}</span>
-                        <span class="font-medium text-stone-900">{{ item.subtotal|currency }}</span>
+                    <div class="flex justify-between gap-3 text-sm">
+                        <span class="min-w-0">
+                            {{ item.product.name }}{% if item.quantity > 1 %} &times; {{ item.quantity }}{% endif %}
+                        </span>
+                        <span class="font-medium snap-text-navy shrink-0">{{ item.subtotal|currency }}</span>
                     </div>
                     {% endfor %}
                 </div>
+
                 {% if order.discount_amount > 0 %}
-                <div class="flex justify-between text-sm text-amber-700 mb-2">
+                <div class="flex justify-between text-sm snap-text-teal-deep mb-2">
                     <span>Discount</span>
                     <span class="font-medium">-{{ order.discount_amount|currency }}</span>
                 </div>
                 {% endif %}
-                <div class="flex justify-between text-lg font-bold pt-4 border-t border-stone-100">
-                    <span class="text-stone-900">Total due</span>
-                    <span class="text-stone-900">{{ order.total_amount|currency }}</span>
+
+                <div class="flex justify-between items-baseline snap-rule pt-4">
+                    <span class="snap-display text-sm font-semibold snap-text-navy">Total due</span>
+                    <span class="snap-display text-2xl font-bold snap-text-navy">{{ order.total_amount|currency }}</span>
                 </div>
             </div>
 
-            <!-- Banking Details -->
-            <div class="bg-white rounded-2xl border border-amber-200/50 shadow-sm p-6">
-                <div class="flex items-center gap-3 mb-5">
-                    <div class="w-9 h-9 bg-amber-900/10 border border-amber-800/20 rounded-xl
-                                flex items-center justify-center shrink-0">
-                        <svg class="w-4 h-4 text-amber-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                  d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
-                        </svg>
-                    </div>
-                    <h2 class="text-base font-semibold text-stone-900">Banking details</h2>
-                </div>
-
-                <p class="text-sm text-stone-500 mb-5">
-                    Make an EFT to the account below. Use your order number as the
-                    payment reference so we can match your payment to your order.
+            <!-- ===== Banking details =====
+                 These read from context. Wire them up in settings and expose them via a
+                 context processor: if any are missing the row shows a warning rather
+                 than rendering blank. -->
+            <div class="snap-card rounded-2xl shadow-sm p-6">
+                <h2 class="snap-display text-base font-semibold snap-text-navy mb-2">Banking details</h2>
+                <p class="text-sm mb-5 leading-relaxed">
+                    Transfer {{ order.total_amount|currency }} to the account below and use your
+                    order number as the reference.
                 </p>
 
-                <div class="bg-stone-50 rounded-xl border border-stone-200/60 divide-y divide-stone-200/60">
-                    <div class="flex items-center justify-between px-4 py-3">
-                        <span class="text-xs font-semibold text-stone-400 uppercase tracking-wider">Bank</span>
-                        <span class="text-sm font-semibold text-stone-900"><!-- YOUR BANK NAME --></span>
+                <div class="snap-bg-paper rounded-xl overflow-hidden" style="border: 1px solid var(--snap-line);">
+
+                    <div class="flex items-center justify-between gap-3 px-4 py-3">
+                        <span class="snap-label">Bank</span>
+                        <span class="text-sm font-semibold snap-text-navy">{{ bank_name|default:"NOT SET" }}</span>
                     </div>
-                    <div class="flex items-center justify-between px-4 py-3">
-                        <span class="text-xs font-semibold text-stone-400 uppercase tracking-wider">Account name</span>
-                        <span class="text-sm font-semibold text-stone-900">Judea Harvest</span>
+
+                    <div class="flex items-center justify-between gap-3 px-4 py-3" style="border-top: 1px solid var(--snap-line);">
+                        <span class="snap-label">Account name</span>
+                        <span class="text-sm font-semibold snap-text-navy">{{ bank_account_name|default:"Judea Harvest" }}</span>
                     </div>
-                    <div class="flex items-center justify-between px-4 py-3">
-                        <span class="text-xs font-semibold text-stone-400 uppercase tracking-wider">Account number</span>
-                        <span class="text-sm font-semibold text-stone-900 font-mono"><!-- YOUR ACCOUNT NUMBER --></span>
+
+                    <div class="flex items-center justify-between gap-3 px-4 py-3" style="border-top: 1px solid var(--snap-line);">
+                        <span class="snap-label">Account number</span>
+                        <span class="flex items-center gap-2">
+                            <span class="snap-mono text-sm font-semibold snap-text-navy" data-copy-value>{{ bank_account_number|default:"NOT SET" }}</span>
+                            <button type="button" class="snap-copy js-copy text-xs px-2 py-1 rounded-md">Copy</button>
+                        </span>
                     </div>
-                    <div class="flex items-center justify-between px-4 py-3">
-                        <span class="text-xs font-semibold text-stone-400 uppercase tracking-wider">Branch code</span>
-                        <span class="text-sm font-semibold text-stone-900 font-mono"><!-- YOUR BRANCH CODE --></span>
+
+                    <div class="flex items-center justify-between gap-3 px-4 py-3" style="border-top: 1px solid var(--snap-line);">
+                        <span class="snap-label">Branch code</span>
+                        <span class="snap-mono text-sm font-semibold snap-text-navy">{{ bank_branch_code|default:"NOT SET" }}</span>
                     </div>
-                    <div class="flex items-center justify-between px-4 py-3">
-                        <span class="text-xs font-semibold text-stone-400 uppercase tracking-wider">Account type</span>
-                        <span class="text-sm font-semibold text-stone-900">Cheque / Current</span>
+
+                    <div class="flex items-center justify-between gap-3 px-4 py-3" style="border-top: 1px solid var(--snap-line);">
+                        <span class="snap-label">Account type</span>
+                        <span class="text-sm font-semibold snap-text-navy">{{ bank_account_type|default:"Cheque / Current" }}</span>
                     </div>
-                    <div class="flex items-center justify-between px-4 py-3 bg-amber-50/60 rounded-b-xl">
-                        <span class="text-xs font-semibold text-amber-800 uppercase tracking-wider">Reference</span>
-                        <span class="text-sm font-bold text-amber-800 font-mono">{{ order.order_number }}</span>
+
+                    <div class="snap-ref-row flex items-center justify-between gap-3 px-4 py-3.5" style="border-top: 1px solid var(--snap-line);">
+                        <span class="snap-label snap-ref-label">Reference</span>
+                        <span class="flex items-center gap-2">
+                            <span class="snap-mono text-sm font-bold snap-ref-value" data-copy-value>{{ order.order_number }}</span>
+                            <button type="button" class="snap-copy js-copy text-xs px-2 py-1 rounded-md">Copy</button>
+                        </span>
                     </div>
                 </div>
 
-                <p class="text-xs text-stone-400 mt-3">
-                    Use exactly
-                    <span class="font-semibold text-stone-600">{{ order.order_number }}</span>
-                    as your reference — this is how we match your payment to your order.
+                <p class="text-xs snap-text-muted mt-3 leading-relaxed">
+                    Without the reference we cannot match your transfer to your order, and
+                    activation will be delayed.
                 </p>
+
+                <p id="copyStatus" role="status" aria-live="polite"
+                   class="text-xs snap-text-teal-deep mt-2 hidden">Copied</p>
             </div>
 
-            <!-- ================================================================
-                 FORM — wraps POP upload + submit + cancel together.
-                 enctype="multipart/form-data" is required for file uploads.
-                 ================================================================ -->
+            <!-- ===== Proof of payment and submit ===== -->
             <form method="post" enctype="multipart/form-data" class="space-y-4">
                 {% csrf_token %}
 
-                <!-- POP Upload -->
-                <div class="bg-white rounded-2xl border border-stone-200/60 shadow-sm p-6">
-                    <div class="flex items-start gap-3 mb-4">
-                        <div class="w-9 h-9 bg-stone-100 rounded-xl flex items-center justify-center shrink-0 mt-0.5">
-                            <svg class="w-4 h-4 text-stone-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                      d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
-                            </svg>
-                        </div>
-                        <div class="flex-1">
-                            <h2 class="text-base font-semibold text-stone-900 mb-1">
-                                Upload proof of payment
-                                <span class="text-xs font-normal text-stone-400 ml-1">(optional)</span>
-                            </h2>
-                            <p class="text-sm text-stone-500 leading-relaxed">
-                                Attach your bank receipt or screenshot to speed up activation.
-                                You can also email it to
-                                <a href="mailto:admin@judeaharvest.co.za?subject=POP - {{ order.order_number }}"
-                                   class="text-amber-700 hover:text-amber-600 transition-colors font-medium">
-                                    admin@judeaharvest.co.za
-                                </a>
-                                with subject <span class="font-mono text-xs bg-stone-100 px-1.5 py-0.5 rounded">POP - {{ order.order_number }}</span>.
-                            </p>
-                        </div>
-                    </div>
+                <div class="snap-card rounded-2xl shadow-sm p-6">
+                    <h2 class="snap-display text-base font-semibold snap-text-navy mb-1">
+                        Upload proof of payment
+                        <span class="text-xs font-normal snap-text-muted ml-1">optional</span>
+                    </h2>
+                    <p class="text-sm leading-relaxed mb-5">
+                        A bank receipt or screenshot gets your courses activated sooner. You can also
+                        email it to
+                        <a href="mailto:admin@judeaharvest.co.za?subject=Proof%20of%20payment%20{{ order.order_number }}"
+                           class="snap-text-teal-deep font-medium hover:underline">admin@judeaharvest.co.za</a>.
+                    </p>
 
-                    <label class="block w-full cursor-pointer group">
-                        <div class="border-2 border-dashed border-stone-200 hover:border-amber-300
-                                    rounded-xl p-6 text-center transition-colors group-hover:bg-amber-50/30">
-                            <svg class="w-8 h-8 text-stone-300 group-hover:text-amber-400 mx-auto mb-2 transition-colors"
-                                 fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                                      d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                            </svg>
-                            <p class="text-sm text-stone-500 group-hover:text-stone-700 transition-colors">
-                                Click to choose file
-                            </p>
-                            <p class="text-xs text-stone-400 mt-1">JPG, PNG, WebP or PDF — max 10MB</p>
+                    <label class="block w-full cursor-pointer">
+                        <div class="snap-drop rounded-xl p-6 text-center">
+                            <p id="fileLabel" class="text-sm snap-text-navy font-medium">Choose a file</p>
+                            <p id="fileHint" class="text-xs snap-text-muted mt-1">JPG, PNG, WebP or PDF, up to 5MB</p>
                         </div>
                         <input type="file"
                                name="proof_of_payment"
@@ -144,47 +187,34 @@
                     </label>
                 </div>
 
-                <!-- Submit -->
                 <button type="submit"
-                        class="w-full py-3.5 bg-amber-600 hover:bg-amber-500 text-white font-semibold
-                               rounded-xl transition-colors shadow-sm">
-                    I've made payment — notify admin
+                        class="snap-btn-teal snap-display w-full py-3.5 font-semibold rounded-xl">
+                    I have paid &mdash; notify the team
                 </button>
 
                 <a href="{% url 'shop:cart_detail' %}"
-                   class="block w-full py-3 bg-stone-100 hover:bg-stone-200 text-stone-700
-                          text-center font-medium rounded-xl transition-colors">
-                    Cancel — return to cart
+                   class="snap-btn-quiet snap-display block w-full py-3 text-center font-medium rounded-xl">
+                    Cancel and return to cart
                 </a>
-
             </form>
 
-            <!-- What happens next -->
-            <div class="bg-stone-100/60 rounded-2xl border border-stone-200/40 px-6 py-5">
-                <p class="text-xs font-semibold text-stone-500 uppercase tracking-wider mb-3">
-                    What happens after you pay
-                </p>
-                <div class="space-y-2.5">
-                    <div class="flex items-start gap-2.5">
-                        <span class="text-amber-600 font-bold text-xs mt-0.5 shrink-0">1.</span>
-                        <p class="text-xs text-stone-500">
-                            Upload your proof of payment here, or email it to
-                            <span class="font-medium text-stone-700">admin@judeaharvest.co.za</span>
-                        </p>
-                    </div>
-                    <div class="flex items-start gap-2.5">
-                        <span class="text-amber-600 font-bold text-xs mt-0.5 shrink-0">2.</span>
-                        <p class="text-xs text-stone-500">
-                            Our team verifies payment — usually within 1 business day
-                        </p>
-                    </div>
-                    <div class="flex items-start gap-2.5">
-                        <span class="text-amber-600 font-bold text-xs mt-0.5 shrink-0">3.</span>
-                        <p class="text-xs text-stone-500">
-                            Your courses are activated and you'll receive confirmation
-                        </p>
-                    </div>
-                </div>
+            <!-- ===== After you pay ===== -->
+            <div class="rounded-2xl px-6 py-5" style="background: rgba(14,27,51,0.04); border: 1px solid var(--snap-line);">
+                <p class="snap-label mb-3">After you pay</p>
+                <ol class="space-y-2.5">
+                    <li class="flex items-start gap-2.5">
+                        <span class="snap-display text-xs font-bold snap-text-muted shrink-0 mt-0.5">1</span>
+                        <p class="text-xs leading-relaxed">We check the transfer against your reference.</p>
+                    </li>
+                    <li class="flex items-start gap-2.5">
+                        <span class="snap-display text-xs font-bold snap-text-muted shrink-0 mt-0.5">2</span>
+                        <p class="text-xs leading-relaxed">Confirmation usually takes one working day.</p>
+                    </li>
+                    <li class="flex items-start gap-2.5">
+                        <span class="snap-display text-xs font-bold snap-text-muted shrink-0 mt-0.5">3</span>
+                        <p class="text-xs leading-relaxed">Your courses open and we send you a confirmation.</p>
+                    </li>
+                </ol>
             </div>
 
         </div>
@@ -192,16 +222,52 @@
 </div>
 
 <script>
-// Show the selected filename in the upload area so the user
-// knows the file was picked before they submit.
-document.querySelector('input[name="proof_of_payment"]').addEventListener('change', function () {
-    const label = this.closest('label');
-    const nameEl = label.querySelector('p');
-    if (this.files.length > 0) {
-        nameEl.textContent = this.files[0].name;
-        nameEl.classList.add('text-amber-700', 'font-medium');
-    }
-});
+(function () {
+    // Copy buttons for the account number and reference. Both are easy to mistype on a phone.
+    var status = document.getElementById('copyStatus');
+
+    document.querySelectorAll('.js-copy').forEach(function (btn) {
+        btn.addEventListener('click', async function () {
+            var value = btn.parentElement.querySelector('[data-copy-value]').textContent.trim();
+            try {
+                await navigator.clipboard.writeText(value);
+                btn.textContent = 'Copied';
+                if (status) { status.classList.remove('hidden'); }
+                setTimeout(function () {
+                    btn.textContent = 'Copy';
+                    if (status) { status.classList.add('hidden'); }
+                }, 2000);
+            } catch (error) {
+                btn.textContent = 'Select it';
+            }
+        });
+    });
+
+    // Show the chosen filename, and reject anything over the server limit before upload
+    var input = document.querySelector('input[name="proof_of_payment"]');
+    if (!input) { return; }
+
+    var MAX_BYTES = 5 * 1024 * 1024;
+    var label = document.getElementById('fileLabel');
+    var hint  = document.getElementById('fileHint');
+
+    input.addEventListener('change', function () {
+        if (!input.files.length) { return; }
+        var file = input.files[0];
+
+        if (file.size > MAX_BYTES) {
+            input.value = '';
+            label.textContent = 'Choose a file';
+            hint.textContent = 'That file is larger than 5MB. Try a smaller image or a PDF.';
+            hint.style.color = '#DC2626';
+            return;
+        }
+
+        label.textContent = file.name;
+        hint.textContent = 'Ready to send with your notification';
+        hint.style.color = '';
+    });
+})();
 </script>
 
 {% endblock %}

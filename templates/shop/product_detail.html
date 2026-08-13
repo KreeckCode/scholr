@@ -2,29 +2,26 @@
 {% load shop_tags %}
 
 {% block title %}{{ product.name }}{% endblock %}
-{% block title_suffix %}Judea Harvest{% endblock %}
+{% block title_suffix %}SNAP Uplift — Judea Harvest{% endblock %}
 {% block meta_description %}{{ product.short_description|default:product.description|truncatechars:160 }}{% endblock %}
 
-{# ==================== SEO OVERRIDES ==================== #}
+{# ==================== SEO ====================
+   Block tags are collected when the template is parsed, so an {% if %} wrapped
+   around a {% block %} does not stop it overriding the parent. I put the
+   condition inside each block instead, which is the only way it actually works. #}
 
 {% block og_type %}website{% endblock %}
-
-{% block og_title %}{{ product.name }} — Judea Harvest{% endblock %}
+{% block og_title %}{{ product.name }} — SNAP Uplift{% endblock %}
 {% block og_description %}{{ product.short_description|default:product.description|truncatechars:200 }}{% endblock %}
 
-{% if product.image %}
-{% block og_image %}{{ request.scheme }}://{{ request.get_host }}{{ product.image.url }}{% endblock %}
-{% block og_image_secure %}{{ request.scheme }}://{{ request.get_host }}{{ product.image.url }}{% endblock %}
-{% block og_image_alt %}{{ product.name }} — Judea Harvest{% endblock %}
-{% endif %}
+{% block og_image %}{% if product.image %}{{ request.scheme }}://{{ request.get_host }}{{ product.image.url }}{% else %}{{ block.super }}{% endif %}{% endblock %}
+{% block og_image_secure %}{% if product.image %}{{ request.scheme }}://{{ request.get_host }}{{ product.image.url }}{% else %}{{ block.super }}{% endif %}{% endblock %}
+{% block og_image_alt %}{% if product.image %}{{ product.name }} — SNAP Uplift{% else %}{{ block.super }}{% endif %}{% endblock %}
 
-{% block twitter_title %}{{ product.name }} — Judea Harvest{% endblock %}
+{% block twitter_title %}{{ product.name }} — SNAP Uplift{% endblock %}
 {% block twitter_description %}{{ product.short_description|default:product.description|truncatechars:200 }}{% endblock %}
-
-{% if product.image %}
-{% block twitter_image %}{{ request.scheme }}://{{ request.get_host }}{{ product.image.url }}{% endblock %}
-{% block twitter_image_alt %}{{ product.name }}{% endblock %}
-{% endif %}
+{% block twitter_image %}{% if product.image %}{{ request.scheme }}://{{ request.get_host }}{{ product.image.url }}{% else %}{{ block.super }}{% endif %}{% endblock %}
+{% block twitter_image_alt %}{% if product.image %}{{ product.name }}{% else %}{{ block.super }}{% endif %}{% endblock %}
 
 {% block canonical %}{{ request.scheme }}://{{ request.get_host }}{% url 'shop:product_detail' product.slug %}{% endblock %}
 
@@ -43,10 +40,10 @@
     "@type": "EducationalOrganization",
     "name": "Judea Harvest",
     "url": "{{ request.scheme }}://{{ request.get_host }}",
-    "sameAs": "https://www.judeaharvest.org"
+    "sameAs": "https://www.judeaharvest.co.za"
   },
   "educationalLevel": "{% if product.grade_level %}{{ product.grade_level.name|escapejs }}{% else %}All levels{% endif %}",
-  "about": "{% if product.subject %}{{ product.subject.name|escapejs }}{% else %}Theology{% endif %}",
+  "about": "{% if product.subject %}{{ product.subject.name|escapejs }}{% else %}Pastoral ministry{% endif %}",
   "timeRequired": "P{{ product.duration_months }}M",
   "hasCourseInstance": {
     "@type": "CourseInstance",
@@ -57,11 +54,10 @@
     "@type": "Offer",
     {% if product.is_free %}
     "price": "0",
-    "priceCurrency": "ZAR",
     {% else %}
     "price": "{{ product.price }}",
-    "priceCurrency": "ZAR",
     {% endif %}
+    "priceCurrency": "ZAR",
     "availability": "https://schema.org/InStock",
     "url": "{{ request.scheme }}://{{ request.get_host }}{% url 'shop:product_detail' product.slug %}"
   }
@@ -70,104 +66,149 @@
 {% endblock %}
 
 {% block content %}
-<div class="min-h-screen bg-stone-50">
+
+{# Tokens repeated here so the page stands alone. Once these live in base.html head, delete this block. #}
+<style>
+    :root {
+        --snap-navy:        #0E1B33;
+        --snap-teal:        #12A594;
+        --snap-teal-bright: #16C2AE;
+        --snap-teal-deep:   #0C7A6D;
+        --snap-paper:       #EDF1F5;
+        --snap-slate:       #4A5A73;
+        --snap-muted:       #8494A8;
+        --snap-line:        rgba(14, 27, 51, 0.10);
+    }
+
+    .snap-product           { font-family: 'Inter', system-ui, sans-serif; color: var(--snap-slate); }
+    .snap-display           { font-family: 'Poppins', system-ui, sans-serif; letter-spacing: -0.02em; }
+
+    .snap-bg-paper          { background: var(--snap-paper); }
+    .snap-text-navy         { color: var(--snap-navy); }
+    .snap-text-muted        { color: var(--snap-muted); }
+    .snap-text-teal-deep    { color: var(--snap-teal-deep); }
+    .snap-card              { background: #fff; border: 1px solid var(--snap-line); }
+    .snap-rule              { border-top: 1px solid var(--snap-line); }
+
+    .snap-chip              { font-size: 0.7rem; font-weight: 500; padding: 0.3rem 0.7rem;
+                              border-radius: 999px; background: var(--snap-paper); color: var(--snap-slate); }
+    .snap-chip-free         { background: rgba(18,165,148,0.10); color: var(--snap-teal-deep);
+                              font-weight: 600; }
+
+    /* Body copy styled here rather than with prose classes, so the page does not
+       depend on the Tailwind typography plugin being installed. */
+    .snap-prose             { font-size: 0.9375rem; line-height: 1.7; }
+    .snap-prose p           { margin-bottom: 1rem; }
+    .snap-prose p:last-child{ margin-bottom: 0; }
+    .snap-prose strong      { color: var(--snap-navy); font-weight: 600; }
+    .snap-prose ul          { list-style: disc; padding-left: 1.25rem; margin-bottom: 1rem; }
+    .snap-prose li          { margin-bottom: 0.375rem; }
+
+    .snap-btn-teal          { background: var(--snap-teal); color: #fff; transition: background 0.2s, box-shadow 0.2s; }
+    .snap-btn-teal:hover    { background: var(--snap-teal-bright); box-shadow: 0 10px 24px -12px rgba(18,165,148,0.9); }
+
+    .snap-btn-quiet         { background: var(--snap-paper); color: var(--snap-slate);
+                              transition: background 0.18s, color 0.18s; }
+    .snap-btn-quiet:hover   { background: #E2E8EE; color: var(--snap-navy); }
+
+    .snap-product a:focus-visible,
+    .snap-product button:focus-visible { outline: 3px solid var(--snap-teal); outline-offset: 2px; }
+</style>
+
+<div class="snap-product min-h-screen snap-bg-paper">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
 
-        <!-- Breadcrumbs -->
         {% include 'shop/components/_breadcrumbs.html' with breadcrumbs=breadcrumbs %}
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-6">
 
-            <!-- Main Content -->
+            <!-- ===== Main ===== -->
             <div class="lg:col-span-2 space-y-6">
 
-                <!-- Hero Image -->
-                <div class="bg-white rounded-2xl border border-stone-200/60 overflow-hidden">
-                    {% if product.image %}
+                {% if product.image %}
+                <div class="snap-card rounded-2xl overflow-hidden">
                     <div class="aspect-video">
-                        <img src="{{ product.image.url }}"
-                             alt="{{ product.name }}"
+                        <img src="{{ product.image.url }}" alt="{{ product.name }}"
                              class="w-full h-full object-cover">
                     </div>
-                    {% else %}
-                    <div class="aspect-video bg-stone-100 flex items-center justify-center">
-                        <svg class="w-20 h-20 text-stone-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                                  d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
-                        </svg>
-                    </div>
-                    {% endif %}
                 </div>
+                {% endif %}
 
-                <!-- Product Info -->
-                <div class="bg-white rounded-2xl border border-stone-200/60 shadow-sm p-8">
+                <div class="snap-card rounded-2xl shadow-sm p-8">
 
-                    <!-- Tags -->
-                    <div class="flex flex-wrap items-center gap-2 mb-4">
+                    <div class="flex flex-wrap items-center gap-2 mb-5">
                         {% if product.grade_level %}
-                        <span class="px-3 py-1 bg-stone-100 text-stone-600 text-xs font-medium rounded-full">
-                            {{ product.grade_level.name }}
-                        </span>
+                        <span class="snap-chip">{{ product.grade_level.name }}</span>
                         {% endif %}
                         {% if product.subject %}
-                        <span class="px-3 py-1 bg-stone-100 text-stone-600 text-xs font-medium rounded-full">
-                            {{ product.subject.name }}
-                        </span>
-                        {% endif %}
-                        {% if product.is_free %}
-                        <span class="px-3 py-1 bg-amber-100 text-amber-800 text-xs font-semibold rounded-full border border-amber-200/60">
-                            Free
-                        </span>
+                        <span class="snap-chip">{{ product.subject.name }}</span>
                         {% endif %}
                         {% if product.product_type == 'bundle' %}
-                        <span class="px-3 py-1 bg-stone-100 text-stone-600 text-xs font-medium rounded-full">
-                            Bundle
-                        </span>
+                        <span class="snap-chip">Bundle</span>
+                        {% endif %}
+                        {% if product.is_free %}
+                        <span class="snap-chip snap-chip-free">Free</span>
                         {% endif %}
                     </div>
 
-                    <h1 class="text-3xl sm:text-4xl font-bold text-stone-900 mb-4 leading-tight">
+                    <h1 class="snap-display text-3xl sm:text-4xl font-bold snap-text-navy mb-4 leading-tight">
                         {{ product.name }}
                     </h1>
 
                     {% if product.short_description %}
-                    <p class="text-lg text-stone-500 mb-6 leading-relaxed">
-                        {{ product.short_description }}
-                    </p>
+                    <p class="text-lg leading-relaxed mb-7">{{ product.short_description }}</p>
                     {% endif %}
 
-                    <!-- Description -->
-                    <div class="prose prose-stone prose-sm max-w-none text-stone-600 mb-8">
+                    <div class="snap-prose mb-9">
                         {{ product.description|linebreaks }}
                     </div>
 
-                    <!-- What's Included -->
                     {% if product.included_features %}
-                    <div class="mb-8">
-                        <h3 class="text-base font-semibold text-stone-900 mb-4">What's included</h3>
+                    <div class="mb-9">
+                        <h2 class="snap-display text-base font-semibold snap-text-navy mb-4">What is included</h2>
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                             {% for feature in product.included_features %}
-                            <div class="flex items-center gap-2.5">
-                                <svg class="w-4 h-4 text-amber-600 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                            <div class="flex items-start gap-2.5">
+                                <svg class="w-4 h-4 snap-text-teal-deep shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
                                     <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
                                 </svg>
-                                <span class="text-sm text-stone-600">{{ feature }}</span>
+                                <span class="text-sm">{{ feature }}</span>
                             </div>
                             {% endfor %}
                         </div>
                     </div>
                     {% endif %}
 
-                    <!-- Course Outline -->
                     {% if product.course_outline %}
-                    <div class="mb-8">
-                        <h3 class="text-base font-semibold text-stone-900 mb-4">Course Outline</h3>
-                        <div class="space-y-2">
+                    <div class="mb-9">
+                        <h2 class="snap-display text-base font-semibold snap-text-navy mb-4">Course outline</h2>
+                        <ol class="space-y-2">
                             {% for item in product.course_outline %}
-                            <div class="p-4 bg-stone-50 rounded-xl border border-stone-200/60">
-                                <h4 class="font-medium text-stone-900 text-sm mb-1">{{ item.title }}</h4>
-                                {% if item.description %}
-                                <p class="text-xs text-stone-500">{{ item.description }}</p>
+                            <li class="flex gap-4 p-4 snap-bg-paper rounded-xl">
+                                <span class="snap-display text-sm font-bold snap-text-muted shrink-0">
+                                    {{ forloop.counter|stringformat:"02d" }}
+                                </span>
+                                <div>
+                                    <p class="snap-display font-medium snap-text-navy text-sm mb-0.5">{{ item.title }}</p>
+                                    {% if item.description %}
+                                    <p class="text-xs snap-text-muted leading-relaxed">{{ item.description }}</p>
+                                    {% endif %}
+                                </div>
+                            </li>
+                            {% endfor %}
+                        </ol>
+                    </div>
+                    {% endif %}
+
+                    {% if product.product_type == 'bundle' and product.bundle_items.all %}
+                    <div class="mb-9">
+                        <h2 class="snap-display text-base font-semibold snap-text-navy mb-4">Courses in this bundle</h2>
+                        <div class="space-y-2">
+                            {% for bundle_item in product.bundle_items.all %}
+                            <div class="p-4 snap-bg-paper rounded-xl">
+                                <p class="snap-display font-medium snap-text-navy text-sm">{{ bundle_item.course.title }}</p>
+                                {% if bundle_item.include_terms %}
+                                <p class="text-xs snap-text-muted mt-0.5">Terms {{ bundle_item.include_terms|join:", " }}</p>
                                 {% endif %}
                             </div>
                             {% endfor %}
@@ -175,139 +216,95 @@
                     </div>
                     {% endif %}
 
-                    <!-- Bundle Contents -->
-                    {% if product.product_type == 'bundle' and product.bundle_items.all %}
-                    <div class="mb-8">
-                        <h3 class="text-base font-semibold text-stone-900 mb-4">Bundle includes</h3>
-                        <div class="space-y-2">
-                            {% for bundle_item in product.bundle_items.all %}
-                            <div class="flex items-center gap-4 p-4 bg-stone-50 rounded-xl border border-stone-200/60">
-                                <div class="shrink-0 w-10 h-10 bg-amber-900/10 border border-amber-800/20 rounded-xl flex items-center justify-center">
-                                    <svg class="w-5 h-5 text-amber-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                                              d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
-                                    </svg>
-                                </div>
-                                <div class="flex-1 min-w-0">
-                                    <p class="font-medium text-stone-900 text-sm">{{ bundle_item.course.title }}</p>
-                                    {% if bundle_item.include_terms %}
-                                    <p class="text-xs text-stone-400 mt-0.5">Terms: {{ bundle_item.include_terms|join:", " }}</p>
-                                    {% endif %}
-                                </div>
-                            </div>
-                            {% endfor %}
-                        </div>
-                    </div>
-                    {% endif %}
-
-                    <!-- Learning Outcomes -->
                     {% if product.learning_outcomes %}
-                    <div class="mb-8">
-                        <h3 class="text-base font-semibold text-stone-900 mb-4">Learning Outcomes</h3>
-                        <div class="prose prose-stone prose-sm max-w-none text-stone-600">
-                            {{ product.learning_outcomes|linebreaks }}
-                        </div>
+                    <div class="mb-9">
+                        <h2 class="snap-display text-base font-semibold snap-text-navy mb-4">What you will be able to do</h2>
+                        <div class="snap-prose">{{ product.learning_outcomes|linebreaks }}</div>
                     </div>
                     {% endif %}
 
-                    <!-- Requirements -->
                     {% if product.requirements %}
                     <div>
-                        <h3 class="text-base font-semibold text-stone-900 mb-4">Requirements</h3>
-                        <div class="prose prose-stone prose-sm max-w-none text-stone-600">
-                            {{ product.requirements|linebreaks }}
-                        </div>
+                        <h2 class="snap-display text-base font-semibold snap-text-navy mb-4">Before you start</h2>
+                        <div class="snap-prose">{{ product.requirements|linebreaks }}</div>
                     </div>
                     {% endif %}
 
                 </div>
             </div>
 
-            <!-- Sidebar -->
+            <!-- ===== Sidebar ===== -->
             <div class="lg:col-span-1">
-                <div class="bg-white rounded-2xl border border-stone-200/60 shadow-sm p-6 sticky top-24">
+                <div class="snap-card rounded-2xl shadow-sm p-6 sticky top-24">
 
-                    <!-- Price -->
-                    <div class="mb-5 pb-5 border-b border-stone-100">
+                    <div class="mb-5 pb-5" style="border-bottom: 1px solid var(--snap-line);">
                         {% if product.is_free %}
-                        <p class="text-4xl font-bold text-amber-700 mb-1">Free</p>
-                        <p class="text-sm text-stone-400">No payment required</p>
+                        <p class="snap-display text-4xl font-bold snap-text-teal-deep mb-1">Free</p>
+                        <p class="text-sm snap-text-muted">No payment required</p>
                         {% else %}
-                        <p class="text-4xl font-bold text-stone-900 mb-1">{{ product.price|currency }}</p>
-                        <p class="text-sm text-stone-400">One-time payment</p>
+                        <p class="snap-display text-4xl font-bold snap-text-navy mb-1">{{ product.price|currency }}</p>
+                        <p class="text-sm snap-text-muted">One payment, no renewal</p>
                         {% endif %}
                     </div>
 
-                    <!-- Meta -->
-                    <div class="mb-6 space-y-3">
-                        <div class="flex items-center gap-3 text-sm text-stone-600">
-                            <svg class="w-4 h-4 text-stone-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <ul class="mb-6 space-y-3">
+                        <li class="flex items-center gap-3 text-sm">
+                            <svg class="w-4 h-4 snap-text-muted shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
                             </svg>
-                            <span>{{ product.duration_months }} month{{ product.duration_months|pluralize }} access</span>
-                        </div>
+                            {{ product.duration_months }} month{{ product.duration_months|pluralize }} of access
+                        </li>
 
                         {% if product.product_type == 'bundle' %}
-                        <div class="flex items-center gap-3 text-sm text-stone-600">
-                            <svg class="w-4 h-4 text-stone-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <li class="flex items-center gap-3 text-sm">
+                            <svg class="w-4 h-4 snap-text-muted shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
                             </svg>
-                            <span>{{ product.bundle_items.count }} course{{ product.bundle_items.count|pluralize }} included</span>
-                        </div>
+                            {{ product.bundle_items.count }} course{{ product.bundle_items.count|pluralize }} included
+                        </li>
                         {% endif %}
 
-                        <div class="flex items-center gap-3 text-sm text-stone-600">
-                            <svg class="w-4 h-4 text-stone-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <li class="flex items-center gap-3 text-sm">
+                            <svg class="w-4 h-4 snap-text-muted shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
                             </svg>
-                            <span>Certificate included</span>
-                        </div>
-                    </div>
+                            Certificate on completion
+                        </li>
+                    </ul>
 
-                    <!-- CTA -->
                     <div class="space-y-3">
                         {% if is_enrolled %}
                         <a href="{% url 'shop:my_courses' %}"
-                           class="flex items-center justify-center gap-2 w-full py-3 bg-stone-100
-                                  text-stone-800 font-semibold rounded-xl transition-colors">
-                            <svg class="w-4 h-4 text-amber-600" fill="currentColor" viewBox="0 0 20 20">
+                           class="snap-btn-quiet snap-display flex items-center justify-center gap-2 w-full py-3 font-semibold rounded-xl">
+                            <svg class="w-4 h-4 snap-text-teal-deep" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
                                 <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
                             </svg>
-                            Already enrolled — View Course
+                            You are enrolled &mdash; open it
                         </a>
                         {% else %}
                         <form method="post" action="{% url 'shop:cart_add' product.id %}">
                             {% csrf_token %}
                             <input type="hidden" name="quantity" value="1">
                             <button type="submit"
-                                    class="w-full py-3 bg-amber-600 hover:bg-amber-500 text-white
-                                           font-semibold rounded-xl transition-colors shadow-sm">
-                                {% if product.is_free %}
-                                    Enrol Now — Free
-                                {% else %}
-                                    Add to Cart
-                                {% endif %}
+                                    class="snap-btn-teal snap-display w-full py-3 font-semibold rounded-xl">
+                                {% if product.is_free %}Enrol now{% else %}Add to cart{% endif %}
                             </button>
                         </form>
 
                         {% if not product.is_free %}
                         <a href="{% url 'shop:cart_detail' %}"
-                           class="block w-full py-3 bg-stone-100 hover:bg-stone-200 text-stone-700
-                                  text-center font-medium rounded-xl transition-colors">
-                            View Cart
+                           class="snap-btn-quiet snap-display block w-full py-3 text-center font-medium rounded-xl">
+                            View cart
                         </a>
                         {% endif %}
                         {% endif %}
                     </div>
 
-                    <!-- Preview -->
                     {% if product.preview_url %}
-                    <div class="mt-5 pt-5 border-t border-stone-100">
-                        <a href="{{ product.preview_url }}"
-                           target="_blank" rel="noopener"
-                           class="flex items-center justify-center gap-2 text-sm font-medium
-                                  text-amber-700 hover:text-amber-600 transition-colors">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div class="snap-rule mt-5 pt-5">
+                        <a href="{{ product.preview_url }}" target="_blank" rel="noopener"
+                           class="flex items-center justify-center gap-2 text-sm font-medium snap-text-teal-deep hover:underline">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                             </svg>
@@ -316,14 +313,19 @@
                     </div>
                     {% endif %}
 
+                    {% if not product.is_free %}
+                    <p class="snap-rule mt-5 pt-5 text-xs snap-text-muted leading-relaxed">
+                        Study first. The fee applies when you claim your certificate.
+                    </p>
+                    {% endif %}
+
                 </div>
             </div>
         </div>
 
-        <!-- Related Products -->
         {% if related_products %}
         <div class="mt-16">
-            <h2 class="text-2xl font-bold text-stone-900 mb-6">You might also like</h2>
+            <h2 class="snap-display text-2xl font-bold snap-text-navy mb-6">Related courses</h2>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {% for related in related_products %}
                     {% include 'shop/catalog/_product_card.html' with product=related %}

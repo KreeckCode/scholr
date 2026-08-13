@@ -1,116 +1,179 @@
 {% extends 'base/base.html' %}
 {% load shop_tags %}
 
-{% block title %}Order Confirmed{% endblock %}
-{% block title_suffix %}Judea Harvest{% endblock %}
+{% block title %}Order confirmed{% endblock %}
+{% block title_suffix %}SNAP Uplift — Judea Harvest{% endblock %}
 
 {% block content %}
-<div class="min-h-screen bg-stone-50">
+
+{# Tokens repeated here so the page stands alone. Once these live in base.html head, delete this block. #}
+<style>
+    :root {
+        --snap-navy:        #0E1B33;
+        --snap-teal:        #12A594;
+        --snap-teal-bright: #16C2AE;
+        --snap-teal-deep:   #0C7A6D;
+        --snap-orange:      #F26A21;
+        --snap-paper:       #EDF1F5;
+        --snap-slate:       #4A5A73;
+        --snap-muted:       #8494A8;
+        --snap-line:        rgba(14, 27, 51, 0.10);
+    }
+
+    .snap-confirm           { font-family: 'Inter', system-ui, sans-serif; color: var(--snap-slate); }
+    .snap-display           { font-family: 'Poppins', system-ui, sans-serif; letter-spacing: -0.02em; }
+
+    .snap-bg-paper          { background: var(--snap-paper); }
+    .snap-text-navy         { color: var(--snap-navy); }
+    .snap-text-muted        { color: var(--snap-muted); }
+    .snap-text-teal-deep    { color: var(--snap-teal-deep); }
+    .snap-card              { background: #fff; border: 1px solid var(--snap-line); }
+    .snap-rule              { border-top: 1px solid var(--snap-line); }
+    .snap-rule-b            { border-bottom: 1px solid var(--snap-line); }
+
+    .snap-mark              { background: rgba(18,165,148,0.10); border: 1px solid rgba(18,165,148,0.25);
+                              color: var(--snap-teal-deep); }
+    .snap-mark-wait         { background: rgba(242,106,33,0.10); border: 1px solid rgba(242,106,33,0.25);
+                              color: #B54708; }
+
+    .snap-step-num          { background: var(--snap-paper); color: var(--snap-navy);
+                              font-family: 'Poppins', sans-serif; }
+
+    .snap-btn-teal          { background: var(--snap-teal); color: #fff; transition: background 0.2s, box-shadow 0.2s; }
+    .snap-btn-teal:hover    { background: var(--snap-teal-bright); box-shadow: 0 10px 24px -12px rgba(18,165,148,0.9); }
+
+    .snap-confirm a:focus-visible { outline: 3px solid var(--snap-teal); outline-offset: 2px; }
+</style>
+
+<div class="snap-confirm min-h-screen snap-bg-paper">
     <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
 
-        <!-- Success Header -->
-        <div class="bg-white rounded-2xl border border-stone-200/60 shadow-sm p-8 text-center mb-8">
-            <div class="w-16 h-16 bg-amber-900/10 border border-amber-800/20 rounded-2xl
-                        flex items-center justify-center mx-auto mb-5">
-                <svg class="w-8 h-8 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <!-- ===== Header =====
+             Three states, because an EFT order is not paid the moment it is placed. -->
+        <div class="snap-card rounded-2xl shadow-sm p-8 text-center mb-8">
+
+            <div class="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-5
+                        {% if order.is_free_order or order.paid_at %}snap-mark{% else %}snap-mark-wait{% endif %}">
+                {% if order.is_free_order or order.paid_at %}
+                <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
                 </svg>
+                {% else %}
+                <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                {% endif %}
             </div>
 
-            <h1 class="text-3xl font-bold text-stone-900 mb-2">
+            <h1 class="snap-display text-3xl font-bold snap-text-navy mb-2">
                 {% if order.is_free_order %}
-                    You're enrolled. Start learning.
+                    You are enrolled
+                {% elif order.paid_at %}
+                    Payment confirmed
                 {% else %}
-                    Payment confirmed.
+                    Order received
                 {% endif %}
             </h1>
 
-            <p class="text-stone-400 mb-5">Order {{ order.order_number }}</p>
+            <p class="snap-text-muted mb-5">Order {{ order.order_number }}</p>
 
             {% if not order.is_free_order %}
-            <span class="inline-flex items-center gap-1.5 px-4 py-2 bg-amber-50 border border-amber-200/60
-                         text-amber-800 text-sm font-medium rounded-full">
-                <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-                </svg>
-                Payment received
+            <span class="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-full
+                         {% if order.paid_at %}snap-mark{% else %}snap-mark-wait{% endif %}">
+                {% if order.paid_at %}
+                    Payment received
+                {% else %}
+                    Awaiting payment
+                {% endif %}
             </span>
             {% endif %}
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
 
-            <!-- Left: Next Steps + Enrolled Courses -->
+            <!-- ===== Left ===== -->
             <div class="lg:col-span-2 space-y-6">
 
-                <!-- Next Steps -->
-                <div class="bg-white rounded-2xl border border-stone-200/60 shadow-sm p-6">
-                    <h2 class="text-lg font-semibold text-stone-900 mb-5">What happens next</h2>
+                <div class="snap-card rounded-2xl shadow-sm p-6">
+                    <h2 class="snap-display text-lg font-semibold snap-text-navy mb-5">What happens next</h2>
 
-                    <div class="space-y-5">
-                        <div class="flex items-start gap-4">
-                            <div class="shrink-0 w-8 h-8 bg-amber-900/10 border border-amber-800/20
-                                        rounded-full flex items-center justify-center">
-                                <span class="text-xs font-bold text-amber-700">1</span>
-                            </div>
+                    <ol class="space-y-5">
+                        {% if order.is_free_order or order.paid_at %}
+
+                        <li class="flex items-start gap-4">
+                            <span class="snap-step-num shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold">1</span>
                             <div>
-                                <p class="font-medium text-stone-900 text-sm mb-0.5">Enrolment complete</p>
-                                <p class="text-sm text-stone-500">You've been enrolled in all purchased courses.</p>
+                                <p class="snap-display font-semibold snap-text-navy text-sm mb-0.5">Enrolment complete</p>
+                                <p class="text-sm snap-text-muted">You have been enrolled in every course on this order.</p>
                             </div>
-                        </div>
-
-                        <div class="flex items-start gap-4">
-                            <div class="shrink-0 w-8 h-8 bg-amber-900/10 border border-amber-800/20
-                                        rounded-full flex items-center justify-center">
-                                <span class="text-xs font-bold text-amber-700">2</span>
-                            </div>
+                        </li>
+                        <li class="flex items-start gap-4">
+                            <span class="snap-step-num shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold">2</span>
                             <div>
-                                <p class="font-medium text-stone-900 text-sm mb-0.5">Check your messages</p>
-                                <p class="text-sm text-stone-500">We've sent course details to your email or phone number.</p>
+                                <p class="snap-display font-semibold snap-text-navy text-sm mb-0.5">Check your messages</p>
+                                <p class="text-sm snap-text-muted">Course details are on their way to your email or phone.</p>
                             </div>
-                        </div>
-
-                        <div class="flex items-start gap-4">
-                            <div class="shrink-0 w-8 h-8 bg-amber-900/10 border border-amber-800/20
-                                        rounded-full flex items-center justify-center">
-                                <span class="text-xs font-bold text-amber-700">3</span>
-                            </div>
+                        </li>
+                        <li class="flex items-start gap-4">
+                            <span class="snap-step-num shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold">3</span>
                             <div>
-                                <p class="font-medium text-stone-900 text-sm mb-0.5">Start learning</p>
-                                <p class="text-sm text-stone-500">Access your courses from your dashboard at any time.</p>
+                                <p class="snap-display font-semibold snap-text-navy text-sm mb-0.5">Start studying</p>
+                                <p class="text-sm snap-text-muted">Open your courses from My learning whenever you have time.</p>
                             </div>
-                        </div>
-                    </div>
+                        </li>
 
-                    <div class="mt-6 pt-6 border-t border-stone-100">
+                        {% else %}
+
+                        <li class="flex items-start gap-4">
+                            <span class="snap-step-num shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold">1</span>
+                            <div>
+                                <p class="snap-display font-semibold snap-text-navy text-sm mb-0.5">Make the transfer</p>
+                                <p class="text-sm snap-text-muted">
+                                    Use order number <span class="font-medium snap-text-navy">{{ order.order_number }}</span>
+                                    as your payment reference so we can match it.
+                                </p>
+                            </div>
+                        </li>
+                        <li class="flex items-start gap-4">
+                            <span class="snap-step-num shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold">2</span>
+                            <div>
+                                <p class="snap-display font-semibold snap-text-navy text-sm mb-0.5">We confirm it</p>
+                                <p class="text-sm snap-text-muted">Transfers are usually confirmed within two working days.</p>
+                            </div>
+                        </li>
+                        <li class="flex items-start gap-4">
+                            <span class="snap-step-num shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold">3</span>
+                            <div>
+                                <p class="snap-display font-semibold snap-text-navy text-sm mb-0.5">Your courses open</p>
+                                <p class="text-sm snap-text-muted">You will be notified as soon as access is live.</p>
+                            </div>
+                        </li>
+
+                        {% endif %}
+                    </ol>
+
+                    <div class="snap-rule mt-6 pt-6">
                         <a href="{% url 'shop:my_courses' %}"
-                           class="block w-full py-3 bg-amber-600 hover:bg-amber-500 text-white
-                                  text-center font-semibold rounded-xl transition-colors shadow-sm">
-                            Go to My Courses
+                           class="snap-btn-teal snap-display block w-full py-3 text-center font-semibold rounded-xl">
+                            Go to my learning
                         </a>
                     </div>
                 </div>
 
-                <!-- Enrolled Courses -->
                 {% if enrollments %}
-                <div class="bg-white rounded-2xl border border-stone-200/60 shadow-sm p-6">
-                    <h2 class="text-lg font-semibold text-stone-900 mb-4">Your enrolled courses</h2>
+                <div class="snap-card rounded-2xl shadow-sm p-6">
+                    <h2 class="snap-display text-lg font-semibold snap-text-navy mb-4">Your courses</h2>
 
-                    <div class="space-y-3">
+                    <div>
                         {% for enrollment in enrollments %}
-                        <div class="flex items-center gap-4 p-4 bg-stone-50 rounded-xl border border-stone-200/40">
-                            <div class="shrink-0 w-10 h-10 bg-amber-900/10 border border-amber-800/20
-                                        rounded-xl flex items-center justify-center">
-                                <svg class="w-5 h-5 text-amber-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                                          d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
-                                </svg>
-                            </div>
+                        <div class="flex items-center gap-4 py-3.5 snap-rule-b last:border-0 first:pt-0">
                             <div class="flex-1 min-w-0">
-                                <p class="font-medium text-stone-900 text-sm truncate">{{ enrollment.product.name }}</p>
-                                <p class="text-xs text-stone-400 mt-0.5">Access until {{ enrollment.expires_at|date:"j F Y" }}</p>
+                                <p class="snap-display font-medium snap-text-navy text-sm">{{ enrollment.product.name }}</p>
+                                {% if enrollment.expires_at %}
+                                <p class="text-xs snap-text-muted mt-0.5">Access until {{ enrollment.expires_at|date:"j F Y" }}</p>
+                                {% endif %}
                             </div>
-                            <svg class="w-4 h-4 text-amber-600 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                            <svg class="w-4 h-4 shrink-0 snap-text-teal-deep" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
                                 <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
                             </svg>
                         </div>
@@ -121,57 +184,55 @@
 
             </div>
 
-            <!-- Right: Order Summary + Support -->
+            <!-- ===== Right ===== -->
             <div class="lg:col-span-1 space-y-6">
 
-                <!-- Order Summary -->
-                <div class="bg-white rounded-2xl border border-stone-200/60 shadow-sm p-6">
-                    <h2 class="text-base font-semibold text-stone-900 mb-4">Order summary</h2>
+                <div class="snap-card rounded-2xl shadow-sm p-6">
+                    <h2 class="snap-display text-base font-semibold snap-text-navy mb-4">Order summary</h2>
 
                     <div class="space-y-2 mb-4">
                         {% for item in order.items.all %}
-                        <div class="flex justify-between text-sm">
-                            <span class="text-stone-600 truncate pr-3">{{ item.product.name }}</span>
-                            <span class="font-medium text-stone-900 shrink-0">{{ item.subtotal|currency }}</span>
+                        <div class="flex justify-between gap-3 text-sm">
+                            <span class="min-w-0">{{ item.product.name }}</span>
+                            <span class="font-medium snap-text-navy shrink-0">{{ item.subtotal|currency }}</span>
                         </div>
                         {% endfor %}
                     </div>
 
                     {% if order.discount_amount > 0 %}
-                    <div class="flex justify-between text-sm text-amber-700 mb-2">
+                    <div class="flex justify-between text-sm snap-text-teal-deep mb-2">
                         <span>Discount</span>
                         <span class="font-medium">-{{ order.discount_amount|currency }}</span>
                     </div>
                     {% endif %}
 
-                    <div class="flex justify-between text-base font-bold pt-4 border-t border-stone-100">
-                        <span class="text-stone-900">Total</span>
-                        <span class="text-stone-900">{{ order.total_amount|currency }}</span>
+                    <div class="flex justify-between items-baseline snap-rule pt-4">
+                        <span class="snap-display text-sm font-semibold snap-text-navy">Total</span>
+                        <span class="snap-display text-xl font-bold snap-text-navy">{{ order.total_amount|currency }}</span>
                     </div>
 
-                    {% if not order.is_free_order %}
-                    <div class="mt-4 pt-4 border-t border-stone-100 space-y-2">
-                        <div class="flex justify-between text-xs text-stone-500">
-                            <span>Payment method</span>
-                            <span class="font-medium text-stone-700 capitalize">{{ order.payment_method }}</span>
+                    {% if not order.is_free_order and order.paid_at %}
+                    <div class="snap-rule mt-4 pt-4 space-y-2">
+                        <div class="flex justify-between text-xs">
+                            <span class="snap-text-muted">Payment method</span>
+                            <span class="font-medium snap-text-navy capitalize">{{ order.payment_method }}</span>
                         </div>
-                        <div class="flex justify-between text-xs text-stone-500">
-                            <span>Payment date</span>
-                            <span class="font-medium text-stone-700">{{ order.paid_at|date:"j M Y" }}</span>
+                        <div class="flex justify-between text-xs">
+                            <span class="snap-text-muted">Payment date</span>
+                            <span class="font-medium snap-text-navy">{{ order.paid_at|date:"j M Y" }}</span>
                         </div>
                     </div>
                     {% endif %}
                 </div>
 
-                <!-- Support -->
-                <div class="bg-white rounded-2xl border border-stone-200/60 shadow-sm p-6">
-                    <h3 class="font-semibold text-stone-900 mb-2 text-sm">Need help?</h3>
-                    <p class="text-xs text-stone-500 mb-4 leading-relaxed">
-                        Contact us if you have any questions about your enrolment or course access.
+                <div class="snap-card rounded-2xl shadow-sm p-6">
+                    <h3 class="snap-display font-semibold snap-text-navy mb-2 text-sm">Need help?</h3>
+                    <p class="text-xs snap-text-muted mb-4 leading-relaxed">
+                        Quote your order number and we will pick it up from there.
                     </p>
-                    <a href="mailto:info@judeaharvest.co.za"
-                       class="text-sm font-medium text-amber-700 hover:text-amber-600 transition-colors">
-                        info@judeaharvest.co.za →
+                    <a href="mailto:info@judeaharvest.co.za?subject=Order%20{{ order.order_number }}"
+                       class="text-sm font-medium snap-text-teal-deep hover:underline">
+                        info@judeaharvest.co.za
                     </a>
                 </div>
 
