@@ -7,7 +7,6 @@
 
 {% block content %}
 
-{# Tokens repeated here so the page stands alone. Once these live in base.html head, delete this block. #}
 <style>
     :root {
         --snap-navy:        #0E1B33;
@@ -34,7 +33,6 @@
     .snap-card              { background: #fff; border: 1px solid var(--snap-line); }
     .snap-rule              { border-top: 1px solid var(--snap-line); }
 
-    /* Progress bars: flat teal. A gradient on a 3px bar reads as noise, not data. */
     .snap-track             { background: #DDE4EC; border-radius: 999px; overflow: hidden; }
     .snap-fill              { background: var(--snap-teal); height: 100%; border-radius: 999px;
                               transition: width 0.4s ease; }
@@ -71,7 +69,6 @@
 
 <div class="snap-learn min-h-screen snap-bg-paper">
 
-    <!-- ===== Header band ===== -->
     <div class="snap-bg-navy">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-20">
             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-5">
@@ -90,7 +87,6 @@
                 </button>
             </div>
 
-            {# Status messages land here instead of a browser alert #}
             <p id="refreshStatus" role="status" aria-live="polite"
                class="text-sm mt-4 hidden" style="color: #FCA5A5;"></p>
         </div>
@@ -98,8 +94,6 @@
 
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-10 pb-16">
 
-        <!-- ===== Counts =====
-             Numbers only. An icon beside "Completed" tells you nothing the word doesn't. -->
         <div class="grid grid-cols-3 snap-card rounded-2xl shadow-sm mb-8 overflow-hidden">
             <div class="p-5 sm:p-6">
                 <p class="snap-display text-3xl font-bold snap-text-navy leading-none">{{ total_courses }}</p>
@@ -120,7 +114,7 @@
             {% for enrollment in enrollments %}
 
                 {% if enrollment.product.product_type == 'bundle' %}
-                <!-- ===== Bundle ===== -->
+
                 <div class="snap-card rounded-2xl shadow-sm overflow-hidden">
 
                     <div class="p-6">
@@ -212,7 +206,7 @@
                                                 Open
                                             </a>
                                             {% elif not user.is_verified %}
-                                            {# Say why it is locked, not just that it is #}
+
                                             <span class="block text-xs snap-text-muted text-right max-w-[130px] leading-relaxed">
                                                 Available once your account is verified
                                             </span>
@@ -232,7 +226,7 @@
                 </div>
 
                 {% else %}
-                <!-- ===== Single course ===== -->
+
                 <div class="snap-card rounded-2xl shadow-sm p-6">
                     <div class="flex items-start justify-between gap-4">
                         <div class="flex-1 min-w-0">
@@ -278,7 +272,6 @@
             {% endfor %}
         </div>
 
-        <!-- ===== Pagination ===== -->
         {% if page_obj.has_other_pages %}
         <div class="mt-8 flex items-center justify-between gap-4">
             <p class="text-sm snap-text-muted">
@@ -298,7 +291,7 @@
         {% endif %}
 
         {% else %}
-        <!-- ===== Empty state ===== -->
+
         <div class="snap-card rounded-2xl p-16 text-center">
             <h2 class="snap-display text-2xl font-semibold snap-text-navy mb-3">Nothing here yet</h2>
             <p class="snap-text-muted mb-8 max-w-sm mx-auto leading-relaxed">
@@ -320,7 +313,7 @@
 
 <script>
 (function () {
-    // Bundle expand and collapse, bound by data attribute rather than inline onclick
+
     document.querySelectorAll('.js-bundle-toggle').forEach(function (btn) {
         btn.addEventListener('click', function () {
             var panel = document.getElementById(btn.dataset.target);
@@ -334,7 +327,6 @@
         });
     });
 
-    // Progress refresh. Failures show inline rather than in a browser alert.
     var btn    = document.getElementById('refreshBtn');
     var icon   = document.getElementById('refreshIcon');
     var text   = document.getElementById('refreshText');

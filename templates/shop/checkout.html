@@ -6,7 +6,6 @@
 
 {% block content %}
 
-{# Tokens repeated here so the page stands alone. Once these live in base.html head, delete this block. #}
 <style>
     :root {
         --snap-navy:        #0E1B33;
@@ -30,8 +29,6 @@
     .snap-rule              { border-top: 1px solid var(--snap-line); }
     .snap-rule-b            { border-bottom: 1px solid var(--snap-line); }
 
-    /* Every widget styled from here, so the page holds together
-       regardless of what forms.py puts on each field. */
     .snap-checkout input[type="text"],
     .snap-checkout input[type="email"],
     .snap-checkout input[type="tel"],
@@ -93,7 +90,6 @@
 
         <h1 class="snap-display text-3xl font-bold snap-text-navy mb-8">Checkout</h1>
 
-        {# A single summary at the top, so errors further down the form are never missed #}
         {% if form.errors %}
         <div class="rounded-2xl p-4 mb-6" style="background: #FEF2F2; border: 1px solid #FECACA;">
             <p class="text-sm font-medium" style="color: #B91C1C;">
@@ -108,7 +104,6 @@
         <form method="post" class="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {% csrf_token %}
 
-            <!-- ===== Left: details ===== -->
             <div class="lg:col-span-2 space-y-6">
 
                 {% if not user_authenticated %}
@@ -199,7 +194,7 @@
                     <div class="flex items-start gap-3">
                         {{ form.accept_terms }}
                         <label for="{{ form.accept_terms.id_for_label }}" class="text-sm leading-relaxed cursor-pointer">
-                            {# TODO: point these at the real policy pages before launch #}
+
                             I accept the
                             <a href="#" class="snap-text-teal-deep font-medium hover:underline">terms and conditions</a>
                             and
@@ -226,7 +221,6 @@
                             <p class="text-sm snap-text-muted truncate">{{ user.email|default:user.phone_number }}</p>
                         </div>
 
-                        {# Only claim verified when the account actually is #}
                         {% if user.is_verified %}
                         <span class="ml-auto shrink-0 inline-flex items-center gap-1.5 text-xs font-medium rounded-full px-3 py-1"
                               style="color: var(--snap-teal-deep); background: rgba(18,165,148,0.10); border: 1px solid rgba(18,165,148,0.22);">
@@ -249,7 +243,6 @@
 
             </div>
 
-            <!-- ===== Right: order summary ===== -->
             <div class="lg:col-span-1">
                 <div class="snap-card rounded-2xl shadow-sm p-6 sticky top-24">
                     <h2 class="snap-display text-lg font-semibold snap-text-navy mb-5">Order summary</h2>
@@ -308,7 +301,6 @@
                         Back to cart
                     </a>
 
-                    {# What happens next, rather than a trust badge #}
                     <p class="snap-rule mt-5 pt-5 text-xs snap-text-muted leading-relaxed">
                         {% if total == 0 %}
                             Your enrolment is confirmed straight away and the course opens in

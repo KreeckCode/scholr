@@ -8,7 +8,6 @@
 
 {% block content %}
 
-{# Tokens repeated here so the page stands alone. Once these live in base.html head, delete this block. #}
 <style>
     :root {
         --snap-navy:        #0E1B33;
@@ -34,8 +33,6 @@
     .snap-text-muted        { color: var(--snap-muted); }
     .snap-border-hair       { border-color: var(--snap-line); }
 
-    /* I style the form controls here so the widgets render correctly
-       whether or not forms.py sets a CSS class on them. */
     .snap-filters input[type="text"],
     .snap-filters input[type="search"],
     .snap-filters select {
@@ -82,8 +79,6 @@
 
 <div class="snap-catalog min-h-screen snap-bg-paper">
 
-    <!-- ===== Hero band =====
-         Flat navy. No pattern, no gradient wash: nothing here that isn't information. -->
     <div class="snap-bg-navy">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-14 pb-20">
             <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6">
@@ -112,7 +107,6 @@
 
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-10 pb-20">
 
-        <!-- ===== Search and filters ===== -->
         <div class="snap-card snap-filters rounded-2xl p-6 mb-8 shadow-sm">
             <form method="get">
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-10 gap-4">
@@ -161,8 +155,6 @@
             </form>
         </div>
 
-        <!-- ===== Result count =====
-             Only shown when a filter is applied, so it means something when it appears. -->
         {% if request.GET.q or request.GET.grade or request.GET.subject or request.GET.price %}
         <div class="flex items-center justify-between gap-4 mb-6">
             <p class="text-sm">
@@ -175,7 +167,6 @@
         </div>
         {% endif %}
 
-        <!-- ===== Course grid ===== -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
             {% for product in products %}
                 {% cache 900 product_card product.id %}
@@ -199,7 +190,6 @@
             {% endfor %}
         </div>
 
-        <!-- ===== Pagination ===== -->
         {% if page_obj.has_other_pages %}
             {% include 'shop/components/_pagination.html' %}
         {% endif %}

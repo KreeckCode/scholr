@@ -2,214 +2,227 @@
 {% load shop_tags %}
 
 {% block title %}Order {{ order.order_number }}{% endblock %}
-{% block title_suffix %}Judea Harvest{% endblock %}
+{% block title_suffix %}SNAP Uplift — Judea Harvest{% endblock %}
 
 {% block content %}
-<div class="min-h-screen bg-stone-50">
+
+<style>
+    :root {
+        --snap-navy:        #0E1B33;
+        --snap-teal:        #12A594;
+        --snap-teal-bright: #16C2AE;
+        --snap-teal-deep:   #0C7A6D;
+        --snap-orange-deep: #B54708;
+        --snap-paper:       #EDF1F5;
+        --snap-slate:       #4A5A73;
+        --snap-muted:       #8494A8;
+        --snap-line:        rgba(14, 27, 51, 0.10);
+    }
+
+    .snap-order             { font-family: 'Inter', system-ui, sans-serif; color: var(--snap-slate); }
+    .snap-display           { font-family: 'Poppins', system-ui, sans-serif; letter-spacing: -0.02em; }
+    .snap-mono              { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+
+    .snap-bg-paper          { background: var(--snap-paper); }
+    .snap-text-navy         { color: var(--snap-navy); }
+    .snap-text-muted        { color: var(--snap-muted); }
+    .snap-text-teal-deep    { color: var(--snap-teal-deep); }
+    .snap-card              { background: #fff; border: 1px solid var(--snap-line); }
+    .snap-rule              { border-top: 1px solid var(--snap-line); }
+    .snap-rule-b            { border-bottom: 1px solid var(--snap-line); }
+
+    .snap-badge             { font-family: 'Poppins', sans-serif; font-size: 0.7rem; font-weight: 600;
+                              padding: 0.35rem 0.8rem; border-radius: 999px; white-space: nowrap; }
+    .snap-badge-done        { background: rgba(18,165,148,0.10); color: var(--snap-teal-deep);
+                              border: 1px solid rgba(18,165,148,0.25); }
+    .snap-badge-wait        { background: rgba(242,106,33,0.10); color: var(--snap-orange-deep);
+                              border: 1px solid rgba(242,106,33,0.25); }
+    .snap-badge-busy        { background: rgba(91,124,184,0.12); color: #33518A;
+                              border: 1px solid rgba(91,124,184,0.28); }
+    .snap-badge-bad         { background: #FEF2F2; color: #B91C1C; border: 1px solid #FECACA; }
+    .snap-badge-off         { background: var(--snap-paper); color: var(--snap-slate);
+                              border: 1px solid var(--snap-line); }
+
+    .snap-btn-teal          { background: var(--snap-teal); color: #fff; transition: background 0.2s, box-shadow 0.2s; }
+    .snap-btn-teal:hover    { background: var(--snap-teal-bright); box-shadow: 0 10px 24px -12px rgba(18,165,148,0.9); }
+
+    .snap-order a:focus-visible { outline: 3px solid var(--snap-teal); outline-offset: 2px; }
+</style>
+
+<div class="snap-order min-h-screen snap-bg-paper">
     <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
 
-        <!-- Header -->
         <div class="mb-8">
             <a href="{% url 'shop:order_list' %}"
-               class="inline-flex items-center gap-1.5 text-sm text-stone-500 hover:text-stone-800 transition-colors mb-5">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+               class="inline-flex items-center gap-1.5 text-sm snap-text-muted hover:text-navy transition-colors mb-5">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
                 </svg>
-                Back to Orders
+                All orders
             </a>
 
             <div class="flex items-start justify-between gap-4">
                 <div>
-                    <h1 class="text-2xl font-bold text-stone-900 mb-1">
+                    <h1 class="snap-display text-2xl font-bold snap-text-navy mb-1">
                         Order {{ order.order_number }}
                     </h1>
-                    <p class="text-stone-400 text-sm">Placed on {{ order.created_at|date:"j F Y \a\t g:i A" }}</p>
+                    <p class="text-sm snap-text-muted">Placed {{ order.created_at|date:"j F Y \a\t g:i A" }}</p>
                 </div>
 
-                <!-- Status Badge -->
                 {% if order.status == 'completed' or order.status == 'free' %}
-                <span class="shrink-0 px-3 py-1.5 bg-stone-100 text-stone-700 text-xs font-semibold rounded-full border border-stone-200">
-                    Completed
-                </span>
+                <span class="snap-badge snap-badge-done shrink-0">Completed</span>
                 {% elif order.status == 'pending' %}
-                <span class="shrink-0 px-3 py-1.5 bg-amber-50 text-amber-800 text-xs font-semibold rounded-full border border-amber-200/60">
-                    Pending Payment
-                </span>
+                <span class="snap-badge snap-badge-wait shrink-0">Awaiting payment</span>
                 {% elif order.status == 'processing' %}
-                <span class="shrink-0 px-3 py-1.5 bg-blue-50 text-blue-700 text-xs font-semibold rounded-full border border-blue-200/60">
-                    Processing
-                </span>
+                <span class="snap-badge snap-badge-busy shrink-0">Processing</span>
                 {% elif order.status == 'failed' %}
-                <span class="shrink-0 px-3 py-1.5 bg-red-50 text-red-700 text-xs font-semibold rounded-full border border-red-200/60">
-                    Failed
-                </span>
+                <span class="snap-badge snap-badge-bad shrink-0">Failed</span>
                 {% elif order.status == 'refunded' %}
-                <span class="shrink-0 px-3 py-1.5 bg-stone-100 text-stone-500 text-xs font-semibold rounded-full border border-stone-200">
-                    Refunded
-                </span>
+                <span class="snap-badge snap-badge-off shrink-0">Refunded</span>
+                {% else %}
+                <span class="snap-badge snap-badge-off shrink-0">{{ order.get_status_display|default:order.status }}</span>
                 {% endif %}
             </div>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
 
-            <!-- Left: Items + Enrolment -->
             <div class="lg:col-span-2 space-y-6">
 
-                <!-- Order Items -->
-                <div class="bg-white rounded-2xl border border-stone-200/60 shadow-sm p-6">
-                    <h2 class="text-base font-semibold text-stone-900 mb-5">Items ordered</h2>
+                <div class="snap-card rounded-2xl shadow-sm p-6">
+                    <h2 class="snap-display text-base font-semibold snap-text-navy mb-5">Items ordered</h2>
 
-                    <div class="space-y-4">
+                    <div>
                         {% for item in order.items.all %}
-                        <div class="flex gap-4 pb-4 {% if not forloop.last %}border-b border-stone-100{% endif %}">
+                        <div class="flex gap-4 py-4 snap-rule-b last:border-0 first:pt-0">
 
-                            <!-- Thumbnail -->
-                            <div class="shrink-0 w-16 h-16 bg-stone-100 rounded-xl overflow-hidden">
+                            <div class="shrink-0 w-16 h-16 snap-bg-paper rounded-xl overflow-hidden">
                                 {% if item.product.image %}
-                                <img src="{{ item.product.image.url }}"
-                                     alt="{{ item.product.name }}"
+                                <img src="{{ item.product.image.url }}" alt=""
                                      class="w-full h-full object-cover">
-                                {% else %}
-                                <div class="w-full h-full flex items-center justify-center">
-                                    <svg class="w-7 h-7 text-stone-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                                              d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
-                                    </svg>
-                                </div>
                                 {% endif %}
                             </div>
 
-                            <!-- Info -->
                             <div class="flex-1 min-w-0">
-                                <p class="font-semibold text-stone-900 text-sm mb-1">{{ item.product.name }}</p>
-                                <div class="flex flex-wrap items-center gap-1.5 text-xs text-stone-400 mb-2">
-                                    {% if item.product.grade_level %}
-                                    <span>{{ item.product.grade_level.name }}</span>
-                                    {% endif %}
-                                    {% if item.product.grade_level and item.product.subject %}
-                                    <span>·</span>
-                                    {% endif %}
-                                    {% if item.product.subject %}
-                                    <span>{{ item.product.subject.name }}</span>
-                                    {% endif %}
+                                <p class="snap-display font-semibold snap-text-navy text-sm mb-1">{{ item.product.name }}</p>
+
+                                <div class="flex flex-wrap items-center gap-1.5 text-xs snap-text-muted mb-2">
+                                    {% if item.product.grade_level %}<span>{{ item.product.grade_level.name }}</span>{% endif %}
+                                    {% if item.product.grade_level and item.product.subject %}<span>&middot;</span>{% endif %}
+                                    {% if item.product.subject %}<span>{{ item.product.subject.name }}</span>{% endif %}
                                 </div>
-                                <p class="text-xs text-stone-400">
-                                    Qty {{ item.quantity }} × {{ item.unit_price|currency }}
+
+                                <p class="text-xs snap-text-muted">
+                                    {% if item.quantity > 1 %}{{ item.quantity }} &times; {% endif %}{{ item.unit_price|currency }}
                                 </p>
                             </div>
 
-                            <!-- Subtotal -->
                             <div class="shrink-0 text-right">
-                                <p class="font-semibold text-stone-900 text-sm">{{ item.subtotal|currency }}</p>
+                                <p class="snap-display font-semibold snap-text-navy text-sm">{{ item.subtotal|currency }}</p>
                             </div>
                         </div>
                         {% endfor %}
                     </div>
                 </div>
 
-                <!-- Enrolment Status -->
                 {% if order.enrollment_processed %}
-                <div class="bg-white rounded-2xl border border-stone-200/60 shadow-sm p-6">
-                    <div class="flex items-start gap-4">
-                        <div class="shrink-0 w-10 h-10 bg-amber-900/10 border border-amber-800/20
-                                    rounded-xl flex items-center justify-center">
-                            <svg class="w-5 h-5 text-amber-600" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-                            </svg>
-                        </div>
-                        <div class="flex-1">
-                            <p class="font-semibold text-stone-900 text-sm mb-1">Enrolment complete</p>
-                            <p class="text-sm text-stone-500 mb-3">
-                                You've been enrolled in all courses from this order.
-                            </p>
-                            <a href="{% url 'shop:my_courses' %}"
-                               class="inline-flex items-center gap-1.5 text-sm font-medium text-amber-700 hover:text-amber-600 transition-colors">
-                                Access my courses
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-                                </svg>
-                            </a>
-                        </div>
-                    </div>
+                <div class="snap-card rounded-2xl shadow-sm p-6">
+                    <p class="snap-display font-semibold snap-text-navy text-sm mb-1">Enrolment complete</p>
+                    <p class="text-sm snap-text-muted mb-4">
+                        Every course on this order is open to you now.
+                    </p>
+                    <a href="{% url 'shop:my_courses' %}"
+                       class="snap-btn-teal snap-display inline-flex items-center gap-1.5 px-5 py-2.5 text-sm font-semibold rounded-xl">
+                        Go to my learning
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                        </svg>
+                    </a>
                 </div>
                 {% endif %}
 
                 {% if order.enrollment_error %}
-                <div class="bg-red-50 rounded-2xl border border-red-200/60 p-6">
-                    <p class="font-semibold text-red-800 text-sm mb-1">Enrolment issue</p>
-                    <p class="text-sm text-red-600 mb-3">
-                        There was a problem processing your enrolment. Please contact us and we'll resolve it.
+                <div class="rounded-2xl p-6" style="background: #FEF2F2; border: 1px solid #FECACA;">
+                    <p class="snap-display font-semibold text-sm mb-1" style="color: #991B1B;">Enrolment could not be completed</p>
+                    <p class="text-sm mb-4" style="color: #B91C1C;">
+                        Your payment is safe. Send us the order number and we will finish the
+                        enrolment by hand.
                     </p>
-                    <a href="mailto:info@judeaharvest.co.za"
-                       class="text-sm font-medium text-red-700 hover:text-red-600 transition-colors">
-                        info@judeaharvest.co.za →
+                    <a href="mailto:info@judeaharvest.co.za?subject=Enrolment%20issue%20{{ order.order_number }}"
+                       class="text-sm font-medium hover:underline" style="color: #B91C1C;">
+                        info@judeaharvest.co.za
                     </a>
                 </div>
                 {% endif %}
 
             </div>
 
-            <!-- Right: Summary + Payment + Notes -->
             <div class="lg:col-span-1 space-y-6">
 
-                <!-- Order Summary -->
-                <div class="bg-white rounded-2xl border border-stone-200/60 shadow-sm p-6">
-                    <h2 class="text-base font-semibold text-stone-900 mb-4">Summary</h2>
+                <div class="snap-card rounded-2xl shadow-sm p-6">
+                    <h2 class="snap-display text-base font-semibold snap-text-navy mb-4">Summary</h2>
 
-                    <div class="space-y-2.5 mb-4">
+                    <div class="space-y-2.5">
                         <div class="flex justify-between text-sm">
-                            <span class="text-stone-500">Subtotal</span>
-                            <span class="font-medium text-stone-900">{{ order.subtotal|currency }}</span>
+                            <span class="snap-text-muted">Subtotal</span>
+                            <span class="font-medium snap-text-navy">{{ order.subtotal|currency }}</span>
                         </div>
 
                         {% if order.discount_amount > 0 %}
-                        <div class="flex justify-between text-sm text-amber-700">
+                        <div class="flex justify-between text-sm snap-text-teal-deep">
                             <span>Discount</span>
                             <span class="font-medium">-{{ order.discount_amount|currency }}</span>
                         </div>
                         {% endif %}
 
-                        <div class="flex justify-between text-base font-bold pt-3 border-t border-stone-100">
-                            <span class="text-stone-900">Total</span>
-                            <span class="text-stone-900">{{ order.total_amount|currency }}</span>
+                        <div class="flex justify-between items-baseline snap-rule pt-3">
+                            <span class="snap-display text-sm font-semibold snap-text-navy">Total</span>
+                            <span class="snap-display text-xl font-bold snap-text-navy">{{ order.total_amount|currency }}</span>
                         </div>
                     </div>
+
+                    {% if order.status == 'pending' %}
+
+                    <p class="snap-rule mt-4 pt-4 text-xs snap-text-muted leading-relaxed">
+                        This order is waiting on your bank transfer. Use
+                        <span class="snap-mono font-semibold snap-text-navy">{{ order.order_number }}</span>
+                        as the reference.
+                    </p>
+                    {% endif %}
                 </div>
 
-                <!-- Payment Details -->
                 {% if not order.is_free_order %}
-                <div class="bg-white rounded-2xl border border-stone-200/60 shadow-sm p-6">
-                    <h3 class="text-base font-semibold text-stone-900 mb-4">Payment</h3>
+                <div class="snap-card rounded-2xl shadow-sm p-6">
+                    <h2 class="snap-display text-base font-semibold snap-text-navy mb-4">Payment</h2>
 
-                    <div class="space-y-2.5">
-                        <div class="flex justify-between text-sm">
-                            <span class="text-stone-500">Method</span>
-                            <span class="font-medium text-stone-900 capitalize">{{ order.payment_method }}</span>
+                    <div class="space-y-3">
+                        <div class="flex justify-between gap-3 text-sm">
+                            <span class="snap-text-muted shrink-0">Method</span>
+                            <span class="font-medium snap-text-navy capitalize text-right">{{ order.payment_method|default:"Bank transfer" }}</span>
                         </div>
 
                         {% if order.payment_reference %}
-                        <div class="flex justify-between text-sm">
-                            <span class="text-stone-500">Reference</span>
-                            <span class="font-mono text-xs text-stone-700">{{ order.payment_reference|truncatechars:20 }}</span>
+                        <div class="text-sm">
+                            <span class="snap-text-muted block mb-1">Reference</span>
+
+                            <span class="snap-mono text-xs snap-text-navy break-all">{{ order.payment_reference }}</span>
                         </div>
                         {% endif %}
 
                         {% if order.paid_at %}
-                        <div class="flex justify-between text-sm">
-                            <span class="text-stone-500">Paid on</span>
-                            <span class="font-medium text-stone-900">{{ order.paid_at|date:"j M Y" }}</span>
+                        <div class="flex justify-between gap-3 text-sm">
+                            <span class="snap-text-muted shrink-0">Paid on</span>
+                            <span class="font-medium snap-text-navy">{{ order.paid_at|date:"j M Y" }}</span>
                         </div>
                         {% endif %}
                     </div>
                 </div>
                 {% endif %}
 
-                <!-- Customer Notes -->
                 {% if order.customer_notes %}
-                <div class="bg-white rounded-2xl border border-stone-200/60 shadow-sm p-6">
-                    <h3 class="text-base font-semibold text-stone-900 mb-2">Your notes</h3>
-                    <p class="text-sm text-stone-500 leading-relaxed">{{ order.customer_notes }}</p>
+                <div class="snap-card rounded-2xl shadow-sm p-6">
+                    <h2 class="snap-display text-base font-semibold snap-text-navy mb-2">Your notes</h2>
+                    <p class="text-sm snap-text-muted leading-relaxed">{{ order.customer_notes }}</p>
                 </div>
                 {% endif %}
 

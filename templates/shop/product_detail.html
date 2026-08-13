@@ -5,11 +5,6 @@
 {% block title_suffix %}SNAP Uplift — Judea Harvest{% endblock %}
 {% block meta_description %}{{ product.short_description|default:product.description|truncatechars:160 }}{% endblock %}
 
-{# ==================== SEO ====================
-   Block tags are collected when the template is parsed, so an {% if %} wrapped
-   around a {% block %} does not stop it overriding the parent. I put the
-   condition inside each block instead, which is the only way it actually works. #}
-
 {% block og_type %}website{% endblock %}
 {% block og_title %}{{ product.name }} — SNAP Uplift{% endblock %}
 {% block og_description %}{{ product.short_description|default:product.description|truncatechars:200 }}{% endblock %}
@@ -67,7 +62,6 @@
 
 {% block content %}
 
-{# Tokens repeated here so the page stands alone. Once these live in base.html head, delete this block. #}
 <style>
     :root {
         --snap-navy:        #0E1B33;
@@ -95,8 +89,6 @@
     .snap-chip-free         { background: rgba(18,165,148,0.10); color: var(--snap-teal-deep);
                               font-weight: 600; }
 
-    /* Body copy styled here rather than with prose classes, so the page does not
-       depend on the Tailwind typography plugin being installed. */
     .snap-prose             { font-size: 0.9375rem; line-height: 1.7; }
     .snap-prose p           { margin-bottom: 1rem; }
     .snap-prose p:last-child{ margin-bottom: 0; }
@@ -122,7 +114,6 @@
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-6">
 
-            <!-- ===== Main ===== -->
             <div class="lg:col-span-2 space-y-6">
 
                 {% if product.image %}
@@ -233,7 +224,6 @@
                 </div>
             </div>
 
-            <!-- ===== Sidebar ===== -->
             <div class="lg:col-span-1">
                 <div class="snap-card rounded-2xl shadow-sm p-6 sticky top-24">
 

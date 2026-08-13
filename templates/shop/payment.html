@@ -6,7 +6,6 @@
 
 {% block content %}
 
-{# Tokens repeated here so the page stands alone. Once these live in base.html head, delete this block. #}
 <style>
     :root {
         --snap-navy:        #0E1B33;
@@ -35,8 +34,6 @@
     .snap-label             { font-family: 'Poppins', sans-serif; font-size: 0.68rem; font-weight: 600;
                               letter-spacing: 0.1em; text-transform: uppercase; color: var(--snap-muted); }
 
-    /* The reference row is the one thing that must not be got wrong,
-       so it is the only element on the page carrying the orange accent. */
     .snap-ref-row           { background: rgba(242,106,33,0.08); }
     .snap-ref-label         { color: var(--snap-orange-deep); }
     .snap-ref-value         { color: var(--snap-orange-deep); }
@@ -52,7 +49,6 @@
                               transition: background 0.18s, color 0.18s; }
     .snap-btn-quiet:hover   { background: #E2E8EE; color: var(--snap-navy); }
 
-    /* The file input is visually hidden, so the drop zone shows its focus ring instead */
     .snap-drop              { border: 2px dashed var(--snap-line); transition: border-color 0.18s, background 0.18s; }
     label:hover .snap-drop  { border-color: rgba(18,165,148,0.45); background: rgba(18,165,148,0.04); }
     label:focus-within .snap-drop { border-color: var(--snap-teal); background: rgba(18,165,148,0.06);
@@ -72,7 +68,6 @@
 
         <div class="space-y-6">
 
-            <!-- ===== Order summary ===== -->
             <div class="snap-card rounded-2xl shadow-sm p-6">
                 <h2 class="snap-display text-base font-semibold snap-text-navy mb-4">Order summary</h2>
 
@@ -100,10 +95,6 @@
                 </div>
             </div>
 
-            <!-- ===== Banking details =====
-                 These read from context. Wire them up in settings and expose them via a
-                 context processor: if any are missing the row shows a warning rather
-                 than rendering blank. -->
             <div class="snap-card rounded-2xl shadow-sm p-6">
                 <h2 class="snap-display text-base font-semibold snap-text-navy mb-2">Banking details</h2>
                 <p class="text-sm mb-5 leading-relaxed">
@@ -159,7 +150,6 @@
                    class="text-xs snap-text-teal-deep mt-2 hidden">Copied</p>
             </div>
 
-            <!-- ===== Proof of payment and submit ===== -->
             <form method="post" enctype="multipart/form-data" class="space-y-4">
                 {% csrf_token %}
 
@@ -198,7 +188,6 @@
                 </a>
             </form>
 
-            <!-- ===== After you pay ===== -->
             <div class="rounded-2xl px-6 py-5" style="background: rgba(14,27,51,0.04); border: 1px solid var(--snap-line);">
                 <p class="snap-label mb-3">After you pay</p>
                 <ol class="space-y-2.5">
@@ -223,7 +212,7 @@
 
 <script>
 (function () {
-    // Copy buttons for the account number and reference. Both are easy to mistype on a phone.
+
     var status = document.getElementById('copyStatus');
 
     document.querySelectorAll('.js-copy').forEach(function (btn) {
@@ -243,7 +232,6 @@
         });
     });
 
-    // Show the chosen filename, and reject anything over the server limit before upload
     var input = document.querySelector('input[name="proof_of_payment"]');
     if (!input) { return; }
 

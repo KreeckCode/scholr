@@ -6,7 +6,6 @@
 
 {% block content %}
 
-{# Tokens repeated here so the page stands alone. Once these live in base.html head, delete this block. #}
 <style>
     :root {
         --snap-navy:        #0E1B33;
@@ -29,7 +28,6 @@
     .snap-card              { background: #fff; border: 1px solid var(--snap-line); }
     .snap-rule              { border-top: 1px solid var(--snap-line); }
 
-    /* Styled here so the discount widget renders correctly whatever forms.py sets on it */
     .snap-cart input[type="text"] {
         width: 100%;
         background: #fff;
@@ -66,14 +64,12 @@
         {% if cart %}
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
 
-            <!-- ===== Cart items ===== -->
             <div class="lg:col-span-2 space-y-4">
                 {% for item in cart %}
                     {% include 'shop/cart/_cart_item.html' %}
                 {% endfor %}
             </div>
 
-            <!-- ===== Order summary ===== -->
             <div class="lg:col-span-1">
                 <div class="snap-card rounded-2xl shadow-sm p-6 sticky top-24">
                     <h2 class="snap-display text-lg font-semibold snap-text-navy mb-5">Order summary</h2>
@@ -130,8 +126,6 @@
                         Browse more courses
                     </a>
 
-                    <!-- Payment method note.
-                         Paystack is not live yet, so I describe what actually happens today. -->
                     <p class="snap-rule mt-6 pt-5 text-xs snap-text-muted leading-relaxed">
                         Pay by bank transfer. We confirm your payment manually and issue your
                         certificate once it clears.
@@ -141,7 +135,7 @@
         </div>
 
         {% else %}
-        <!-- ===== Empty cart ===== -->
+
         <div class="snap-card rounded-2xl p-16 text-center">
             <h2 class="snap-display text-2xl font-semibold snap-text-navy mb-3">Your cart is empty</h2>
             <p class="snap-text-muted mb-8 max-w-sm mx-auto leading-relaxed">
