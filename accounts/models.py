@@ -61,10 +61,10 @@ class User(AbstractUser):
     )
     
     phone_number = models.CharField(
-        validators=[phone_regex],
-        max_length=17,
+        max_length=20,
         unique=True,
-        help_text="Primary contact number - required for all users"
+        null=True,
+        blank=True,
     )
     
     # Email is optional in African rural context

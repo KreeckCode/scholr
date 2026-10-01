@@ -1,5 +1,4 @@
-{% load static %}
-<!DOCTYPE html>
+{% load static %}<!DOCTYPE html>
 <html lang="en" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
@@ -7,76 +6,64 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="format-detection" content="telephone=no">
     <meta name="color-scheme" content="light">
-    <link rel="icon" href="{% static 'logo/logo.webp' %}" type="image/webp">
-    <link rel="apple-touch-icon" href="{% static 'logo/apple-touch-icon.png' %}">
-
     <meta name="referrer" content="strict-origin-when-cross-origin">
-
-   
-    <title>{% block title %}Judea Harvest{% endblock %} — {% block title_suffix %}Equipping African Church Leaders{% endblock %}</title>
-
-    <meta name="description"
-          content="{% block meta_description %}Judea Harvest equips ministry leaders across Africa with theological training. Access courses in Biblical Studies, Theology, Church History, Practical Ministry, and Leadership — from any device.{% endblock %}">
-
-    <meta name="keywords"
-          content="{% block meta_keywords %}theological education Africa, pastoral training, online learning Africa, biblical studies, church leaders training, Judea Harvest, ministry training, African pastors{% endblock %}">
-
-    <meta name="author" content="Judea Harvest">
+    <meta name="theme-color" content="{{ brand.theme_color }}">
+    <meta name="author" content="{{ brand.owner }}">
     <meta name="robots" content="{% block robots %}index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1{% endblock %}">
-    <meta name="theme-color" content="#d4a843">
 
-    <!-- Canonical URL — prevents duplicate content penalties -->
+    <title>{% block title %}{{ brand.name }}{% endblock %} &mdash; {% block title_suffix %}{{ brand.strapline }}{% endblock %}</title>
+
+    <meta name="description" content="{% block meta_description %}{{ brand.description }}{% endblock %}">
+    <meta name="keywords" content="{% block meta_keywords %}{{ brand.keywords }}{% endblock %}">
+
     <link rel="canonical" href="{% block canonical %}{{ request.build_absolute_uri }}{% endblock %}">
 
-    <!-- ==================== OPEN GRAPH (Facebook, WhatsApp, LinkedIn, iMessage) ==================== -->
-    <meta property="og:type"          content="{% block og_type %}website{% endblock %}">
-    <meta property="og:site_name"     content="Judea Harvest">
-    <meta property="og:url"           content="{{ request.build_absolute_uri }}">
-    <meta property="og:title"         content="{% block og_title %}{% block title_og %}Judea Harvest{% endblock %} — Equipping African Church Leaders{% endblock %}">
-    <meta property="og:description"   content="{% block og_description %}theological training for African ministry leaders — accessible from any device, in any village, across 40 nations.{% endblock %}">
-    <meta property="og:image:width"   content="1200">
-    <meta property="og:image:height"  content="630">
-    <meta property="og:image:type"    content="image/png">
-    <meta property="og:image:alt"     content="{% block og_image_alt %}Judea Harvest — Equipping African Church Leaders{% endblock %}">
-    <meta property="og:locale"        content="en_ZA">
+    <link rel="icon" href="{% static 'logo/favicon.ico' %}" sizes="any">
+    <link rel="icon" href="{% static brand.logo %}" type="image/webp">
+    <link rel="apple-touch-icon" href="{% static 'logo/apple-touch-icon.png' %}">
 
-    <!-- ==================== TWITTER / X ==================== -->
+    <meta property="og:type"         content="{% block og_type %}website{% endblock %}">
+    <meta property="og:site_name"    content="{{ brand.name }}">
+    <meta property="og:url"          content="{{ request.build_absolute_uri }}">
+    <meta property="og:title"        content="{% block og_title %}{{ brand.name }} &mdash; {{ brand.strapline }}{% endblock %}">
+    <meta property="og:description"  content="{% block og_description %}{{ brand.description }}{% endblock %}">
+    <meta property="og:image"        content="{% block og_image %}{{ request.scheme }}://{{ request.get_host }}{% static brand.og_image %}{% endblock %}">
+    <meta property="og:image:secure_url" content="{% block og_image_secure %}{{ request.scheme }}://{{ request.get_host }}{% static brand.og_image %}{% endblock %}">
+    <meta property="og:image:width"  content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:type"   content="image/png">
+    <meta property="og:image:alt"    content="{% block og_image_alt %}{{ brand.name }}{% endblock %}">
+    <meta property="og:locale"       content="{{ brand.locale }}">
+
     <meta name="twitter:card"        content="summary_large_image">
-    <meta name="twitter:site"        content="@judeaharvest">
-    <meta name="twitter:creator"     content="@judeaharvest">
-    <meta name="twitter:title"       content="{% block twitter_title %}Judea Harvest — Equipping African Church Leaders{% endblock %}">
-    <meta name="twitter:description" content="{% block twitter_description %}theological training for African ministry leaders across 40 nations.{% endblock %}">
-    <meta name="twitter:image:alt"   content="{% block twitter_image_alt %}Judea Harvest — Equipping African Church Leaders{% endblock %}">
+    {% if brand.twitter %}
+    <meta name="twitter:site"        content="{{ brand.twitter }}">
+    <meta name="twitter:creator"     content="{{ brand.twitter }}">
+    {% endif %}
+    <meta name="twitter:title"       content="{% block twitter_title %}{{ brand.name }}{% endblock %}">
+    <meta name="twitter:description" content="{% block twitter_description %}{{ brand.description }}{% endblock %}">
+    <meta name="twitter:image"       content="{% block twitter_image %}{{ request.scheme }}://{{ request.get_host }}{% static brand.og_image %}{% endblock %}">
+    <meta name="twitter:image:alt"   content="{% block twitter_image_alt %}{{ brand.name }}{% endblock %}">
 
-    <!-- ==================== STRUCTURED DATA ==================== -->
     {% block structured_data %}
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
       "@graph": [
         {
-          "@type": "EducationalOrganization",
+          "@type": "{{ brand.schema_type }}",
           "@id": "{{ request.scheme }}://{{ request.get_host }}/#organization",
-          "name": "Judea Harvest",
-          "alternateName": "Judea Harvest Learning Platform",
-          "description": "Equipping African church leaders with theological training since 1999",
+          "name": "{{ brand.owner|escapejs }}",
+          "alternateName": "{{ brand.name|escapejs }}",
+          "description": "{{ brand.description|escapejs }}",
           "url": "{{ request.scheme }}://{{ request.get_host }}",
-          "foundingDate": "1999",
-          "areaServed": "Africa",
-          "numberOfEmployees": { "@type": "QuantitativeValue", "value": "40+" },
-          "knowsAbout": [
-            "Biblical Studies",
-            "Theology",
-            "Church History",
-            "Practical Ministry",
-            "Leadership"
-          ],
-          "sameAs": [
-            "https://www.judeaharvest.org"
-          ],
+          "foundingDate": "{{ brand.founded }}",
+          "areaServed": "{{ brand.area_served }}",
+          "knowsAbout": [{% for item in brand.knows_about %}"{{ item|escapejs }}"{% if not forloop.last %}, {% endif %}{% endfor %}],
+          "sameAs": [{% for item in brand.same_as %}"{{ item|escapejs }}"{% if not forloop.last %}, {% endif %}{% endfor %}],
           "contactPoint": {
             "@type": "ContactPoint",
-            "email": "info@judeaharvest.co.za",
+            "email": "{{ brand.email|escapejs }}",
             "contactType": "customer support",
             "availableLanguage": "English"
           }
@@ -85,23 +72,17 @@
           "@type": "WebSite",
           "@id": "{{ request.scheme }}://{{ request.get_host }}/#website",
           "url": "{{ request.scheme }}://{{ request.get_host }}",
-          "name": "Judea Harvest",
-          "description": "Theological training for African church leaders",
-          "publisher": {
-            "@id": "{{ request.scheme }}://{{ request.get_host }}/#organization"
-          },
+          "name": "{{ brand.name|escapejs }}",
+          "description": "{{ brand.strapline|escapejs }}",
+          "publisher": { "@id": "{{ request.scheme }}://{{ request.get_host }}/#organization" },
           "inLanguage": "en-ZA"
         },
         {
           "@type": "WebPage",
           "@id": "{{ request.build_absolute_uri }}#webpage",
           "url": "{{ request.build_absolute_uri }}",
-          "isPartOf": {
-            "@id": "{{ request.scheme }}://{{ request.get_host }}/#website"
-          },
-          "about": {
-            "@id": "{{ request.scheme }}://{{ request.get_host }}/#organization"
-          },
+          "isPartOf": { "@id": "{{ request.scheme }}://{{ request.get_host }}/#website" },
+          "about": { "@id": "{{ request.scheme }}://{{ request.get_host }}/#organization" },
           "inLanguage": "en-ZA"
         }
       ]
@@ -109,43 +90,58 @@
     </script>
     {% endblock %}
 
-    <!-- Page-level structured data override (product pages, course pages, etc.) -->
     {% block extra_schema %}{% endblock %}
 
-    <!-- ==================== FAVICON ==================== -->
-    <link rel="icon" type="image/svg+xml"
-          href="{% static 'logo/logo.webp' %}">
-
-
-    <!-- ==================== RESOURCE HINTS ==================== -->
-    <!-- Tell the browser to establish connections to CDN origins early -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="preconnect" href="https://cdn.tailwindcss.com">
-    <link rel="preconnect" href="https://cdn.jsdelivr.net">
-    <link rel="dns-prefetch" href="https://cdn.tailwindcss.com">
     <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
 
-    <!-- ==================== STYLES ==================== -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
-
-    <!-- Alpine.js — deferred so it never blocks rendering -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+    <style>
+        :root {
+            --snap-navy:        #0E1B33;
+            --snap-navy-deep:   #08111F;
+            --snap-navy-soft:   #1B2C4D;
+            --snap-teal:        #12A594;
+            --snap-teal-bright: #16C2AE;
+            --snap-teal-deep:   #0C7A6D;
+            --snap-orange:      #F26A21;
+            --snap-orange-deep: #B54708;
+            --snap-paper:       #EDF1F5;
+            --snap-slate:       #4A5A73;
+            --snap-muted:       #8494A8;
+            --snap-line:        rgba(14, 27, 51, 0.10);
+        }
+
+        body { font-family: 'Inter', system-ui, -apple-system, sans-serif; }
+
+        .skip-link {
+            position: absolute; left: -9999px; top: 0; z-index: 100;
+            background: var(--snap-navy); color: #fff; padding: 0.75rem 1.25rem;
+            border-radius: 0 0 0.75rem 0; font-size: 0.875rem; font-weight: 600;
+        }
+        .skip-link:focus { left: 0; }
+    </style>
 
     {% block extra_head %}{% endblock %}
 </head>
-<body class="bg-stone-50 antialiased min-h-screen flex flex-col">
+<body class="antialiased min-h-screen flex flex-col" style="background: var(--snap-paper);">
+
+    <a href="#main-content" class="skip-link">Skip to content</a>
 
     {% include 'base/navbar.html' %}
 
-    <!-- ==================== FLASH MESSAGES ==================== -->
     {% if messages %}
     <div class="mx-auto w-full max-w-3xl px-4 sm:px-6 pt-4 pb-0 space-y-2 z-40 relative"
-         id="messages-container"
-         role="alert"
-         aria-live="polite">
+         id="messages-container" role="alert" aria-live="polite">
         {% for message in messages %}
         <div x-data="{ visible: true }"
              x-show="visible"
-             x-init="setTimeout(() => visible = false, 5000)"
+             x-init="setTimeout(() => visible = false, 6000)"
              x-transition:enter="transition ease-out duration-300"
              x-transition:enter-start="opacity-0 -translate-y-2"
              x-transition:enter-end="opacity-100 translate-y-0"
@@ -154,9 +150,9 @@
              x-transition:leave-end="opacity-0 -translate-y-2"
              class="flex items-start gap-3 rounded-xl border px-4 py-3 shadow-sm
              {% if message.tags == 'error' %}bg-red-50 border-red-200
-             {% elif message.tags == 'warning' %}bg-amber-50 border-amber-200
-             {% elif message.tags == 'success' %}bg-green-50 border-green-200
-             {% else %}bg-blue-50 border-blue-200{% endif %}">
+             {% elif message.tags == 'warning' %}bg-orange-50 border-orange-200
+             {% elif message.tags == 'success' %}bg-teal-50 border-teal-200
+             {% else %}bg-slate-50 border-slate-200{% endif %}">
 
             <div class="shrink-0 mt-0.5" aria-hidden="true">
                 {% if message.tags == 'error' %}
@@ -164,15 +160,15 @@
                     <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
                 </svg>
                 {% elif message.tags == 'success' %}
-                <svg class="h-4 w-4 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                <svg class="h-4 w-4" style="color: var(--snap-teal);" fill="currentColor" viewBox="0 0 20 20">
                     <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
                 </svg>
                 {% elif message.tags == 'warning' %}
-                <svg class="h-4 w-4 text-amber-500" fill="currentColor" viewBox="0 0 20 20">
+                <svg class="h-4 w-4" style="color: var(--snap-orange);" fill="currentColor" viewBox="0 0 20 20">
                     <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
                 </svg>
                 {% else %}
-                <svg class="h-4 w-4 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
+                <svg class="h-4 w-4" style="color: var(--snap-slate);" fill="currentColor" viewBox="0 0 20 20">
                     <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
                 </svg>
                 {% endif %}
@@ -180,19 +176,18 @@
 
             <p class="flex-1 text-sm font-medium
                 {% if message.tags == 'error' %}text-red-800
-                {% elif message.tags == 'warning' %}text-amber-800
-                {% elif message.tags == 'success' %}text-green-800
-                {% else %}text-blue-800{% endif %}">
+                {% elif message.tags == 'warning' %}text-orange-900
+                {% elif message.tags == 'success' %}text-teal-900
+                {% else %}text-slate-800{% endif %}">
                 {{ message }}
             </p>
 
-            <button @click="visible = false"
-                    aria-label="Dismiss"
+            <button @click="visible = false" aria-label="Dismiss"
                     class="shrink-0 rounded-full p-0.5 transition-colors
                     {% if message.tags == 'error' %}text-red-400 hover:bg-red-100
-                    {% elif message.tags == 'warning' %}text-amber-400 hover:bg-amber-100
-                    {% elif message.tags == 'success' %}text-green-400 hover:bg-green-100
-                    {% else %}text-blue-400 hover:bg-blue-100{% endif %}">
+                    {% elif message.tags == 'warning' %}text-orange-400 hover:bg-orange-100
+                    {% elif message.tags == 'success' %}text-teal-500 hover:bg-teal-100
+                    {% else %}text-slate-400 hover:bg-slate-100{% endif %}">
                 <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                 </svg>
@@ -202,16 +197,11 @@
     </div>
     {% endif %}
 
-    <!-- ==================== MAIN CONTENT ==================== -->
     <main class="flex-1" id="main-content">
         {% block content %}{% endblock %}
     </main>
 
     {% include 'base/footer.html' %}
-
-    {% if user.is_authenticated and user.role == 'student' %}
-        {% include 'base/cart_counter.html' %}
-    {% endif %}
 
     {% block extra_scripts %}{% endblock %}
 </body>

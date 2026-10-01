@@ -1,0 +1,633 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}{{ brand.owner|default:"[School name]" }}{% endblock %}
+{% block title_suffix %}Admissions, academics and the parent portal{% endblock %}
+{% block meta_description %}Apply for a place, track your application, and manage your child's enrolment online. Admissions for [year] are open at {{ brand.owner|default:"[School name]" }}.{% endblock %}
+
+{% block content %}
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+    :root {
+        --snap-navy:        #0E1B33;
+        --snap-navy-deep:   #08111F;
+        --snap-navy-soft:   #1B2C4D;
+        --snap-teal:        #12A594;
+        --snap-teal-bright: #16C2AE;
+        --snap-teal-deep:   #0C7A6D;
+        --snap-orange:      #F26A21;
+        --snap-orange-deep: #B54708;
+        --snap-paper:       #EDF1F5;
+        --snap-slate:       #4A5A73;
+        --snap-muted:       #8494A8;
+        --snap-line:        rgba(14, 27, 51, 0.10);
+    }
+
+    .school-page        { font-family: 'Inter', system-ui, sans-serif; color: var(--snap-slate); }
+    .sch-display        { font-family: 'Poppins', system-ui, sans-serif; letter-spacing: -0.02em; }
+    .sch-eyebrow        { font-family: 'Poppins', sans-serif; font-weight: 600; font-size: 0.72rem;
+                          letter-spacing: 0.16em; text-transform: uppercase; }
+
+    .bg-navy            { background-color: var(--snap-navy); }
+    .bg-navy-deep       { background-color: var(--snap-navy-deep); }
+    .bg-paper           { background-color: var(--snap-paper); }
+    .bg-teal            { background-color: var(--snap-teal); }
+    .text-navy          { color: var(--snap-navy); }
+    .text-teal          { color: var(--snap-teal); }
+    .text-teal-bright   { color: var(--snap-teal-bright); }
+    .text-teal-deep     { color: var(--snap-teal-deep); }
+    .text-muted         { color: var(--snap-muted); }
+    .border-hair        { border-color: var(--snap-line); }
+
+    .sch-rule           { position: relative; height: 3px; width: 64px; background: var(--snap-line);
+                          overflow: hidden; border-radius: 2px; }
+    .sch-rule::after    { content: ''; position: absolute; inset: 0; background: var(--snap-orange);
+                          transform: scaleX(0); transform-origin: left;
+                          transition: transform 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) 0.15s; }
+    .is-visible .sch-rule::after { transform: scaleX(1); }
+
+    .btn-primary        { background: var(--snap-teal); color: #fff; transition: background 0.2s, transform 0.2s; }
+    .btn-primary:hover  { background: var(--snap-teal-bright); transform: translateY(-1px); }
+    .btn-ghost          { border: 1px solid rgba(255,255,255,0.28); color: #E8EDF3;
+                          transition: border-color 0.2s, background 0.2s; }
+    .btn-ghost:hover    { border-color: rgba(255,255,255,0.6); background: rgba(255,255,255,0.06); }
+    .btn-solid-navy     { background: var(--snap-navy); color: #fff; transition: background 0.2s, transform 0.2s; }
+    .btn-solid-navy:hover { background: var(--snap-navy-soft); transform: translateY(-1px); }
+    .btn-quiet          { background: var(--snap-paper); color: var(--snap-slate);
+                          transition: background 0.18s, color 0.18s; }
+    .btn-quiet:hover    { background: #E2E8EE; color: var(--snap-navy); }
+
+    .hero-frame         { position: relative; background-color: var(--snap-navy-deep); }
+    .hero-photo         { position: absolute; inset: 0; width: 100%; height: 100%;
+                          object-fit: cover; opacity: 0.40; }
+    .hero-scrim         { position: absolute; inset: 0;
+                          background: linear-gradient(105deg,
+                                      rgba(8,17,31,0.95) 0%,
+                                      rgba(8,17,31,0.82) 45%,
+                                      rgba(8,17,31,0.45) 100%); }
+
+    .path-card          { background: #fff; border: 1px solid var(--snap-line); border-radius: 1rem;
+                          transition: transform 0.25s, box-shadow 0.25s, border-color 0.25s; }
+    .path-card:hover    { transform: translateY(-4px); border-color: rgba(18,165,148,0.35);
+                          box-shadow: 0 18px 40px -22px rgba(14,27,51,0.45); }
+
+    .photo-tile         { width: 100%; height: 100%; object-fit: cover; background-color: #D6DEE7; }
+
+    .notice-bar         { background: rgba(242,106,33,0.10); border-bottom: 1px solid rgba(242,106,33,0.22); }
+
+    .reveal             { opacity: 1; transform: none; }
+    .js-on .reveal      { opacity: 0; transform: translateY(18px);
+                          transition: opacity 0.6s ease, transform 0.6s cubic-bezier(0.2,0.8,0.2,1); }
+    .js-on .reveal.is-visible { opacity: 1; transform: none; }
+
+    @media (prefers-reduced-motion: reduce) {
+        .js-on .reveal, .js-on .reveal.is-visible { opacity: 1; transform: none; transition: none; }
+        .sch-rule::after { transition: none; transform: scaleX(1); }
+        .path-card:hover, .btn-primary:hover, .btn-solid-navy:hover { transform: none; }
+    }
+
+    .school-page a:focus-visible,
+    .school-page button:focus-visible { outline: 3px solid var(--snap-teal-bright); outline-offset: 3px; }
+</style>
+
+<div class="school-page bg-white">
+
+    <div class="notice-bar">
+        <div class="max-w-6xl mx-auto px-5 sm:px-8 py-3 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-center">
+            <span class="text-sm font-semibold" style="color: var(--snap-orange-deep);">
+                Applications for [year] are open
+            </span>
+            <span class="text-sm" style="color: var(--snap-orange-deep);">
+                Closing [closing date]
+            </span>
+        </div>
+    </div>
+
+    <section class="hero-frame">
+        <img src="{% static 'images/school/hero-campus.jpg' %}" alt="" class="hero-photo" aria-hidden="true">
+        <div class="hero-scrim"></div>
+
+        <div class="relative max-w-6xl mx-auto px-5 sm:px-8 pt-20 pb-16 sm:pt-28 sm:pb-24">
+            <div class="max-w-2xl">
+                <p class="sch-eyebrow text-teal-bright mb-6">{{ brand.owner|default:"[School name]" }}</p>
+
+                <h1 class="sch-display text-4xl sm:text-5xl lg:text-[3.4rem] font-bold text-white leading-[1.08] mb-6">
+                    A place for your child,
+                    <span class="block text-teal-bright mt-2">and the paperwork done online</span>
+                </h1>
+
+                <p class="text-lg text-slate-200 leading-relaxed mb-9 max-w-xl">
+                    Apply from your phone, upload documents once, and follow every step of the
+                    decision without a single trip to the office.
+                </p>
+
+                <div class="flex flex-wrap items-center gap-3 mb-4">
+                    <a href="{% url 'enrollment:landing' %}"
+                       class="sch-display inline-flex items-center gap-2 px-7 py-3.5 rounded-xl font-semibold btn-primary">
+                        Apply for a place
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
+                        </svg>
+                    </a>
+                    <a href="{% url 'enrollment:status' %}"
+                       class="sch-display inline-flex items-center px-7 py-3.5 rounded-xl font-semibold btn-ghost">
+                        Check my application
+                    </a>
+                </div>
+
+                <p class="text-sm text-slate-400">
+                    Already have an account?
+                    <a href="{% url 'accounts:login' %}" class="text-teal-bright underline underline-offset-4 hover:text-white transition-colors">Sign in</a>
+                </p>
+            </div>
+        </div>
+
+        <div class="relative border-t" style="border-color: rgba(255,255,255,0.12);">
+            <div class="max-w-6xl mx-auto px-5 sm:px-8">
+                <dl class="grid grid-cols-3 divide-x" style="border-color: rgba(255,255,255,0.12);">
+                    <div class="py-6 pr-4 sm:py-8">
+                        <dt class="sch-display text-2xl sm:text-3xl font-bold text-white">[Grades]</dt>
+                        <dd class="text-xs sm:text-sm text-slate-400 mt-1">Grade R to Grade 12</dd>
+                    </div>
+                    <div class="py-6 px-4 sm:py-8">
+                        <dt class="sch-display text-2xl sm:text-3xl font-bold text-white">[__]</dt>
+                        <dd class="text-xs sm:text-sm text-slate-400 mt-1">Learners enrolled</dd>
+                    </div>
+                    <div class="py-6 pl-4 sm:py-8">
+                        <dt class="sch-display text-2xl sm:text-3xl font-bold text-white">[Year]</dt>
+                        <dd class="text-xs sm:text-sm text-slate-400 mt-1">Serving families since</dd>
+                    </div>
+                </dl>
+            </div>
+        </div>
+    </section>
+
+    <section class="py-20 sm:py-24 bg-paper">
+        <div class="max-w-6xl mx-auto px-5 sm:px-8">
+
+            <div class="reveal max-w-2xl mb-12">
+                <div class="sch-rule mb-7"></div>
+                <h2 class="sch-display text-3xl sm:text-4xl font-bold text-navy leading-tight mb-4">
+                    Start where you are
+                </h2>
+                <p class="text-base leading-relaxed">
+                    Three different things bring families to this page. Pick the one that fits.
+                </p>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-6">
+
+                <article class="reveal path-card p-8 flex flex-col">
+                    <p class="sch-eyebrow text-teal-deep mb-4">New to the school</p>
+                    <h3 class="sch-display text-xl font-semibold text-navy mb-3">Apply for a place</h3>
+                    <p class="text-sm leading-relaxed mb-6 flex-1">
+                        Fill in one form, upload the documents, and we will tell you where you stand
+                        at every stage. You do not need an account to start.
+                    </p>
+                    <a href="{% url 'enrollment:landing' %}"
+                       class="sch-display inline-flex items-center justify-center px-5 py-3 rounded-xl font-semibold btn-primary text-sm">
+                        Begin an application
+                    </a>
+                </article>
+
+                <article class="reveal path-card p-8 flex flex-col">
+                    <p class="sch-eyebrow text-teal-deep mb-4">Already applied</p>
+                    <h3 class="sch-display text-xl font-semibold text-navy mb-3">Track your application</h3>
+                    <p class="text-sm leading-relaxed mb-6 flex-1">
+                        Enter the reference number from your confirmation message to see the current
+                        status, outstanding documents and any decision.
+                    </p>
+                    <a href="{% url 'enrollment:status' %}"
+                       class="sch-display inline-flex items-center justify-center px-5 py-3 rounded-xl font-semibold btn-solid-navy text-sm">
+                        Check status
+                    </a>
+                </article>
+
+                <article class="reveal path-card p-8 flex flex-col">
+                    <p class="sch-eyebrow text-teal-deep mb-4">Current family</p>
+                    <h3 class="sch-display text-xl font-semibold text-navy mb-3">Open the parent portal</h3>
+                    <p class="text-sm leading-relaxed mb-6 flex-1">
+                        Attendance, marks, report cards, teacher notes and online course progress for
+                        every child in one place.
+                    </p>
+                    <a href="{% url 'accounts:login' %}"
+                       class="sch-display inline-flex items-center justify-center px-5 py-3 rounded-xl font-semibold btn-quiet text-sm">
+                        Sign in
+                    </a>
+                </article>
+
+            </div>
+        </div>
+    </section>
+
+    <section class="py-20 sm:py-28 bg-white">
+        <div class="max-w-6xl mx-auto px-5 sm:px-8">
+
+            <div class="reveal max-w-2xl mb-14">
+                <div class="sch-rule mb-7"></div>
+                <h2 class="sch-display text-3xl sm:text-4xl font-bold text-navy leading-tight mb-4">
+                    How admission works
+                </h2>
+                <p class="text-base leading-relaxed">
+                    Four stages, and you can see which one you are in at any time.
+                </p>
+            </div>
+
+            <ol class="grid sm:grid-cols-2 lg:grid-cols-4 gap-10 lg:gap-8">
+                <li class="reveal">
+                    <span class="sch-display block text-5xl font-bold mb-4 leading-none" style="color: var(--snap-orange);">01</span>
+                    <h3 class="sch-display font-semibold text-navy mb-2">Apply online</h3>
+                    <p class="text-sm leading-relaxed">
+                        Your child's details, your contact details and a little about their previous
+                        school. Save and come back if you need to.
+                    </p>
+                </li>
+                <li class="reveal">
+                    <span class="sch-display block text-5xl font-bold mb-4 leading-none" style="color: var(--snap-orange);">02</span>
+                    <h3 class="sch-display font-semibold text-navy mb-2">Send documents</h3>
+                    <p class="text-sm leading-relaxed">
+                        Photograph them with your phone. If anything is unclear we will tell you
+                        exactly what to send again.
+                    </p>
+                </li>
+                <li class="reveal">
+                    <span class="sch-display block text-5xl font-bold mb-4 leading-none" style="color: var(--snap-orange);">03</span>
+                    <h3 class="sch-display font-semibold text-navy mb-2">We review</h3>
+                    <p class="text-sm leading-relaxed">
+                        A named member of the admissions team handles your file. Expect an outcome
+                        within [__] working days.
+                    </p>
+                </li>
+                <li class="reveal">
+                    <span class="sch-display block text-5xl font-bold mb-4 leading-none" style="color: var(--snap-orange);">04</span>
+                    <h3 class="sch-display font-semibold text-navy mb-2">Offer and acceptance</h3>
+                    <p class="text-sm leading-relaxed">
+                        An offer, a place on the waiting list, or a clear reason. Accept by paying
+                        the registration fee and the place is held.
+                    </p>
+                </li>
+            </ol>
+        </div>
+    </section>
+
+    <section class="py-20 sm:py-28 bg-paper">
+        <div class="max-w-6xl mx-auto px-5 sm:px-8">
+            <div class="grid lg:grid-cols-2 gap-12 lg:gap-16 items-start">
+
+                <div class="reveal">
+                    <div class="sch-rule mb-7"></div>
+                    <h2 class="sch-display text-3xl sm:text-4xl font-bold text-navy leading-tight mb-6">
+                        What to have ready
+                    </h2>
+                    <p class="text-base leading-relaxed mb-8">
+                        Gather these before you start and the form takes about fifteen minutes.
+                        Requirements differ slightly by grade, and the form will tell you which
+                        apply to you.
+                    </p>
+
+                    <ul class="space-y-3.5">
+                        <li class="flex items-start gap-3">
+                            <span class="mt-2 w-1.5 h-1.5 rounded-full bg-teal shrink-0"></span>
+                            <span class="text-sm leading-relaxed">Certified birth certificate for your child</span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <span class="mt-2 w-1.5 h-1.5 rounded-full bg-teal shrink-0"></span>
+                            <span class="text-sm leading-relaxed">Your ID, passport or asylum permit</span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <span class="mt-2 w-1.5 h-1.5 rounded-full bg-teal shrink-0"></span>
+                            <span class="text-sm leading-relaxed">The most recent school report</span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <span class="mt-2 w-1.5 h-1.5 rounded-full bg-teal shrink-0"></span>
+                            <span class="text-sm leading-relaxed">Transfer letter from the previous school, where one applies</span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <span class="mt-2 w-1.5 h-1.5 rounded-full bg-teal shrink-0"></span>
+                            <span class="text-sm leading-relaxed">Immunisation record</span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <span class="mt-2 w-1.5 h-1.5 rounded-full bg-teal shrink-0"></span>
+                            <span class="text-sm leading-relaxed">Proof of address</span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <span class="mt-2 w-1.5 h-1.5 rounded-full bg-teal shrink-0"></span>
+                            <span class="text-sm leading-relaxed">Court order for custody or guardianship, where one applies</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="reveal bg-white rounded-2xl border border-hair p-8 sm:p-10">
+                    <h3 class="sch-display text-xl font-semibold text-navy mb-6">Dates for [year]</h3>
+
+                    <table class="w-full text-sm">
+                        <tr class="border-b border-hair">
+                            <td class="py-3.5 pr-4">Applications open</td>
+                            <td class="py-3.5 text-right font-medium text-navy">[date]</td>
+                        </tr>
+                        <tr class="border-b border-hair">
+                            <td class="py-3.5 pr-4">Applications close</td>
+                            <td class="py-3.5 text-right font-medium text-navy">[date]</td>
+                        </tr>
+                        <tr class="border-b border-hair">
+                            <td class="py-3.5 pr-4">Offers issued from</td>
+                            <td class="py-3.5 text-right font-medium text-navy">[date]</td>
+                        </tr>
+                        <tr class="border-b border-hair">
+                            <td class="py-3.5 pr-4">Registration fee due</td>
+                            <td class="py-3.5 text-right font-medium text-navy">[date]</td>
+                        </tr>
+                        <tr>
+                            <td class="py-3.5 pr-4">Term 1 begins</td>
+                            <td class="py-3.5 text-right font-medium text-navy">[date]</td>
+                        </tr>
+                    </table>
+
+                    <p class="text-xs text-muted leading-relaxed mt-6 pt-6 border-t border-hair">
+                        Late applications are considered where places remain. A surcharge may apply.
+                    </p>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <section class="py-20 sm:py-28 bg-white">
+        <div class="max-w-6xl mx-auto px-5 sm:px-8">
+            <div class="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+
+                <div class="reveal order-2 lg:order-1 grid grid-cols-2 gap-4 h-[420px] sm:h-[460px]">
+                    <div class="rounded-2xl overflow-hidden row-span-2">
+                        <img src="{% static 'images/school/classroom.jpg' %}"
+                             alt="A classroom at the school"
+                             class="photo-tile" loading="lazy">
+                    </div>
+                    <div class="rounded-2xl overflow-hidden">
+                        <img src="{% static 'images/school/sport.jpg' %}"
+                             alt="Learners on the sports field"
+                             class="photo-tile" loading="lazy">
+                    </div>
+                    <div class="rounded-2xl overflow-hidden">
+                        <img src="{% static 'images/school/library.jpg' %}"
+                             alt="Learners in the library"
+                             class="photo-tile" loading="lazy">
+                    </div>
+                </div>
+
+                <div class="reveal order-1 lg:order-2">
+                    <div class="sch-rule mb-7"></div>
+                    <h2 class="sch-display text-3xl sm:text-4xl font-bold text-navy leading-tight mb-6">
+                        What your child learns here
+                    </h2>
+                    <p class="text-base leading-relaxed mb-5">
+                        We follow the national CAPS curriculum from Grade R through to Grade 12,
+                        with subject choices opening up in Grade 10.
+                    </p>
+                    <p class="text-base leading-relaxed mb-8">
+                        Marks are captured against school based assessment and examination weightings,
+                        and report cards are released to parents each term.
+                    </p>
+
+                    <div class="grid grid-cols-2 gap-5">
+                        <div>
+                            <h3 class="sch-display font-semibold text-navy text-sm mb-2">Foundation phase</h3>
+                            <p class="text-sm leading-relaxed">Grade R to 3. Literacy, numeracy and life skills.</p>
+                        </div>
+                        <div>
+                            <h3 class="sch-display font-semibold text-navy text-sm mb-2">Intermediate and senior</h3>
+                            <p class="text-sm leading-relaxed">Grade 4 to 9. The full CAPS subject range.</p>
+                        </div>
+                        <div>
+                            <h3 class="sch-display font-semibold text-navy text-sm mb-2">Further education</h3>
+                            <p class="text-sm leading-relaxed">Grade 10 to 12, with elective streams.</p>
+                        </div>
+                        <div>
+                            <h3 class="sch-display font-semibold text-navy text-sm mb-2">Online coursework</h3>
+                            <p class="text-sm leading-relaxed">Supported study that follows the classroom.</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <section class="py-20 sm:py-28 bg-navy">
+        <div class="max-w-6xl mx-auto px-5 sm:px-8">
+
+            <div class="reveal max-w-2xl mb-14">
+                <div class="sch-rule mb-7" style="background: rgba(255,255,255,0.15);"></div>
+                <p class="sch-eyebrow text-teal-bright mb-4">For current families</p>
+                <h2 class="sch-display text-3xl sm:text-4xl font-bold text-white leading-tight mb-4">
+                    The parent portal
+                </h2>
+                <p class="text-base leading-relaxed text-slate-300">
+                    One sign in, every child, nothing to chase up by phone.
+                </p>
+            </div>
+
+            <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+                <div class="reveal rounded-xl p-6" style="background: rgba(255,255,255,0.05);">
+                    <h3 class="sch-display font-semibold text-white mb-2 text-sm">Attendance</h3>
+                    <p class="text-sm leading-relaxed text-slate-400">Daily registers and a term summary per child.</p>
+                </div>
+                <div class="reveal rounded-xl p-6" style="background: rgba(255,255,255,0.05);">
+                    <h3 class="sch-display font-semibold text-white mb-2 text-sm">Marks</h3>
+                    <p class="text-sm leading-relaxed text-slate-400">Published results as each term's work is assessed.</p>
+                </div>
+                <div class="reveal rounded-xl p-6" style="background: rgba(255,255,255,0.05);">
+                    <h3 class="sch-display font-semibold text-white mb-2 text-sm">Report cards</h3>
+                    <p class="text-sm leading-relaxed text-slate-400">Downloadable the moment they are released.</p>
+                </div>
+                <div class="reveal rounded-xl p-6" style="background: rgba(255,255,255,0.05);">
+                    <h3 class="sch-display font-semibold text-white mb-2 text-sm">Teacher notes</h3>
+                    <p class="text-sm leading-relaxed text-slate-400">Progress notes and any support put in place.</p>
+                </div>
+            </div>
+
+            <div class="reveal flex flex-wrap items-center gap-3">
+                <a href="{% url 'accounts:login' %}"
+                   class="sch-display inline-flex items-center gap-2 px-7 py-3.5 rounded-xl font-semibold btn-primary">
+                    Sign in to the portal
+                </a>
+                <a href="{% url 'accounts:register' %}"
+                   class="sch-display inline-flex items-center px-7 py-3.5 rounded-xl font-semibold btn-ghost">
+                    Create an account
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <section class="py-20 sm:py-28 bg-paper">
+        <div class="max-w-6xl mx-auto px-5 sm:px-8">
+            <div class="grid lg:grid-cols-2 gap-12 lg:gap-16 items-start">
+
+                <div class="reveal">
+                    <div class="sch-rule mb-7"></div>
+                    <h2 class="sch-display text-3xl sm:text-4xl font-bold text-navy leading-tight mb-6">
+                        Returning next year
+                    </h2>
+                    <p class="text-base leading-relaxed mb-5">
+                        Towards the end of each year we email every family a private link to confirm
+                        their child's place for the year ahead. There is no new password to remember.
+                    </p>
+                    <p class="text-base leading-relaxed mb-8">
+                        The link takes about five minutes and picks up where you left off if you are
+                        interrupted.
+                    </p>
+
+                    <ol class="space-y-4">
+                        <li class="flex items-start gap-4">
+                            <span class="sch-display shrink-0 w-7 h-7 rounded-full bg-white border border-hair flex items-center justify-center text-xs font-bold text-navy">1</span>
+                            <span class="text-sm leading-relaxed pt-0.5">Confirm your details and update anything medical we should know</span>
+                        </li>
+                        <li class="flex items-start gap-4">
+                            <span class="sch-display shrink-0 w-7 h-7 rounded-full bg-white border border-hair flex items-center justify-center text-xs font-bold text-navy">2</span>
+                            <span class="text-sm leading-relaxed pt-0.5">Choose subjects, where the grade requires it</span>
+                        </li>
+                        <li class="flex items-start gap-4">
+                            <span class="sch-display shrink-0 w-7 h-7 rounded-full bg-white border border-hair flex items-center justify-center text-xs font-bold text-navy">3</span>
+                            <span class="text-sm leading-relaxed pt-0.5">Sign the fee agreement</span>
+                        </li>
+                        <li class="flex items-start gap-4">
+                            <span class="sch-display shrink-0 w-7 h-7 rounded-full bg-white border border-hair flex items-center justify-center text-xs font-bold text-navy">4</span>
+                            <span class="text-sm leading-relaxed pt-0.5">Pay the deposit and the place is held</span>
+                        </li>
+                    </ol>
+
+                    <p class="text-sm text-muted leading-relaxed mt-8">
+                        Lost your link, or it has expired? Contact the office and we will send a new one.
+                    </p>
+                </div>
+
+                <div class="reveal bg-white rounded-2xl border border-hair p-8 sm:p-10">
+                    <h3 class="sch-display text-xl font-semibold text-navy mb-6">Fees and payment</h3>
+
+                    <table class="w-full text-sm mb-6">
+                        <tr class="border-b border-hair">
+                            <td class="py-3.5 pr-4">Application fee</td>
+                            <td class="py-3.5 text-right font-medium text-navy">R [__]</td>
+                        </tr>
+                        <tr class="border-b border-hair">
+                            <td class="py-3.5 pr-4">Registration deposit</td>
+                            <td class="py-3.5 text-right font-medium text-navy">R [__]</td>
+                        </tr>
+                        <tr class="border-b border-hair">
+                            <td class="py-3.5 pr-4">Annual tuition, [grade range]</td>
+                            <td class="py-3.5 text-right font-medium text-navy">R [__]</td>
+                        </tr>
+                        <tr>
+                            <td class="py-3.5 pr-4">Sibling discount</td>
+                            <td class="py-3.5 text-right font-medium text-navy">[__]%</td>
+                        </tr>
+                    </table>
+
+                    <p class="text-sm leading-relaxed mb-2">
+                        Payment is by bank transfer, in full or on an agreed payment plan. Banking
+                        details and a unique reference are shown when you accept a place.
+                    </p>
+                    <p class="text-xs text-muted leading-relaxed pt-4 border-t border-hair">
+                        Families in difficulty should speak to the office rather than withdraw.
+                        Arrangements can usually be made.
+                    </p>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <section class="py-20 sm:py-24 bg-white">
+        <div class="max-w-6xl mx-auto px-5 sm:px-8">
+            <div class="reveal grid md:grid-cols-3 gap-10">
+
+                <div>
+                    <div class="sch-rule mb-6"></div>
+                    <h3 class="sch-display text-xl font-semibold text-navy mb-4">Visit us</h3>
+                    <p class="text-sm leading-relaxed mb-2">[Street address]</p>
+                    <p class="text-sm leading-relaxed mb-2">[Suburb, town]</p>
+                    <p class="text-sm leading-relaxed">[Postal code]</p>
+                </div>
+
+                <div>
+                    <div class="sch-rule mb-6"></div>
+                    <h3 class="sch-display text-xl font-semibold text-navy mb-4">Speak to us</h3>
+                    <p class="text-sm leading-relaxed mb-2">
+                        <a href="tel:[phone]" class="text-teal-deep hover:underline">[phone number]</a>
+                    </p>
+                    <p class="text-sm leading-relaxed mb-2">
+                        <a href="mailto:[email]" class="text-teal-deep hover:underline">[email address]</a>
+                    </p>
+                    <p class="text-sm leading-relaxed text-muted">Office hours [__] to [__], weekdays</p>
+                </div>
+
+                <div>
+                    <div class="sch-rule mb-6"></div>
+                    <h3 class="sch-display text-xl font-semibold text-navy mb-4">Ask a question</h3>
+                    <p class="text-sm leading-relaxed mb-5">
+                        Send us a message and we will respond within two working days.
+                    </p>
+                    <a href="{% url 'main:contact' %}"
+                       class="sch-display inline-flex items-center justify-center px-5 py-3 rounded-xl font-semibold btn-quiet text-sm">
+                        Contact the school
+                    </a>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <section class="hero-frame">
+        <img src="{% static 'images/school/cta-band.jpg' %}" alt="" class="hero-photo" aria-hidden="true">
+        <div class="hero-scrim"></div>
+
+        <div class="relative max-w-3xl mx-auto px-5 sm:px-8 py-24 sm:py-28 text-center">
+            <h2 class="sch-display text-3xl sm:text-4xl font-bold text-white leading-tight mb-5">
+                Applications for [year] are open
+            </h2>
+            <p class="text-slate-300 leading-relaxed mb-9 max-w-xl mx-auto">
+                Places are limited and allocated in the order applications are completed.
+            </p>
+
+            <div class="flex flex-wrap items-center justify-center gap-3">
+                <a href="{% url 'enrollment:landing' %}"
+                   class="sch-display inline-flex items-center gap-2 px-7 py-3.5 rounded-xl font-semibold btn-primary">
+                    Apply now
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
+                    </svg>
+                </a>
+                <a href="{% url 'enrollment:status' %}"
+                   class="sch-display inline-flex items-center px-7 py-3.5 rounded-xl font-semibold btn-ghost">
+                    Check an existing application
+                </a>
+            </div>
+        </div>
+    </section>
+
+</div>
+
+<script>
+    (function () {
+        var root = document.querySelector('.school-page');
+        if (!root || !('IntersectionObserver' in window)) { return; }
+
+        root.classList.add('js-on');
+
+        var observer = new IntersectionObserver(function (entries) {
+            entries.forEach(function (entry) {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('is-visible');
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.12, rootMargin: '0px 0px -60px 0px' });
+
+        root.querySelectorAll('.reveal').forEach(function (el) { observer.observe(el); });
+    })();
+</script>
+
+{% endblock %}

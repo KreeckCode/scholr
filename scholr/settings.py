@@ -1,25 +1,52 @@
 from pathlib import Path
 import os
+
 from django.core.exceptions import ImproperlyConfigured
-# Load environment variables from .env file
 from dotenv import load_dotenv
+
 load_dotenv()
 
-# Build paths inside the project
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# SECURITY SETTINGS
-# Get from environment variables - never hardcode in production
+
+def env_flag(name, default='False'):
+    """Environment variables are strings; 'False' is truthy, so parse properly."""
+    return os.getenv(name, default).strip().lower() in ('1', 'true', 'yes', 'on')
+
+
+# ==================== CORE SECURITY ====================
+
 SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-fallback-key-change-this')
-DEBUG = False
+DEBUG = env_flag('DEBUG')
 
-# Parse allowed hosts from comma-separated string
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '165.232.37.122,judea.uorivo.com,localhost,127.0.0.1').split(',')
+ALLOWED_HOSTS = os.getenv(
+    'ALLOWED_HOSTS', '138.68.146.233,judea.uorivo.com,localhost,127.0.0.1'
+).split(',')
 
-# CSRF trusted origins for domain
-CSRF_TRUSTED_ORIGINS = os.getenv('CSRF_TRUSTED_ORIGINS', 'https://judea.uorivo.com').split(',')
+CSRF_TRUSTED_ORIGINS = os.getenv(
+    'CSRF_TRUSTED_ORIGINS', 'https://judea.uorivo.com'
+).split(',')
 
-# INSTALLED APPS
+
+# ==================== PRODUCT FEATURE FLAGS ====================
+
+SCHOLR_LMS_ENABLED        = env_flag('SCHOLR_LMS_ENABLED', 'True')
+SCHOLR_ACADEMICS_ENABLED  = env_flag('SCHOLR_ACADEMICS_ENABLED', 'True')
+SCHOLR_ENROLLMENT_ENABLED = env_flag('SCHOLR_ENROLLMENT_ENABLED')
+SCHOLR_BURSARY_ENABLED    = env_flag('SCHOLR_BURSARY_ENABLED')
+SCHOLR_BRIDGE_ENABLED     = env_flag('SCHOLR_BRIDGE_ENABLED')
+SCHOLR_SELF_REGISTRATION = env_flag('SCHOLR_SELF_REGISTRATION', 'True')
+
+# ==================== SITE PROFILE AND BRANDING ====================
+
+from .brands import SITE_BRANDS
+
+SITE_PROFILE = os.getenv('SITE_PROFILE', 'school').strip().lower()
+SITE_BRAND = SITE_BRANDS.get(SITE_PROFILE, SITE_BRANDS['school'])
+
+
+# ==================== APPLICATIONS ====================
+
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -27,19 +54,21 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    
-    # Project apps
+
     'accounts',
     'integration.apps.IntegrationConfig',
     'shop',
     'academics',
     'main',
-    'debug_toolbar',
     'enrollment.apps.EnrollmentConfig',
-
 ]
 
-# MIDDLEWARE
+if DEBUG:
+    INSTALLED_APPS += ['debug_toolbar']
+
+
+# ==================== MIDDLEWARE ====================
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -51,9 +80,16 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'scholr.urls'
+if DEBUG:
+    MIDDLEWARE.insert(0, 'debug_toolbar.middleware.DebugToolbarMiddleware')
+    INTERNAL_IPS = ['127.0.0.1']
 
-# TEMPLATES
+ROOT_URLCONF = 'scholr.urls'
+WSGI_APPLICATION = 'scholr.wsgi.application'
+
+
+# ==================== TEMPLATES ====================
+
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -68,142 +104,160 @@ TEMPLATES = [
                 'django.template.context_processors.media',
                 'academics.context_processors.school_context',
                 'scholr.context_processors.features',
+                'scholr.context_processors.cart',
             ],
         },
     },
 ]
 
-WSGI_APPLICATION = 'scholr.wsgi.application'
 
+# ==================== DATABASE ====================
 
-# ==================== PRODUCT FEATURE FLAGS ====================
-
-SCHOLR_LMS_ENABLED = os.getenv('SCHOLR_LMS_ENABLED', 'True') == 'True'
-SCHOLR_ACADEMICS_ENABLED = os.getenv('SCHOLR_ACADEMICS_ENABLED', 'True') == 'True'
-# DATABASE
-# Use DATABASE_URL for easy configuration
 import dj_database_url
 
 DATABASE_URL = os.getenv('DATABASE_URL')
 
 if DATABASE_URL:
-    DATABASES = {'default': dj_database_url.config(
-        default=DATABASE_URL, conn_max_age=600, conn_health_checks=True,
-    )}
+    DATABASES = {
+        'default': dj_database_url.config(
+            default=DATABASE_URL, conn_max_age=600, conn_health_checks=True,
+        )
+    }
 elif DEBUG:
-    # SQLite is only ever acceptable for local development
-    DATABASES = {'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }}
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 else:
     raise ImproperlyConfigured('DATABASE_URL must be set when DEBUG is off.')
 
-# PASSWORD VALIDATION
+
+# ==================== AUTHENTICATION ====================
+
+AUTH_USER_MODEL = 'accounts.User'
+
+LOGIN_URL = 'accounts:login'
+LOGIN_REDIRECT_URL = 'accounts:dashboard'
+LOGOUT_REDIRECT_URL = 'accounts:login'
+
 AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
+    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
     {
         'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-        'OPTIONS': {
-            'min_length': 8,
-        }
+        'OPTIONS': {'min_length': 8},
     },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
+    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
 
-# INTERNATIONALIZATION
+
+# ==================== INTERNATIONALISATION ====================
+
 LANGUAGE_CODE = 'en-gb'
 TIME_ZONE = 'Africa/Johannesburg'
 USE_I18N = True
 USE_TZ = True
 
-# CUSTOM USER MODEL
-AUTH_USER_MODEL = 'accounts.User'
 
-# AUTHENTICATION URLs
-LOGIN_URL = 'accounts:login'
-LOGIN_REDIRECT_URL = 'accounts:dashboard'
-LOGOUT_REDIRECT_URL = 'accounts:login'
+# ==================== STATIC AND MEDIA ====================
 
-# STATIC FILES
-STATIC_URL = "/static/"
-STATIC_ROOT = BASE_DIR / "staticfiles"
+STATIC_URL = '/static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
-# Only include static/ directory if it exists
 STATICFILES_DIRS = []
 if (BASE_DIR / 'static').exists():
     STATICFILES_DIRS = [BASE_DIR / 'static']
 
-# MEDIA FILES
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.getenv('MEDIA_ROOT', str(BASE_DIR / 'media'))
 
-# DEFAULT PRIMARY KEY
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# SESSION SETTINGS
+
+# ==================== SESSIONS AND CSRF ====================
+
 SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
 SESSION_CACHE_ALIAS = 'sessions'
-SESSION_COOKIE_AGE = 1209600  # 2 weeks
+SESSION_COOKIE_AGE = 1209600
 SESSION_COOKIE_HTTPONLY = True
-SESSION_COOKIE_SECURE = os.getenv('SESSION_COOKIE_SECURE', 'False') == 'True'
+SESSION_COOKIE_SECURE = env_flag('SESSION_COOKIE_SECURE')
 SESSION_COOKIE_SAMESITE = 'Lax'
 
-# CSRF SETTINGS
 CSRF_COOKIE_HTTPONLY = False
-CSRF_COOKIE_SECURE = os.getenv('CSRF_COOKIE_SECURE', 'False') == 'True'
+CSRF_COOKIE_SECURE = env_flag('CSRF_COOKIE_SECURE')
 CSRF_COOKIE_SAMESITE = 'Lax'
 
-# SECURITY SETTINGS (enabled when HTTPS is configured)
-SECURE_SSL_REDIRECT = os.getenv('SECURE_SSL_REDIRECT', 'False') == 'True'
+
+# ==================== TRANSPORT SECURITY ====================
+
+SECURE_SSL_REDIRECT = env_flag('SECURE_SSL_REDIRECT')
 SECURE_HSTS_SECONDS = int(os.getenv('SECURE_HSTS_SECONDS', '0'))
-SECURE_HSTS_INCLUDE_SUBDOMAINS = os.getenv('SECURE_HSTS_INCLUDE_SUBDOMAINS', 'False') == 'True'
-SECURE_HSTS_PRELOAD = os.getenv('SECURE_HSTS_PRELOAD', 'False') == 'True'
+SECURE_HSTS_INCLUDE_SUBDOMAINS = env_flag('SECURE_HSTS_INCLUDE_SUBDOMAINS')
+SECURE_HSTS_PRELOAD = env_flag('SECURE_HSTS_PRELOAD')
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https') if SECURE_SSL_REDIRECT else None
 
-# EMAIL CONFIGURATION
+SECURE_CONTENT_TYPE_NOSNIFF = True
+X_FRAME_OPTIONS = 'DENY'
+
+
+# ==================== EMAIL ====================
+
 if DEBUG:
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 else:
     EMAIL_BACKEND = os.getenv(
-        'EMAIL_BACKEND',
-        'django.core.mail.backends.smtp.EmailBackend',
+        'EMAIL_BACKEND', 'django.core.mail.backends.smtp.EmailBackend'
     )
+
 EMAIL_HOST = os.getenv('EMAIL_HOST', 'smtp.gmail.com')
 EMAIL_PORT = int(os.getenv('EMAIL_PORT', '587'))
-EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'True') == 'True'
+EMAIL_USE_TLS = env_flag('EMAIL_USE_TLS', 'True')
 EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', '')
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
+
 DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'noreply@scholr.co.za')
 SERVER_EMAIL = os.getenv('SERVER_EMAIL', 'server@scholr.co.za')
 SITE_URL = os.getenv('SITE_URL', 'http://localhost:8000')
-# SHOP CONFIGURATION
+
+
+# ==================== SHOP AND PAYMENTS ====================
+
 CURRENCY_SYMBOL = 'R'
 CURRENCY_CODE = 'ZAR'
-SHOP_NAME = 'African Pastoral Academy'
+SHOP_NAME = SITE_BRAND['name']
 
-# PAYMENT GATEWAYS
 PAYSTACK_PUBLIC_KEY = os.getenv('PAYSTACK_PUBLIC_KEY', '')
 PAYSTACK_SECRET_KEY = os.getenv('PAYSTACK_SECRET_KEY', '')
 STRIPE_PUBLIC_KEY = os.getenv('STRIPE_PUBLIC_KEY', '')
 STRIPE_SECRET_KEY = os.getenv('STRIPE_SECRET_KEY', '')
 
-# MOODLE INTEGRATION
-MOODLE_URL = os.getenv('MOODLE_URL', 'https://judea.uorivo.com/moodle501')
 
-# FILE UPLOAD SETTINGS
-FILE_UPLOAD_MAX_MEMORY_SIZE = 5242880  # 5MB
-DATA_UPLOAD_MAX_MEMORY_SIZE = 5242880  # 5MB
+# ==================== BANKING DETAILS (EFT) ====================
+
+BANK_NAME           = os.getenv('BANK_NAME', '')
+BANK_ACCOUNT_NAME   = os.getenv('BANK_ACCOUNT_NAME', '')
+BANK_ACCOUNT_NUMBER = os.getenv('BANK_ACCOUNT_NUMBER', '')
+BANK_BRANCH_CODE    = os.getenv('BANK_BRANCH_CODE', '')
+BANK_ACCOUNT_TYPE   = os.getenv('BANK_ACCOUNT_TYPE', 'Cheque / Current')
+
+
+# ==================== MOODLE INTEGRATION ====================
+
+MOODLE_URL = os.getenv('MOODLE_URL', 'https://judea.uorivo.com/moodle501')
+MOODLE_WS_TOKEN = os.getenv('MOODLE_WS_TOKEN', '')
+
+
+# ==================== FILE UPLOADS ====================
+
+FILE_UPLOAD_MAX_MEMORY_SIZE = 5242880
+DATA_UPLOAD_MAX_MEMORY_SIZE = 5242880
 FILE_UPLOAD_PERMISSIONS = 0o644
 
-# REDIS & CACHING CONFIGURATION
+
+# ==================== CACHING ====================
+
 REDIS_URL = os.getenv('REDIS_URL', 'redis://127.0.0.1:6379')
 
 CACHES = {
@@ -227,24 +281,24 @@ CACHES = {
     'sessions': {
         'BACKEND': 'django_redis.cache.RedisCache',
         'LOCATION': f'{REDIS_URL}/2',
-        'OPTIONS': {
-            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
-        },
+        'OPTIONS': {'CLIENT_CLASS': 'django_redis.client.DefaultClient'},
         'KEY_PREFIX': 'session',
         'TIMEOUT': 86400,
     },
     'moodle': {
         'BACKEND': 'django_redis.cache.RedisCache',
         'LOCATION': f'{REDIS_URL}/3',
-        'OPTIONS': {
-            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
-        },
+        'OPTIONS': {'CLIENT_CLASS': 'django_redis.client.DefaultClient'},
         'KEY_PREFIX': 'moodle',
         'TIMEOUT': 3600,
     },
 }
 
-# CELERY CONFIGURATION
+
+# ==================== CELERY ====================
+
+from celery.schedules import crontab
+
 CELERY_BROKER_URL = os.getenv('CELERY_BROKER_URL', f'{REDIS_URL}/0')
 CELERY_RESULT_BACKEND = os.getenv('CELERY_RESULT_BACKEND', f'{REDIS_URL}/0')
 CELERY_ACCEPT_CONTENT = ['json']
@@ -258,13 +312,33 @@ CELERY_WORKER_PREFETCH_MULTIPLIER = 1
 CELERY_WORKER_MAX_TASKS_PER_CHILD = 1000
 CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
 
-# Celery task rate limits
 CELERY_TASK_ANNOTATIONS = {
     'shop.tasks.sync_user_progress_task': {'rate_limit': '10/m'},
     'shop.tasks.sync_moodle_courses': {'rate_limit': '5/m'},
 }
 
-# LOGGING CONFIGURATION
+CELERY_BEAT_SCHEDULE = {
+    'cleanup-expired-enrollments': {
+        'task': 'shop.tasks.cleanup_expired_enrollments',
+        'schedule': crontab(hour=2, minute=0),
+    },
+    'sync-all-user-progress': {
+        'task': 'shop.tasks.sync_all_user_progress',
+        'schedule': crontab(hour=3, minute=0),
+    },
+    'sync-online-learning-progress': {
+        'task': 'academics.tasks.sync_online_learning_progress_task',
+        'schedule': crontab(hour=4, minute=0),
+    },
+    'send-progress-stall-notifications': {
+        'task': 'academics.tasks.send_stall_notifications_task',
+        'schedule': crontab(hour=6, minute=0),
+    },
+}
+
+
+# ==================== LOGGING ====================
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -281,7 +355,7 @@ LOGGING = {
     'filters': {
         'ignore_browser_requests': {
             '()': 'django.utils.log.CallbackFilter',
-            'callback': lambda record: '.well-known' not in record.getMessage()
+            'callback': lambda record: '.well-known' not in record.getMessage(),
         },
     },
     'handlers': {
@@ -328,40 +402,15 @@ LOGGING = {
             'level': 'INFO',
             'propagate': False,
         },
+        'academics': {
+            'handlers': ['console', 'file'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'enrollment': {
+            'handlers': ['console', 'file'],
+            'level': 'INFO',
+            'propagate': False,
+        },
     },
 }
-
-from celery.schedules import crontab
-
-CELERY_BEAT_SCHEDULE = {
-    # Shop: clean up expired enrollments
-    'cleanup-expired-enrollments': {
-        'task': 'shop.tasks.cleanup_expired_enrollments',
-        'schedule': crontab(hour=2, minute=0),
-    },
-    # Shop: sync commercial LMS progress
-    'sync-all-user-progress': {
-        'task': 'shop.tasks.sync_all_user_progress',
-        'schedule': crontab(hour=3, minute=0),
-    },
-    # Academics: pull Moodle progress for school learners (runs first)
-    'sync-online-learning-progress': {
-        'task': 'academics.tasks.sync_online_learning_progress_task',
-        'schedule': crontab(hour=4, minute=0),
-    },
-    # Academics: email stall alerts (runs 2 hours after sync so data is fresh)
-    'send-progress-stall-notifications': {
-        'task': 'academics.tasks.send_stall_notifications_task',
-        'schedule': crontab(hour=6, minute=0),
-    },
-}
-
-
-# ==================== ENROLLMENT MODULE ====================
-# Purchasable add-on. Default False — schools must explicitly enable.
-SCHOLR_ENROLLMENT_ENABLED = os.getenv('SCHOLR_ENROLLMENT_ENABLED', 'False') == 'True'
-
-# Bursary/financial aid sub-feature.
-# Requires SCHOLR_ENROLLMENT_ENABLED=True AND SCHOLR_BURSARY_ENABLED=True.
-# Off by default — most private schools do not offer financial aid.
-SCHOLR_BURSARY_ENABLED = os.getenv('SCHOLR_BURSARY_ENABLED', 'False') == 'True'

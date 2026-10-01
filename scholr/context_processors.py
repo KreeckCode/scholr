@@ -1,25 +1,28 @@
-"""
-Injects feature flags into every template context.
-Registered in settings.TEMPLATES.OPTIONS.context_processors.
-"""
-from scholr.features import (
-    lms_enabled,
-    academics_enabled,
-    bridge_enabled,
-    enrollment_enabled,
-    bursary_enabled,
-)
+from django.conf import settings
 
 
 def features(request):
-    """
-    Makes all feature flags available as template variables.
-    Use: {% if SCHOLR_ENROLLMENT_ENABLED %}...{% endif %}
-    """
+    """Feature flags and the active brand, available in every template."""
     return {
-        'SCHOLR_LMS_ENABLED':        lms_enabled(),
-        'SCHOLR_ACADEMICS_ENABLED':  academics_enabled(),
-        'SCHOLR_BRIDGE_ENABLED':     bridge_enabled(),
-        'SCHOLR_ENROLLMENT_ENABLED': enrollment_enabled(),
-        'SCHOLR_BURSARY_ENABLED':    bursary_enabled(),
+        'SCHOLR_LMS_ENABLED':        settings.SCHOLR_LMS_ENABLED,
+        'SCHOLR_ACADEMICS_ENABLED':  settings.SCHOLR_ACADEMICS_ENABLED,
+        'SCHOLR_ENROLLMENT_ENABLED': settings.SCHOLR_ENROLLMENT_ENABLED,
+        'SCHOLR_BURSARY_ENABLED':    settings.SCHOLR_BURSARY_ENABLED,
+        'SCHOLR_BRIDGE_ENABLED':     settings.SCHOLR_BRIDGE_ENABLED,
+        'site_profile':              settings.SITE_PROFILE,
+        'brand':                     settings.SITE_BRAND,
+        'SCHOLR_SELF_REGISTRATION': settings.SCHOLR_SELF_REGISTRATION,
     }
+
+
+def cart(request):
+    """
+    Cart item count, rendered with the page.
+    Replaces the old cart_counter.html, which fetched and parsed the whole
+    cart page on every single page load.
+    """
+    if not settings.SCHOLR_LMS_ENABLED:
+        return {'cart_count': 0}
+
+    count = request.session.get('cart', {})
+    return {'cart_count': len(count) if isinstance(count, dict) else 0}

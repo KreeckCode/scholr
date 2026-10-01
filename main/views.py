@@ -1,11 +1,4 @@
-"""
-main/views.py
 
-Handles all public-facing marketing and informational pages.
-Authenticated users who hit the home page are redirected to their dashboard.
-Contact and demo forms send email using Django's email backend
-(console in dev, SMTP in production — configured in settings.py).
-"""
 import logging
 
 from django.conf import settings
@@ -20,15 +13,10 @@ logger = logging.getLogger(__name__)
 # ==================== HOME ====================
 
 class HomeView(View):
-    """
-    Public landing page.
-    Authenticated users land on their dashboard; no point showing marketing to them.
-    """
-
     def get(self, request):
         if request.user.is_authenticated:
             return redirect('accounts:dashboard')
-        return render(request, 'main/home.html')
+        return render(request, settings.SITE_BRAND['home_template'])
 
 
 # ==================== ABOUT ====================

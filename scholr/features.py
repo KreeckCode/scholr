@@ -1,39 +1,36 @@
-"""
-Feature flags for Scholr's optional modules.
-
-Each function reads from Django settings (which reads from .env).
-Import these functions wherever feature-gating is needed — views,
-templates (via context processor), tasks, and middleware.
-"""
+"""Feature flags for Scholr's optional modules, read from Django settings."""
 from django.conf import settings
 
 
 def lms_enabled() -> bool:
-    """Commercial LMS: course catalogue, shopping cart, Paystack, Moodle sync."""
+    """Commercial LMS: course catalogue, cart, payments, Moodle sync."""
     return getattr(settings, 'SCHOLR_LMS_ENABLED', True)
 
 
 def academics_enabled() -> bool:
-    """School Management System: learners, marks, attendance, reports."""
+    """School management: learners, marks, attendance, reports."""
     return getattr(settings, 'SCHOLR_ACADEMICS_ENABLED', True)
 
 
 def bridge_enabled() -> bool:
-    """LMS Bridge: connects school learners to Moodle online courses."""
-    return lms_enabled() and academics_enabled()
+    """LMS bridge: connects school learners to Moodle courses."""
+    return (
+        getattr(settings, 'SCHOLR_BRIDGE_ENABLED', False)
+        and lms_enabled()
+        and academics_enabled()
+    )
 
 
 def enrollment_enabled() -> bool:
-    """Enrollment module: application intake, grade promotion, re-enrollment."""
+    """Enrollment module: applications, promotion, re-enrolment."""
     return getattr(settings, 'SCHOLR_ENROLLMENT_ENABLED', False)
 
 
 def bursary_enabled() -> bool:
-    """
-    Bursary/financial aid sub-feature within enrollment.
-    Requires both SCHOLR_ENROLLMENT_ENABLED and SCHOLR_BURSARY_ENABLED to be True.
-    """
-    return (
-        getattr(settings, 'SCHOLR_ENROLLMENT_ENABLED', False)
-        and getattr(settings, 'SCHOLR_BURSARY_ENABLED', False)
-    )
+    """Bursaries, a sub-feature of enrollment."""
+    return enrollment_enabled() and getattr(settings, 'SCHOLR_BURSARY_ENABLED', False)
+
+
+def self_registration_enabled() -> bool:
+    """Public sign-up. Off for school deployments, where staff create accounts."""
+    return getattr(settings, 'SCHOLR_SELF_REGISTRATION', True)
