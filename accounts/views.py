@@ -1,6 +1,6 @@
+import logging
 from datetime import timedelta
 
-from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
@@ -33,6 +33,8 @@ from .forms import (
 )
 from .models import LoginAttempt, User, UserProfile
 
+logger = logging.getLogger(__name__)
+
 SCHOOL_STAFF_ROLES = ('teacher', 'hod', 'principal', 'admin_clerk')
 SESSION_REMEMBER_SECONDS = 1209600
 
@@ -61,7 +63,7 @@ def get_or_create_profile(user):
 
 
 def safe_redirect_target(request, fallback='accounts:dashboard'):
-    """Reject off-site values in ?next= so login cannot be used as an open redirect."""
+    """Reject off-site values in next= so login cannot be used as an open redirect."""
     target = request.POST.get('next') or request.GET.get('next')
     if target and url_has_allowed_host_and_scheme(
         url=target,
@@ -142,12 +144,10 @@ class LoginView(View):
             return self.render_form(request, form)
 
         user = form.get_user()
+        phone = getattr(user, 'phone_number', '') or ''
 
         if not user.is_active:
-            record_login_attempt(
-                request, submitted_username,
-                getattr(user, 'phone_number', ''), success=False,
-            )
+            record_login_attempt(request, submitted_username, phone, success=False)
             messages.error(
                 request,
                 'This account has been deactivated. Please contact an administrator.',
@@ -155,10 +155,7 @@ class LoginView(View):
             return self.render_form(request, form)
 
         if user.role == User.STUDENT and not user.is_verified:
-            record_login_attempt(
-                request, submitted_username,
-                getattr(user, 'phone_number', ''), success=False,
-            )
+            record_login_attempt(request, submitted_username, phone, success=False)
             messages.warning(
                 request,
                 'Your account is awaiting verification. '
@@ -173,7 +170,7 @@ class LoginView(View):
         else:
             request.session.set_expiry(0)
 
-        record_login_attempt(request, user.username, user.phone_number, success=True)
+        record_login_attempt(request, user.username, phone, success=True)
         messages.success(request, f'Welcome back, {user.get_full_name()}.')
 
         return redirect(safe_redirect_target(request))
@@ -318,14 +315,19 @@ def admin_dashboard_view(request):
         'pending_verifications': student_counts['pending'],
     }
 
+    countries = (
+        UserProfile.objects
+        .exclude(country='')
+        .values('country')
+        .annotate(count=Count('user'))
+        .order_by('-count')[:5]
+    )
+
     return render(request, 'accounts/dashboards/admin.html', {
         'stats': stats,
         'recent_users': User.objects.select_related('profile').order_by('-created_at')[:10],
         'recent_failed_logins': LoginAttempt.objects.filter(success=False).order_by('-timestamp')[:10],
-        'countries': UserProfile.objects.exclude(country='')
-                                        .values('country')
-                                        .annotate(count=Count('id'))
-                                        .order_by('-count')[:5],
+        'countries': countries,
     })
 
 
@@ -471,10 +473,11 @@ class StudentListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
 
         if self.request.user.role == User.ADMIN:
             context['countries'] = (
-                UserProfile.objects.exclude(country='')
-                                   .values_list('country', flat=True)
-                                   .distinct()
-                                   .order_by('country')
+                UserProfile.objects
+                .exclude(country='')
+                .values_list('country', flat=True)
+                .distinct()
+                .order_by('country')
             )
         return context
 
@@ -491,12 +494,56 @@ def assert_can_manage_student(request, student):
             raise PermissionDenied
 
 
+def queue_post_verification_work(student, verified_by):
+    """
+    Push the Moodle account and any paid-but-unprocessed orders onto the queue.
+    Verification itself must not fail if the task layer is unavailable, so the
+    caller is told what did not happen instead of losing the verification.
+    """
+    if not lms_enabled():
+        return 0, None
+
+    try:
+        from accounts.models import Order
+        from shop.tasks import process_order_enrollment_task, sync_moodle_users
+    except ImportError as exc:
+        logger.error('Post-verification tasks unavailable: %s', exc)
+        return 0, 'Moodle sync could not be queued.'
+
+    transaction.on_commit(
+        lambda: sync_moodle_users.delay(
+            user_ids=[student.id], initiated_by_id=verified_by.id,
+        )
+    )
+
+    paid_statuses = [
+        value for value in (
+            getattr(Order, 'COMPLETED', None),
+            getattr(Order, 'FREE', None),
+        ) if value is not None
+    ]
+
+    if not paid_statuses:
+        logger.error('Order status constants COMPLETED/FREE not found.')
+        return 0, 'Pending orders could not be checked.'
+
+    order_ids = list(
+        Order.objects
+        .filter(user=student, status__in=paid_statuses, enrollment_processed=False)
+        .values_list('id', flat=True)
+    )
+
+    for order_id in order_ids:
+        transaction.on_commit(
+            lambda oid=order_id: process_order_enrollment_task.delay(oid)
+        )
+
+    return len(order_ids), None
+
+
 @login_required
 def verify_student_view(request, user_id):
-    """
-    Verify a learner, then queue the Moodle account sync and any
-    enrolments that were waiting on verification.
-    """
+    """Verify a learner, then queue their Moodle sync and any waiting enrolments."""
     student = get_object_or_404(
         User.objects.select_related('profile'), id=user_id, role=User.STUDENT,
     )
@@ -518,33 +565,15 @@ def verify_student_view(request, user_id):
         student.verified_at = timezone.now()
         student.save(update_fields=['is_verified', 'verified_by', 'verified_at'])
 
-    queued_orders = 0
+        queued_orders, warning = queue_post_verification_work(student, request.user)
 
-    if lms_enabled():
-        from accounts.models import Order
-        from shop.tasks import process_order_enrollment_task, sync_moodle_users
-
-        transaction.on_commit(
-            lambda: sync_moodle_users.delay(
-                user_ids=[student.id], initiated_by_id=request.user.id,
-            )
+    if warning:
+        messages.warning(
+            request,
+            f'{student.get_full_name()} was verified, but {warning} '
+            f'Run the sync manually from the integration dashboard.',
         )
-
-        pending_orders = list(
-            Order.objects.filter(
-                user=student,
-                status__in=[Order.COMPLETED, Order.FREE],
-                enrollment_processed=False,
-            ).values_list('id', flat=True)
-        )
-        queued_orders = len(pending_orders)
-
-        for order_id in pending_orders:
-            transaction.on_commit(
-                lambda oid=order_id: process_order_enrollment_task.delay(oid)
-            )
-
-    if queued_orders:
+    elif queued_orders:
         messages.success(
             request,
             f'{student.get_full_name()} verified. '
@@ -566,9 +595,7 @@ def unverify_student_view(request, user_id):
     student.is_verified = False
     student.save(update_fields=['is_verified'])
 
-    messages.warning(
-        request, f'Verification removed for {student.get_full_name()}.',
-    )
+    messages.warning(request, f'Verification removed for {student.get_full_name()}.')
     return redirect('accounts:student_detail', user_id=student.id)
 
 
@@ -597,6 +624,9 @@ def student_detail_view(request, user_id):
         'student': student,
         'profile': getattr(student, 'profile', None),
         'enrollments': enrollments,
+        'courses': enrollments,
+        'progress': {},
+        'certificates': [],
     })
 
 
@@ -623,26 +653,46 @@ def analytics_view(request):
         .order_by('day')
     )
 
+    countries = (
+        UserProfile.objects
+        .exclude(country='')
+        .values('country')
+        .annotate(count=Count('user'))
+        .order_by('-count')
+    )
+
+    regions = (
+        UserProfile.objects
+        .exclude(region='')
+        .values('region', 'country')
+        .annotate(count=Count('user'))
+        .order_by('-count')[:20]
+    )
+
+    education = (
+        UserProfile.objects
+        .exclude(education_level='')
+        .values('education_level')
+        .annotate(count=Count('user'))
+        .order_by('-count')
+    )
+
+    church_sizes = (
+        UserProfile.objects
+        .exclude(church_size='')
+        .values('church_size')
+        .annotate(count=Count('user'))
+        .order_by('-count')
+    )
+
     return render(request, 'accounts/analytics.html', {
         'total_users': User.objects.count(),
         'total_students': total_students,
         'verified_students': verified_students,
         'verification_rate': (verified_students / total_students * 100) if total_students else 0,
-        'countries': UserProfile.objects.exclude(country='')
-                                        .values('country')
-                                        .annotate(count=Count('id'))
-                                        .order_by('-count'),
-        'regions': UserProfile.objects.exclude(region='')
-                                      .values('region', 'country')
-                                      .annotate(count=Count('id'))
-                                      .order_by('-count')[:20],
-        'education': UserProfile.objects.exclude(education_level='')
-                                        .values('education_level')
-                                        .annotate(count=Count('id'))
-                                        .order_by('-count'),
-        'church_sizes': UserProfile.objects.exclude(church_size='')
-                                           .values('church_size')
-                                           .annotate(count=Count('id'))
-                                           .order_by('-count'),
+        'countries': countries,
+        'regions': regions,
+        'education': education,
+        'church_sizes': church_sizes,
         'recent_registrations': list(recent_registrations),
     })
