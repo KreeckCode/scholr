@@ -31,6 +31,11 @@ def bursary_enabled() -> bool:
     return enrollment_enabled() and getattr(settings, 'SCHOLR_BURSARY_ENABLED', False)
 
 
+def partners_enabled() -> bool:
+    """Partner network: pipeline, licences, training location portal, offline registers."""
+    return getattr(settings, 'SCHOLR_PARTNERS_ENABLED', False)
+
+
 def self_registration_enabled() -> bool:
     """Public sign-up. Off for school deployments, where staff create accounts."""
     return getattr(settings, 'SCHOLR_SELF_REGISTRATION', True)

@@ -88,6 +88,9 @@
                     {# -------- COMMERCIAL ADMIN -------- #}
                     {% elif user.role == 'admin' %}
                         {% include 'base/nav/_nav_link.html' with url='accounts:dashboard' label='Dashboard' active_paths='dashboard' %}
+                        {% if SCHOLR_PARTNERS_ENABLED %}
+                        {% include 'base/nav/_nav_link.html' with url='partners:pipeline' label='Partners' active_paths='/partners/' %}
+                        {% endif %}
 
                         {% if SCHOLR_LMS_ENABLED %}
                         <div class="relative" x-data="{ open: false }">
@@ -367,6 +370,20 @@
                         {% include 'base/nav/_nav_link.html' with url='academics:learner_lms_dashboard' label='My Online Courses' active_paths='lms' %}
                         {% endif %}
 
+                    {% elif user.role == 'programme_staff' %}
+                        {% if SCHOLR_PARTNERS_ENABLED %}
+                        {% include 'base/nav/_nav_link.html' with url='partners:pipeline' label='Pipeline' active_paths='/partners/pipeline/' %}
+                        {% include 'base/nav/_nav_link.html' with url='partners:organisation_list' label='Partners' active_paths='/partners/organisations/' %}
+                        {% include 'base/nav/_nav_link.html' with url='partners:licence_list' label='Licences' active_paths='/partners/licences/' %}
+                        {% include 'base/nav/_nav_link.html' with url='partners:network' label='Network' active_paths='/partners/network/' %}
+                        {% endif %}
+
+                    {% elif user.role == 'partner' %}
+                        {% if SCHOLR_PARTNERS_ENABLED %}
+                        {% include 'base/nav/_nav_link.html' with url='partners:portal_home' label='My location' active_paths='/partners/portal/' %}
+                        {% include 'base/nav/_nav_link.html' with url='partners:offline_app' label='Offline registers' active_paths='/partners/offline/' %}
+                        {% endif %}
+
                     {% endif %}{# end role checks #}
 
                     {% else %}
@@ -412,7 +429,7 @@
                             </span>
                             <span class="snap-bg-paper hidden md:inline-flex items-center rounded-full px-2 py-0.5
                                          text-[10px] font-semibold snap-text-muted capitalize">
-                                {{ user.role }}
+                                {% if user.role == 'programme_staff' %}Programme staff{% else %}{{ user.role }}{% endif %}
                             </span>
                             <svg class="h-3.5 w-3.5 snap-text-muted transition-transform duration-200"
                                  :class="{ 'rotate-180': open }"
@@ -434,7 +451,7 @@
                                 <p class="text-sm font-semibold snap-text-navy truncate">
                                     {{ user.get_full_name|default:user.username }}
                                 </p>
-                                <p class="text-xs snap-text-slate capitalize mt-0.5">{{ user.role }}</p>
+                                <p class="text-xs snap-text-slate capitalize mt-0.5">{% if user.role == 'programme_staff' %}Programme staff{% else %}{{ user.role }}{% endif %}</p>
                                 {% if user.email %}
                                 <p class="text-xs snap-text-muted truncate mt-0.5">{{ user.email }}</p>
                                 {% endif %}
@@ -519,7 +536,7 @@
                     </div>
                     <div>
                         <p class="text-sm font-semibold snap-text-navy">{{ user.get_full_name|default:user.username }}</p>
-                        <p class="text-xs snap-text-muted capitalize">{{ user.role }}</p>
+                        <p class="text-xs snap-text-muted capitalize">{% if user.role == 'programme_staff' %}Programme staff{% else %}{{ user.role }}{% endif %}</p>
                     </div>
                 </div>
 
@@ -537,6 +554,9 @@
 
                 {% elif user.role == 'admin' %}
                     <a href="{% url 'accounts:dashboard' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">Dashboard</a>
+                    {% if SCHOLR_PARTNERS_ENABLED %}
+                    <a href="{% url 'partners:pipeline' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">Partner network</a>
+                    {% endif %}
                     {% if SCHOLR_LMS_ENABLED %}
                     <p class="px-4 pt-3 pb-1 text-xs font-semibold snap-text-muted uppercase tracking-wider">{{ brand.name }}</p>
                     <a href="{% url 'accounts:student_list' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">Learners</a>
@@ -591,6 +611,20 @@
                     <a href="{% url 'accounts:dashboard' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">Dashboard</a>
                     {% if SCHOLR_BRIDGE_ENABLED %}
                     <a href="{% url 'academics:learner_lms_dashboard' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">Online Courses</a>
+                    {% endif %}
+
+                {% elif user.role == 'programme_staff' %}
+                    {% if SCHOLR_PARTNERS_ENABLED %}
+                    <a href="{% url 'partners:pipeline' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">Pipeline</a>
+                    <a href="{% url 'partners:organisation_list' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">Partners</a>
+                    <a href="{% url 'partners:licence_list' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">Licences</a>
+                    <a href="{% url 'partners:network' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">Network</a>
+                    {% endif %}
+
+                {% elif user.role == 'partner' %}
+                    {% if SCHOLR_PARTNERS_ENABLED %}
+                    <a href="{% url 'partners:portal_home' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">My location</a>
+                    <a href="{% url 'partners:offline_app' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">Offline registers</a>
                     {% endif %}
                 {% endif %}
 

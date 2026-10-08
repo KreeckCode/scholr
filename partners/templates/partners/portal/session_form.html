@@ -1,0 +1,36 @@
+{% extends 'partners/_base.html' %}
+{% load partners_tags %}
+
+{% block title %}{% if session_obj %}Edit session{% else %}Add session{% endif %}{% endblock %}
+{% block subnav %}{% include 'partners/portal/_nav.html' %}{% endblock %}
+{% block eyebrow %}{{ cohort.name }}{% endblock %}
+{% block heading %}{% if session_obj %}Edit {{ session_obj.course.code }} on {{ session_obj.session_date|date:'d M Y' }}{% else %}Add a session{% endif %}{% endblock %}
+
+{% block body %}
+<div class="max-w-3xl space-y-6">
+    <form method="post" class="p-card p-6 sm:p-8" novalidate>
+        {% csrf_token %}
+        {% include 'partners/_form_errors.html' %}
+        <div class="grid gap-5 sm:grid-cols-2">
+            {% field form.course wide=True %}
+            {% field form.session_date %}
+            {% field form.hours %}
+            {% field form.facilitator %}
+            {% field form.status %}
+            {% field form.notes wide=True %}
+        </div>
+        <div class="mt-8 flex flex-wrap gap-3">
+            <button type="submit" class="p-btn">Save</button>
+            <a class="p-btn-ghost" href="{% url 'partners:cohort_detail' location_id=location.public_id cohort_id=cohort.public_id %}">Cancel</a>
+        </div>
+    </form>
+
+    {% if session_obj %}
+    <form method="post" action="{% url 'partners:session_delete' location_id=location.public_id cohort_id=cohort.public_id session_id=session_obj.public_id %}" class="text-right" onsubmit="return confirm('Delete this session?');">
+        {% csrf_token %}
+        <button type="submit" class="text-sm text-red-700 hover:underline">Delete session</button>
+        <p class="mt-1 text-xs p-muted">A session with a register cannot be deleted; set its status to Cancelled instead.</p>
+    </form>
+    {% endif %}
+</div>
+{% endblock %}

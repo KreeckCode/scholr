@@ -1,0 +1,70 @@
+{% extends 'partners/_base.html' %}
+{% load partners_tags %}
+
+{% block title %}Import participants{% endblock %}
+{% block subnav %}{% include 'partners/portal/_nav.html' %}{% endblock %}
+{% block eyebrow %}{{ location.name }}{% endblock %}
+{% block heading %}Import participants{% endblock %}
+{% block subheading %}<p class="mt-2 max-w-2xl text-sm p-slate">Upload a CSV saved from Excel or Google Sheets. You will see every row before anything is saved.</p>{% endblock %}
+
+{% block body %}
+{% if preview %}
+<form method="post" class="space-y-6">
+    {% csrf_token %}
+    <input type="hidden" name="confirm" value="1">
+    <div class="p-card overflow-hidden">
+        <div class="p-card-head flex flex-wrap items-center justify-between gap-3">
+            <p class="text-sm p-navy"><strong>{{ valid_count }}</strong> of {{ preview|length }} row{{ preview|length|pluralize }} can be imported.</p>
+        </div>
+        <div class="max-h-[28rem] overflow-auto">
+            <table class="p-table">
+                <thead><tr><th scope="col">Line</th><th scope="col">Name</th><th scope="col">Phone</th><th scope="col">Church</th><th scope="col">Check</th></tr></thead>
+                <tbody>
+                    {% for row in preview %}
+                    <tr>
+                        <td class="p-num">{{ row.line }}</td>
+                        <td class="font-medium p-navy">{{ row.first_name }} {{ row.last_name }}</td>
+                        <td>{{ row.phone }}</td>
+                        <td>{{ row.church_name }}</td>
+                        <td class="text-xs">
+                            {% if row.errors %}<span class="text-red-700">{{ row.errors|join:'; ' }}</span>
+                            {% elif row.duplicate %}<span class="text-amber-700">Possible duplicate</span>
+                            {% else %}<span class="p-teal">Ready</span>{% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="p-card grid gap-5 p-6 sm:grid-cols-2">
+        <div>
+            <label for="cohort" class="mb-1.5 block text-sm font-medium p-navy">Also enrol them in</label>
+            <select id="cohort" name="cohort" class="block w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm">
+                <option value="">No cohort for now</option>
+                {% for cohort in cohorts %}<option value="{{ cohort.public_id }}">{{ cohort.name }}</option>{% endfor %}
+            </select>
+        </div>
+        <label class="flex items-center gap-2 self-end pb-2 text-sm p-slate">
+            <input type="checkbox" name="skip_duplicates" value="1" checked class="h-4 w-4 rounded border-slate-300 text-teal-600">
+            Skip possible duplicates
+        </label>
+        <div class="flex flex-wrap gap-3 sm:col-span-2">
+            <button type="submit" class="p-btn" {% if not valid_count %}disabled{% endif %}>Import {{ valid_count }} participant{{ valid_count|pluralize }}</button>
+            <a class="p-btn-ghost" href="{% url 'partners:participant_import' location_id=location.public_id %}">Start again</a>
+        </div>
+    </div>
+</form>
+{% else %}
+<form method="post" enctype="multipart/form-data" class="p-card max-w-2xl p-6 sm:p-8" novalidate>
+    {% csrf_token %}
+    {% include 'partners/_form_errors.html' %}
+    {% field form.file %}
+    <div class="mt-6 rounded-xl bg-slate-50 p-4 font-mono text-xs p-slate">first_name,last_name,phone,email,church_name,position_title<br>Grace,Mokoena,+27821234567,,Living Word Church,Youth pastor</div>
+    <div class="mt-8 flex flex-wrap gap-3">
+        <button type="submit" class="p-btn">Preview</button>
+        <a class="p-btn-ghost" href="{% url 'partners:participant_list' location_id=location.public_id %}">Cancel</a>
+    </div>
+</form>
+{% endif %}
+{% endblock %}

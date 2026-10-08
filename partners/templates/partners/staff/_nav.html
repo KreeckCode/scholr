@@ -1,0 +1,8 @@
+{% with path=request.path %}
+<nav class="mb-8 -mx-1 flex flex-wrap gap-1 rounded-full p-1" style="background: rgba(14,27,51,0.04);" aria-label="Partner network">
+    <a href="{% url 'partners:pipeline' %}" class="p-tab {% if '/partners/pipeline/' in path %}p-tab-on{% endif %}">Pipeline</a>
+    <a href="{% url 'partners:organisation_list' %}" class="p-tab {% if '/partners/organisations/' in path %}p-tab-on{% endif %}">Partners</a>
+    <a href="{% url 'partners:licence_list' %}" class="p-tab {% if '/partners/licences/' in path %}p-tab-on{% endif %}">Licences</a>
+    <a href="{% url 'partners:network' %}" class="p-tab {% if '/partners/network/' in path %}p-tab-on{% endif %}">Network</a>
+</nav>
+{% endwith %}

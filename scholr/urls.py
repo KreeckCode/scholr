@@ -20,6 +20,7 @@ urlpatterns = [
     path('integration/', include('integration.urls')),  # Moodle sync & LMS access
     path('academics/', include('academics.urls', namespace='academics')),
     path('enroll/', include('enrollment.urls')),
+    path('partners/', include('partners.urls')),
 ]
 
 # Serve media files in development

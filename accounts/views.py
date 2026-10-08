@@ -22,6 +22,7 @@ from scholr.features import (
     bridge_enabled,
     enrollment_enabled,
     lms_enabled,
+    partners_enabled,
     self_registration_enabled,
 )
 
@@ -218,6 +219,12 @@ def resolve_dashboard(user):
         if academics_enabled():
             return 'academics:portal_dashboard'
         return 'accounts:profile'
+
+    if user.role == User.PROGRAMME_STAFF:
+        return 'partners:pipeline' if partners_enabled() else 'accounts:profile'
+
+    if user.role == User.PARTNER:
+        return 'partners:portal_home' if partners_enabled() else 'accounts:profile'
 
     if user.role == User.STUDENT:
         return 'accounts:student_dashboard'

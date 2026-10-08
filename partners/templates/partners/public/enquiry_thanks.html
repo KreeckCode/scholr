@@ -1,0 +1,15 @@
+{% extends 'partners/_base.html' %}
+
+{% block title %}Thank you{% endblock %}
+{% block eyebrow %}Partner with METP{% endblock %}
+{% block heading %}Thank you, your enquiry is with us{% endblock %}
+
+{% block body %}
+<div class="p-card max-w-2xl p-6 sm:p-8">
+    <p class="text-sm sm:text-base p-slate">The METP partnership team will contact you using the details you gave. While you wait, you can read the course overview and partnership information on the METP website.</p>
+    <div class="mt-6 flex flex-wrap gap-3">
+        {% if brand.website %}<a class="p-btn" href="{{ brand.website }}">Back to {{ brand.website_label|default:brand.website }}</a>{% endif %}
+        <a class="p-btn-ghost" href="{% url 'main:home' %}">{{ brand.name }} home</a>
+    </div>
+</div>
+{% endblock %}

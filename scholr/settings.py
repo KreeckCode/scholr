@@ -36,6 +36,7 @@ SCHOLR_ENROLLMENT_ENABLED = env_flag('SCHOLR_ENROLLMENT_ENABLED')
 SCHOLR_BURSARY_ENABLED    = env_flag('SCHOLR_BURSARY_ENABLED')
 SCHOLR_BRIDGE_ENABLED     = env_flag('SCHOLR_BRIDGE_ENABLED')
 SCHOLR_SELF_REGISTRATION = env_flag('SCHOLR_SELF_REGISTRATION', 'True')
+SCHOLR_PARTNERS_ENABLED   = env_flag('SCHOLR_PARTNERS_ENABLED')
 
 # ==================== SITE PROFILE AND BRANDING ====================
 
@@ -61,6 +62,7 @@ INSTALLED_APPS = [
     'academics',
     'main',
     'enrollment.apps.EnrollmentConfig',
+    'partners.apps.PartnersConfig',
 ]
 
 if DEBUG:
@@ -249,6 +251,21 @@ MOODLE_URL = os.getenv('MOODLE_URL', 'https://judea.uorivo.com/moodle501')
 MOODLE_WS_TOKEN = os.getenv('MOODLE_WS_TOKEN', '')
 
 
+# ==================== PARTNER NETWORK ====================
+
+PARTNERS_PRIVATE_ROOT = os.getenv('PARTNERS_PRIVATE_ROOT', str(BASE_DIR / 'private_media'))
+PARTNERS_STAFF_EMAILS = [
+    address.strip() for address in os.getenv('PARTNERS_STAFF_EMAILS', '').split(',') if address.strip()
+]
+PARTNERS_DEFAULT_CURRENCY = os.getenv('PARTNERS_DEFAULT_CURRENCY', 'CAD')
+PARTNERS_ONLINE_PRODUCT_SLUG = os.getenv('PARTNERS_ONLINE_PRODUCT_SLUG', 'metp-online-programme')
+PARTNERS_PASS_MARK = int(os.getenv('PARTNERS_PASS_MARK', '50'))
+PARTNERS_MIN_ATTENDANCE_PERCENT = int(os.getenv('PARTNERS_MIN_ATTENDANCE_PERCENT', '75'))
+PARTNERS_STALL_DAYS = int(os.getenv('PARTNERS_STALL_DAYS', '21'))
+PARTNERS_PACK_DAYS = int(os.getenv('PARTNERS_PACK_DAYS', '30'))
+PARTNERS_LICENCE_REMINDER_DAYS = (90, 30, 7)
+
+
 # ==================== FILE UPLOADS ====================
 
 FILE_UPLOAD_MAX_MEMORY_SIZE = 5242880
@@ -334,6 +351,14 @@ CELERY_BEAT_SCHEDULE = {
         'task': 'academics.tasks.send_stall_notifications_task',
         'schedule': crontab(hour=6, minute=0),
     },
+    'partners-update-licence-statuses': {
+        'task': 'partners.tasks.update_licence_statuses',
+        'schedule': crontab(hour=1, minute=30),
+    },
+    'partners-stalled-partnerships-digest': {
+        'task': 'partners.tasks.stalled_partnerships_digest',
+        'schedule': crontab(hour=7, minute=0, day_of_week='mon'),
+    },
 }
 
 
@@ -408,6 +433,11 @@ LOGGING = {
             'propagate': False,
         },
         'enrollment': {
+            'handlers': ['console', 'file'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'partners': {
             'handlers': ['console', 'file'],
             'level': 'INFO',
             'propagate': False,
