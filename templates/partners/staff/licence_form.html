@@ -11,7 +11,7 @@
 <form method="post" enctype="multipart/form-data" class="p-card max-w-3xl p-6 sm:p-8" novalidate>
     {% csrf_token %}
     {% include 'partners/_form_errors.html' %}
-    <h2 class="p-display text-base font-semibold p-navy">Term</h2>
+    <h2 class="p-section-title">Term</h2>
     <div class="mt-4 grid gap-5 sm:grid-cols-3">
         {% field form.starts_on %}
         {% field form.ends_on %}
@@ -19,7 +19,7 @@
     </div>
     <div class="mt-5">{% field form.agreement_file %}</div>
 
-    <h2 class="p-display mt-8 text-base font-semibold p-navy">Fee and limits</h2>
+    <h2 class="p-section-title mt-8 border-t pt-6" style="border-color: var(--p-line-soft);">Fee and limits</h2>
     <div class="mt-4 grid gap-5 sm:grid-cols-3">
         {% field form.fee_amount %}
         {% field form.fee_currency %}
@@ -28,7 +28,7 @@
     </div>
     <div class="mt-5">{% field form.notes %}</div>
 
-    <div class="mt-8 flex flex-wrap gap-3">
+    <div class="p-form-actions">
         <button type="submit" class="p-btn">Save</button>
         <a class="p-btn-ghost" href="{% if licence %}{% url 'partners:licence_detail' licence_id=licence.public_id %}{% else %}{% url 'partners:organisation_detail' org_id=organisation.public_id %}{% endif %}">Cancel</a>
     </div>

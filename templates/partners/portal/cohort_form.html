@@ -20,7 +20,7 @@
         {% field form.ends_on %}
         {% field form.facilitators wide=True %}
     </div>
-    <div class="mt-8 flex flex-wrap gap-3">
+    <div class="p-form-actions">
         <button type="submit" class="p-btn">Save</button>
         <a class="p-btn-ghost" href="{% if cohort %}{% url 'partners:cohort_detail' location_id=location.public_id cohort_id=cohort.public_id %}{% else %}{% url 'partners:location_dashboard' location_id=location.public_id %}{% endif %}">Cancel</a>
     </div>

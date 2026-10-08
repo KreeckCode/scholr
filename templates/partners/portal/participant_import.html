@@ -27,9 +27,9 @@
                         <td>{{ row.phone }}</td>
                         <td>{{ row.church_name }}</td>
                         <td class="text-xs">
-                            {% if row.errors %}<span class="text-red-700">{{ row.errors|join:'; ' }}</span>
-                            {% elif row.duplicate %}<span class="text-amber-700">Possible duplicate</span>
-                            {% else %}<span class="p-teal">Ready</span>{% endif %}
+                            {% if row.errors %}<span class="font-medium text-red-700">{{ row.errors|join:'; ' }}</span>
+                            {% elif row.duplicate %}<span class="font-medium text-amber-700">Possible duplicate</span>
+                            {% else %}<span class="font-medium p-teal">Ready</span>{% endif %}
                         </td>
                     </tr>
                     {% endfor %}
@@ -39,17 +39,17 @@
     </div>
     <div class="p-card grid gap-5 p-6 sm:grid-cols-2">
         <div>
-            <label for="cohort" class="mb-1.5 block text-sm font-medium p-navy">Also enrol them in</label>
-            <select id="cohort" name="cohort" class="block w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm">
+            <label for="cohort" class="p-label">Also enrol them in</label>
+            <select id="cohort" name="cohort" class="block w-full">
                 <option value="">No cohort for now</option>
                 {% for cohort in cohorts %}<option value="{{ cohort.public_id }}">{{ cohort.name }}</option>{% endfor %}
             </select>
         </div>
-        <label class="flex items-center gap-2 self-end pb-2 text-sm p-slate">
-            <input type="checkbox" name="skip_duplicates" value="1" checked class="h-4 w-4 rounded border-slate-300 text-teal-600">
+        <label class="p-check self-end text-sm font-semibold p-navy">
+            <input type="checkbox" name="skip_duplicates" value="1" checked>
             Skip possible duplicates
         </label>
-        <div class="flex flex-wrap gap-3 sm:col-span-2">
+        <div class="p-form-actions sm:col-span-2">
             <button type="submit" class="p-btn" {% if not valid_count %}disabled{% endif %}>Import {{ valid_count }} participant{{ valid_count|pluralize }}</button>
             <a class="p-btn-ghost" href="{% url 'partners:participant_import' location_id=location.public_id %}">Start again</a>
         </div>
@@ -60,8 +60,8 @@
     {% csrf_token %}
     {% include 'partners/_form_errors.html' %}
     {% field form.file %}
-    <div class="mt-6 rounded-xl bg-slate-50 p-4 font-mono text-xs p-slate">first_name,last_name,phone,email,church_name,position_title<br>Grace,Mokoena,+27821234567,,Living Word Church,Youth pastor</div>
-    <div class="mt-8 flex flex-wrap gap-3">
+    <div class="p-code mt-6">first_name,last_name,phone,email,church_name,position_title<br>Grace,Mokoena,+27821234567,,Living Word Church,Youth pastor</div>
+    <div class="p-form-actions">
         <button type="submit" class="p-btn">Preview</button>
         <a class="p-btn-ghost" href="{% url 'partners:participant_list' location_id=location.public_id %}">Cancel</a>
     </div>

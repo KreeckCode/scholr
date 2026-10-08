@@ -11,7 +11,7 @@
 {% block body %}
 <nav class="mb-6 flex flex-wrap gap-1.5" aria-label="Courses">
     {% for item in courses %}
-    <a href="?course={{ item.code|urlencode }}" class="rounded-full px-3 py-1.5 text-xs font-semibold transition {% if item == course %}p-step-done{% else %}bg-white p-slate hover:bg-slate-50{% endif %}" style="{% if item != course %}border: 1px solid var(--snap-line);{% endif %}">{{ item.code }}</a>
+    <a href="?course={{ item.code|urlencode }}" class="p-chip {% if item == course %}p-chip-on{% endif %}" {% if item == course %}aria-current="page"{% endif %}>{{ item.code }}</a>
     {% endfor %}
 </nav>
 
@@ -21,7 +21,7 @@
     <input type="hidden" name="course" value="{{ course.code }}">
     <div class="p-card-head flex flex-wrap items-center justify-between gap-3">
         <div>
-            <h2 class="p-display text-base font-semibold p-navy">{{ course.code }}: {{ course.title }}</h2>
+            <h2 class="p-card-title">{{ course.code }}: {{ course.title }}</h2>
             {% if course.area %}<p class="text-xs p-muted">{{ course.area }}</p>{% endif %}
         </div>
         {% if is_coordinator and unsigned_count %}
@@ -34,8 +34,8 @@
             <tbody>
                 {% for row in rows %}
                 <tr>
-                    <td class="font-medium p-navy">{{ row.membership.participant.full_name }}</td>
-                    <td class="p-num {% if row.attended < required_hours %}text-amber-700{% endif %}">{{ row.attended|floatformat:1 }}</td>
+                    <td class="font-semibold p-navy">{{ row.membership.participant.full_name }}</td>
+                    <td class="p-num {% if row.attended < required_hours %}font-semibold text-amber-700{% endif %}">{{ row.attended|floatformat:1 }}</td>
                     <td class="p-num">
                         {% if editable %}{{ row.score_field }}{{ row.version_field }}{% elif row.result.exam_score is not None %}{{ row.result.exam_score|floatformat:0 }}{% endif %}
                         {% for error in row.score_field.errors %}<p class="mt-1 text-xs text-red-600">{{ error }}</p>{% endfor %}
@@ -45,18 +45,18 @@
                     </td>
                 </tr>
                 {% empty %}
-                <tr><td colspan="4" class="py-10 text-center p-muted">No participants in this cohort yet.</td></tr>
+                <tr><td colspan="4" class="p-empty">No participants in this cohort yet.</td></tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
     {% if editable and rows %}
-    <div class="flex justify-end border-t p-5" style="border-color: var(--snap-line);">
+    <div class="p-card-foot">
         <button type="submit" class="p-btn">Save scores</button>
     </div>
     {% endif %}
 </form>
 {% else %}
-<div class="p-card p-6 text-sm p-muted">No programme courses are set up yet. Ask an administrator to run the seed_metp_programme command.</div>
+<div class="p-card p-empty">No programme courses are set up yet. Ask an administrator to run the seed_metp_programme command.</div>
 {% endif %}
 {% endblock %}

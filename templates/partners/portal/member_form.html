@@ -19,7 +19,7 @@
         {% field form.role %}
         {% field form.trained_on %}
     </div>
-    <div class="mt-8 flex flex-wrap gap-3">
+    <div class="p-form-actions">
         <button type="submit" class="p-btn">Add to team</button>
         <a class="p-btn-ghost" href="{% url 'partners:team' location_id=location.public_id %}">Cancel</a>
     </div>

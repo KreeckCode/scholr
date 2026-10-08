@@ -18,14 +18,14 @@
         <p class="text-sm p-slate">Tap a mark for each person. Typing up a paper register works the same way.</p>
         <button type="button" class="p-btn-ghost p-btn-sm" @click="$root.querySelectorAll('input[value=present]').forEach(input => input.checked = true)">Mark everyone present</button>
     </div>
-    <ul class="divide-y" style="border-color: var(--snap-line);">
+    <ul class="p-list">
         {% for membership, mark in rows %}
         <li class="flex flex-col gap-3 px-5 py-3.5 sm:flex-row sm:items-center sm:justify-between">
-            <span class="text-sm font-medium p-navy">{{ membership.participant.full_name }}</span>
+            <span class="text-sm font-semibold p-navy">{{ membership.participant.full_name }}</span>
             <fieldset class="flex flex-wrap gap-2">
                 <legend class="sr-only">Attendance for {{ membership.participant.full_name }}</legend>
                 {% for value, label in statuses %}
-                <label class="p-mark relative">
+                <label class="p-mark">
                     <input type="radio" name="mark_{{ membership.public_id }}" value="{{ value }}" {% if mark and mark.status == value %}checked{% endif %}>
                     <span class="p-mark-{{ value }}">{{ label }}</span>
                 </label>
@@ -33,25 +33,25 @@
             </fieldset>
         </li>
         {% empty %}
-        <li class="px-5 py-10 text-center text-sm p-muted">No participants in this cohort yet.</li>
+        <li class="p-empty">No participants in this cohort yet.</li>
         {% endfor %}
     </ul>
     {% if rows %}
-    <div class="flex justify-end border-t p-5" style="border-color: var(--snap-line);">
+    <div class="p-card-foot">
         <button type="submit" class="p-btn">Save register</button>
     </div>
     {% endif %}
 </form>
 {% else %}
 <div class="p-card overflow-hidden">
-    <ul class="divide-y" style="border-color: var(--snap-line);">
+    <ul class="p-list">
         {% for membership, mark in rows %}
         <li class="flex items-center justify-between px-5 py-3.5 text-sm">
-            <span class="font-medium p-navy">{{ membership.participant.full_name }}</span>
+            <span class="font-semibold p-navy">{{ membership.participant.full_name }}</span>
             {% if mark %}{% include 'partners/_badge.html' with value=mark.status label=mark.get_status_display %}{% else %}<span class="text-xs p-muted">Not marked</span>{% endif %}
         </li>
         {% empty %}
-        <li class="px-5 py-10 text-center text-sm p-muted">No participants in this cohort yet.</li>
+        <li class="p-empty">No participants in this cohort yet.</li>
         {% endfor %}
     </ul>
 </div>

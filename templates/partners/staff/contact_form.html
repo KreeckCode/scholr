@@ -17,7 +17,7 @@
         {% field form.phone %}
         {% field form.is_primary wide=True %}
     </div>
-    <div class="mt-8 flex flex-wrap gap-3">
+    <div class="p-form-actions">
         <button type="submit" class="p-btn">Save</button>
         <a class="p-btn-ghost" href="{% url 'partners:organisation_detail' org_id=organisation.public_id %}">Cancel</a>
     </div>
