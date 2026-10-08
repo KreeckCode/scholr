@@ -1,0 +1,45 @@
+{% extends 'partners/_base.html' %}
+{% load partners_tags %}
+
+{% block title %}{% if participant %}Edit {{ participant.full_name }}{% else %}Add participant{% endif %}{% endblock %}
+{% block subnav %}{% include 'partners/portal/_nav.html' %}{% endblock %}
+{% block eyebrow %}{% if target_cohort %}{{ target_cohort.name }}{% else %}{{ location.name }}{% endif %}{% endblock %}
+{% block heading %}{% if participant %}Edit {{ participant.full_name }}{% else %}Add a participant{% endif %}{% endblock %}
+{% block subheading %}{% if target_cohort %}<p class="mt-2 text-sm p-slate">They will be enrolled in {{ target_cohort.name }} once saved.</p>{% endif %}{% endblock %}
+
+{% block body %}
+<form method="post" class="p-card max-w-3xl p-6 sm:p-8" novalidate>
+    {% csrf_token %}
+    {% if target_cohort %}<input type="hidden" name="cohort" value="{{ target_cohort.public_id }}">{% endif %}
+    {% include 'partners/_form_errors.html' %}
+
+    {% if duplicates %}
+    <div class="p-alert p-alert-warn" role="alert">
+        <p class="p-alert-title">This might be someone already registered here</p>
+        <ul class="mt-2 list-disc space-y-1 pl-5">
+            {% for person in duplicates %}
+            <li><a class="font-semibold underline underline-offset-2" href="{% url 'partners:participant_detail' location_id=location.public_id participant_id=person.public_id %}">{{ person.full_name }}</a>{% if person.church_name %}, {{ person.church_name }}{% endif %}</li>
+            {% endfor %}
+        </ul>
+        <label class="mt-3 flex cursor-pointer items-center gap-2.5 rounded-lg border border-amber-300 bg-white px-3 py-2.5 font-semibold">
+            <input type="checkbox" name="confirm_duplicate" value="1">
+            This is a different person, add them anyway
+        </label>
+    </div>
+    {% endif %}
+
+    <div class="grid gap-5 sm:grid-cols-2">
+        {% field form.first_name %}
+        {% field form.last_name %}
+        {% field form.phone %}
+        {% field form.email %}
+        {% field form.church_name %}
+        {% field form.position_title %}
+        {% field form.country %}
+    </div>
+    <div class="p-form-actions">
+        <button type="submit" class="p-btn">Save</button>
+        <a class="p-btn-ghost" href="{% if target_cohort %}{% url 'partners:cohort_detail' location_id=location.public_id cohort_id=target_cohort.public_id %}{% elif participant %}{% url 'partners:participant_detail' location_id=location.public_id participant_id=participant.public_id %}{% else %}{% url 'partners:participant_list' location_id=location.public_id %}{% endif %}">Cancel</a>
+    </div>
+</form>
+{% endblock %}

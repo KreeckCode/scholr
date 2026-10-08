@@ -19,3 +19,4 @@ celerybeat-schedule
 .DS_Store
 .env
 .env
+private_media/

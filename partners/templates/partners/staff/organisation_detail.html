@@ -1,0 +1,189 @@
+{% extends 'partners/_base.html' %}
+{% load partners_tags %}
+
+{% block title %}{{ organisation.name }}{% endblock %}
+{% block subnav %}{% include 'partners/staff/_nav.html' %}{% endblock %}
+{% block eyebrow %}{{ organisation.get_kind_display }} &middot; {{ organisation.country_name }}{% if organisation.city %}, {{ organisation.city }}{% endif %}{% endblock %}
+{% block heading %}{{ organisation.name }}{% endblock %}
+{% block subheading %}
+<div class="mt-3 flex flex-wrap items-center gap-2">
+    {% include 'partners/_badge.html' with value=partnership.stage label=partnership.get_stage_display %}
+    {% if organisation.is_sensitive %}<span class="rounded-full bg-amber-50 px-2.5 py-0.5 text-xs font-semibold text-amber-800 ring-1 ring-inset ring-amber-200">Sensitive: names withheld from exports</span>{% endif %}
+    {% if organisation.is_archived %}<span class="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-slate-700 ring-1 ring-inset ring-slate-200">Archived</span>{% endif %}
+    {% if organisation.website %}<a class="p-link text-sm" href="{{ organisation.website }}" rel="noopener noreferrer" target="_blank">Website</a>{% endif %}
+</div>
+{% endblock %}
+{% block actions %}
+<a href="{% url 'partners:organisation_edit' org_id=organisation.public_id %}" class="p-btn-ghost">Edit</a>
+<form method="post" action="{% url 'partners:organisation_archive' org_id=organisation.public_id %}">
+    {% csrf_token %}
+    <input type="hidden" name="archive" value="{% if organisation.is_archived %}0{% else %}1{% endif %}">
+    <button type="submit" class="p-btn-ghost">{% if organisation.is_archived %}Restore{% else %}Archive{% endif %}</button>
+</form>
+{% endblock %}
+
+{% block body %}
+<ol class="p-steps" aria-label="Launch steps">
+    {% for stage, label in forward_stages %}
+    {% with position=forloop.counter0 %}
+    <li class="p-step {% if partnership.stage_index is not None and position < partnership.stage_index %}p-step-done{% elif partnership.stage == stage %}p-step-now{% endif %}" {% if partnership.stage == stage %}aria-current="step"{% endif %}>
+        <span class="p-step-label">Step {{ forloop.counter }}</span>
+        <span class="p-step-name">{{ label }}</span>
+    </li>
+    {% endwith %}
+    {% endfor %}
+</ol>
+
+{% if partnership.stage == 'paused' %}
+<div class="p-alert p-alert-warn">Paused since {{ partnership.stage_changed_at|date:'d M Y' }}. It will resume at its previous stage.</div>
+{% elif partnership.stage == 'lost' %}
+<div class="p-alert p-alert-danger">Marked as lost on {{ partnership.stage_changed_at|date:'d M Y' }}{% if partnership.lost_reason %}: {{ partnership.lost_reason }}{% endif %}</div>
+{% endif %}
+
+<div class="grid gap-6 lg:grid-cols-3">
+    <div class="space-y-6 lg:col-span-2">
+        <section class="p-card">
+            <div class="p-card-head"><h2 class="p-card-title">Move this partnership</h2></div>
+            <div class="p-5">
+                {% if unmet_next %}
+                <div class="p-alert p-alert-neutral">
+                    <p class="p-alert-title p-navy">Before the next step</p>
+                    <ul class="mt-1 list-disc space-y-1 pl-5">{% for message in unmet_next %}<li>{{ message }}</li>{% endfor %}</ul>
+                </div>
+                {% endif %}
+                <form method="post" action="{% url 'partners:partnership_move' org_id=organisation.public_id %}" class="grid gap-4 sm:grid-cols-3">
+                    {% csrf_token %}
+                    {% field move_form.to_stage %}
+                    <div class="sm:col-span-2">{% field move_form.note %}</div>
+                    <div class="sm:col-span-3"><button type="submit" class="p-btn">Move</button></div>
+                </form>
+            </div>
+        </section>
+
+        <section class="p-card">
+            <div class="p-card-head"><h2 class="p-card-title">Next step</h2></div>
+            <form method="post" action="{% url 'partners:partnership_update' org_id=organisation.public_id %}" class="grid gap-4 p-5 sm:grid-cols-2">
+                {% csrf_token %}
+                {% field partnership_form.next_action wide=True %}
+                {% field partnership_form.next_action_due %}
+                {% field partnership_form.owner %}
+                {% field partnership_form.source %}
+                {% field partnership_form.expected_participants %}
+                <div class="sm:col-span-2"><button type="submit" class="p-btn-ghost">Save next step</button></div>
+            </form>
+        </section>
+
+        <section class="p-card">
+            <div class="p-card-head"><h2 class="p-card-title">History</h2></div>
+            <form method="post" action="{% url 'partners:partnership_note' org_id=organisation.public_id %}" class="grid gap-4 border-b p-5 sm:grid-cols-4" style="border-color: var(--p-line);">
+                {% csrf_token %}
+                {% field note_form.kind %}
+                <div class="sm:col-span-3">{% field note_form.body %}</div>
+                <div class="sm:col-span-4"><button type="submit" class="p-btn-ghost">Add to history</button></div>
+            </form>
+            <ul class="p-list">
+                {% for event in events %}
+                <li class="px-5 py-4">
+                    <div class="flex flex-wrap items-center justify-between gap-2">
+                        <p class="text-sm font-semibold p-navy">
+                            {% if event.kind == 'stage' %}{{ event.get_from_stage_display|default:'Start' }} to {{ event.get_to_stage_display }}{% else %}{{ event.get_kind_display }}{% endif %}
+                        </p>
+                        <p class="text-xs p-muted">{{ event.created_at|date:'d M Y, H:i' }}{% if event.actor %} &middot; {{ event.actor.get_full_name }}{% endif %}</p>
+                    </div>
+                    {% if event.body %}<p class="mt-1 whitespace-pre-line text-sm p-slate">{{ event.body }}</p>{% endif %}
+                </li>
+                {% empty %}
+                <li class="px-5 py-6 text-sm p-muted">Nothing recorded yet.</li>
+                {% endfor %}
+            </ul>
+        </section>
+    </div>
+
+    <aside class="space-y-6">
+        <section class="p-card">
+            <div class="p-card-head">
+                <h2 class="p-card-title">Contacts</h2>
+                <a class="p-btn-ghost p-btn-sm" href="{% url 'partners:contact_create' org_id=organisation.public_id %}">Add</a>
+            </div>
+            <ul class="p-list">
+                {% for contact in organisation.contacts.all %}
+                <li class="px-5 py-4 text-sm">
+                    <div class="min-w-0">
+                        <p class="font-semibold p-navy">{{ contact.name }}{% if contact.is_primary %} <span class="ml-1 rounded-full bg-teal-50 px-2 py-0.5 text-[11px] font-semibold text-teal-800 ring-1 ring-inset ring-teal-200">Primary</span>{% endif %}</p>
+                        {% if contact.role_title %}<p class="text-xs p-muted">{{ contact.role_title }}</p>{% endif %}
+                        {% if contact.email %}<a class="mt-1 block truncate text-xs p-link" href="mailto:{{ contact.email }}">{{ contact.email }}</a>{% endif %}
+                        {% if contact.phone %}<a class="block text-xs p-link" href="tel:{{ contact.phone }}">{{ contact.phone }}</a>{% endif %}
+                    </div>
+                    <div class="mt-3 flex gap-2">
+                        <a class="p-btn-ghost p-btn-sm" href="{% url 'partners:contact_edit' org_id=organisation.public_id pk=contact.pk %}">Edit</a>
+                        <form method="post" action="{% url 'partners:contact_delete' org_id=organisation.public_id pk=contact.pk %}" onsubmit="return confirm('Remove this contact?');">
+                            {% csrf_token %}
+                            <button type="submit" class="p-btn-danger p-btn-sm">Remove</button>
+                        </form>
+                    </div>
+                </li>
+                {% empty %}
+                <li class="px-5 py-4 text-sm p-muted">No contacts yet.</li>
+                {% endfor %}
+            </ul>
+        </section>
+
+        <section class="p-card">
+            <div class="p-card-head">
+                <h2 class="p-card-title">Licences</h2>
+                <a class="p-btn-ghost p-btn-sm" href="{% url 'partners:licence_create' org_id=organisation.public_id %}">Draft licence</a>
+            </div>
+            <ul class="p-list">
+                {% for licence in organisation.licences.all %}
+                <li class="flex items-center justify-between gap-3 px-5 py-3.5 text-sm">
+                    <div class="min-w-0">
+                        <a class="p-link font-mono text-xs" href="{% url 'partners:licence_detail' licence_id=licence.public_id %}">{{ licence.number }}</a>
+                        <p class="text-xs p-muted">{{ licence.starts_on|date:'d M Y' }} to {{ licence.ends_on|date:'d M Y' }}</p>
+                    </div>
+                    {% include 'partners/_badge.html' with value=licence.status label=licence.get_status_display %}
+                </li>
+                {% empty %}
+                <li class="px-5 py-4 text-sm p-muted">No licence yet.</li>
+                {% endfor %}
+            </ul>
+        </section>
+
+        <section class="p-card">
+            <div class="p-card-head">
+                <h2 class="p-card-title">Training locations</h2>
+                {% if organisation.licences.all %}<a class="p-btn-ghost p-btn-sm" href="{% url 'partners:location_create' org_id=organisation.public_id %}">Add</a>{% endif %}
+            </div>
+            <ul class="p-list">
+                {% for location in organisation.locations.all %}
+                <li class="px-5 py-3.5 text-sm">
+                    <div class="flex items-center justify-between gap-3">
+                        <a class="p-link" href="{% url 'partners:location_dashboard' location_id=location.public_id %}">{{ location.name }}</a>
+                        {% include 'partners/_badge.html' with value=location.status label=location.get_status_display %}
+                    </div>
+                    <div class="mt-1 flex items-center justify-between gap-3">
+                        <p class="text-xs p-muted">{{ location.city|default:location.country_name }} &middot; {{ location.licence.number }}</p>
+                        <a class="p-btn-ghost p-btn-sm" href="{% url 'partners:location_edit' location_id=location.public_id %}">Edit</a>
+                    </div>
+                </li>
+                {% empty %}
+                <li class="px-5 py-4 text-sm p-muted">{% if organisation.licences.all %}No locations yet.{% else %}Draft a licence before adding a location.{% endif %}</li>
+                {% endfor %}
+            </ul>
+        </section>
+
+        {% if coordinators %}
+        <section class="p-card">
+            <div class="p-card-head"><h2 class="p-card-title">Coordinators</h2></div>
+            <ul class="p-list">
+                {% for member in coordinators %}
+                <li class="px-5 py-3 text-sm">
+                    <p class="font-semibold p-navy">{{ member.user.get_full_name }}{% if not member.is_active %} <span class="text-xs font-normal p-muted">(inactive)</span>{% endif %}</p>
+                    <p class="text-xs p-muted">{{ member.location.name }}{% if member.trained_on %} &middot; 100a on {{ member.trained_on|date:'d M Y' }}{% else %} &middot; training date not recorded{% endif %}</p>
+                </li>
+                {% endfor %}
+            </ul>
+        </section>
+        {% endif %}
+    </aside>
+</div>
+{% endblock %}

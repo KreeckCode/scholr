@@ -1,12 +1,15 @@
 """
-Load the twelve METP classroom courses, and optionally link each one to its Moodle course.
+Load the twelve METP classroom courses, and optionally link each one to its online course.
 
     python manage.py seed_metp_programme
     python manage.py seed_metp_programme --link-online --online-prefix METP
     python manage.py seed_metp_programme --link-online --create-bundle
+    python manage.py seed_metp_programme --create-online --create-bundle
 
-Safe to run repeatedly: existing courses are updated, never duplicated. Linking only reads
-integration.Course rows; it never creates them, so no Moodle sync is triggered.
+Safe to run repeatedly: existing courses are updated, never duplicated.
+--link-online only reads integration.Course rows. --create-online also creates the missing ones,
+with auto-enrol off so nobody is enrolled except through a licence order; they reach Moodle on
+the next course sync, like any other course created in Scholr.
 """
 
 from decimal import Decimal
@@ -16,7 +19,7 @@ from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
 
 from accounts.models import Product, ProductBundle
-from integration.models import Course
+from integration.models import Course, CourseCategory
 from partners.models import ProgrammeCourse
 
 METP_COURSES = [
@@ -48,13 +51,24 @@ class Command(BaseCommand):
             help='Short name prefix of the Moodle courses, for example METP gives METP101.',
         )
         parser.add_argument(
+            '--create-online', action='store_true',
+            help='Create any missing online course (auto-enrol off), then link it. Implies --link-online.',
+        )
+        parser.add_argument(
+            '--category', metavar='NAME',
+            help='Existing course category for created online courses. Defaults to the theology category.',
+        )
+        parser.add_argument(
             '--create-bundle', action='store_true',
             help='Create or update the online programme bundle product from the linked courses.',
         )
 
     @transaction.atomic
     def handle(self, *args, **options):
-        created = updated = linked = 0
+        if options['create_online']:
+            options['link_online'] = True
+            category = self._category(options['category'])
+        created = updated = linked = online_created = 0
         for sequence, (code, title, area) in enumerate(METP_COURSES, start=1):
             course, was_created = ProgrammeCourse.objects.update_or_create(
                 code=code,
@@ -65,6 +79,17 @@ class Command(BaseCommand):
             if options['link_online']:
                 short_name = f"{options['online_prefix']}{code.split()[-1]}"
                 online = Course.objects.filter(short_name=short_name).first()
+                if online is None and options['create_online']:
+                    online = Course.objects.create(
+                        title=f'{code}: {title}',
+                        short_name=short_name,
+                        code=code,
+                        category=category,
+                        summary=area,
+                        visible=True,
+                        auto_enroll_enabled=False,
+                    )
+                    online_created += 1
                 if online and course.online_course_id != online.pk:
                     course.online_course = online
                     course.save(update_fields=['online_course', 'updated_at'])
@@ -76,16 +101,41 @@ class Command(BaseCommand):
         self.stdout.write(self.style.SUCCESS(
             f'{created} course(s) created, {updated} updated, {linked} linked online.'
         ))
+        if online_created:
+            self.stdout.write(self.style.SUCCESS(
+                f'{online_created} online course(s) created in {category.name}. Sync categories and '
+                f'courses to Moodle before giving anyone online access.'
+            ))
 
         if options['create_bundle']:
             self._create_bundle()
+
+    def _category(self, name):
+        if name:
+            category = CourseCategory.objects.filter(name__iexact=name).first()
+            if category is None:
+                raise CommandError(f'No course category called "{name}".')
+            return category
+        category = CourseCategory.objects.filter(discipline='theology').first()
+        if category is None:
+            # I'm creating it because the discipline is unique, so there can only ever be one
+            category = CourseCategory.objects.create(
+                name='Ministry Essentials Training Program',
+                discipline='theology',
+                description='The twelve METP courses, studied online by participants at licensed locations.',
+            )
+            self.stdout.write(f'Created course category {category.name}.')
+        return category
 
     def _create_bundle(self):
         courses = list(
             Course.objects.filter(programme_courses__isnull=False).order_by('programme_courses__sequence')
         )
         if not courses:
-            raise CommandError('No programme course is linked to an online course; run with --link-online first.')
+            raise CommandError(
+                'No programme course is linked to an online course. Run with --create-online to create '
+                'them, or --link-online once they exist.'
+            )
         for course in courses:
             if course.auto_enroll_enabled:
                 raise CommandError(

@@ -1,0 +1,36 @@
+{% extends 'partners/_base.html' %}
+{% load partners_tags %}
+
+{% block title %}{% if licence %}Edit {{ licence.number }}{% else %}Draft licence{% endif %}{% endblock %}
+{% block subnav %}{% include 'partners/staff/_nav.html' %}{% endblock %}
+{% block eyebrow %}{{ organisation.name }}{% endblock %}
+{% block heading %}{% if licence %}Edit licence {{ licence.number }}{% else %}Draft a licence{% endif %}{% endblock %}
+{% block subheading %}{% if not licence %}<p class="mt-2 text-sm p-slate">The licence number is assigned when you save. Activate it once the agreement is signed and uploaded.</p>{% endif %}{% endblock %}
+
+{% block body %}
+<form method="post" enctype="multipart/form-data" class="p-card max-w-3xl p-6 sm:p-8" novalidate>
+    {% csrf_token %}
+    {% include 'partners/_form_errors.html' %}
+    <h2 class="p-section-title">Term</h2>
+    <div class="mt-4 grid gap-5 sm:grid-cols-3">
+        {% field form.starts_on %}
+        {% field form.ends_on %}
+        {% field form.signed_on %}
+    </div>
+    <div class="mt-5">{% field form.agreement_file %}</div>
+
+    <h2 class="p-section-title mt-8 border-t pt-6" style="border-color: var(--p-line-soft);">Fee and limits</h2>
+    <div class="mt-4 grid gap-5 sm:grid-cols-3">
+        {% field form.fee_amount %}
+        {% field form.fee_currency %}
+        {% field form.fee_status %}
+        {% field form.max_locations %}
+    </div>
+    <div class="mt-5">{% field form.notes %}</div>
+
+    <div class="p-form-actions">
+        <button type="submit" class="p-btn">Save</button>
+        <a class="p-btn-ghost" href="{% if licence %}{% url 'partners:licence_detail' licence_id=licence.public_id %}{% else %}{% url 'partners:organisation_detail' org_id=organisation.public_id %}{% endif %}">Cancel</a>
+    </div>
+</form>
+{% endblock %}

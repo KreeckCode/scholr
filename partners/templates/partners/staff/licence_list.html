@@ -1,0 +1,57 @@
+{% extends 'partners/_base.html' %}
+{% load partners_tags %}
+
+{% block title %}Licences{% endblock %}
+{% block subnav %}{% include 'partners/staff/_nav.html' %}{% endblock %}
+{% block eyebrow %}Partner network{% endblock %}
+{% block heading %}Licences{% endblock %}
+{% block subheading %}<p class="mt-2 text-sm p-slate">Draft a licence from a partner's page. Sorted by end date, soonest first.</p>{% endblock %}
+
+{% block body %}
+<form method="get" class="p-toolbar">
+    <div>
+        <label for="status" class="p-label-sm">Status</label>
+        <select id="status" name="status" class="min-w-[11rem]">
+            <option value="">All statuses</option>
+            {% for value, label in statuses %}<option value="{{ value }}" {% if filter_status == value %}selected{% endif %}>{{ label }}</option>{% endfor %}
+        </select>
+    </div>
+    <label class="p-check-inline">
+        <input type="checkbox" name="expiring" value="1" {% if filter_expiring %}checked{% endif %}>
+        Active and ending within 90 days
+    </label>
+    <button type="submit" class="p-btn-ghost">Filter</button>
+</form>
+
+<div class="p-card overflow-hidden">
+    <div class="overflow-x-auto">
+        <table class="p-table">
+            <thead>
+                <tr>
+                    <th scope="col">Licence</th>
+                    <th scope="col">Partner</th>
+                    <th scope="col">Runs</th>
+                    <th scope="col">Status</th>
+                    <th scope="col">Fee</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for licence in licences %}
+                <tr>
+                    <td><a class="p-link font-mono text-xs" href="{% url 'partners:licence_detail' licence_id=licence.public_id %}">{{ licence.number }}</a></td>
+                    <td>{{ licence.organisation.name }}</td>
+                    <td class="whitespace-nowrap">{{ licence.starts_on|date:'d M Y' }} to {{ licence.ends_on|date:'d M Y' }}
+                        {% if licence.status == 'active' %}{% with days=licence.ends_on|timeuntil:today %}<span class="block text-xs p-muted">{{ days }} left</span>{% endwith %}{% endif %}
+                    </td>
+                    <td>{% include 'partners/_badge.html' with value=licence.status label=licence.get_status_display %}</td>
+                    <td class="whitespace-nowrap">{{ licence.fee_currency }} {{ licence.fee_amount }} <span class="block text-xs p-muted">{{ licence.get_fee_status_display }}</span></td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="5" class="p-empty">No licences match.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% include 'partners/_pagination.html' %}
+{% endblock %}

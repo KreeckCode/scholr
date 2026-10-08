@@ -1,0 +1,37 @@
+{% if field.is_hidden %}{{ field }}{% else %}
+<div class="p-field {% if wide %}sm:col-span-2{% endif %} {% if field.errors %}p-field-invalid{% endif %}">
+    {% if field.widget_type == 'checkbox' %}
+    <label class="p-check">
+        {{ field }}
+        <span class="min-w-0">
+            <span class="block text-sm font-semibold p-navy">{{ field.label }}</span>
+            {% if field.help_text %}<span class="mt-0.5 block text-xs leading-relaxed p-muted">{{ field.help_text }}</span>{% endif %}
+        </span>
+    </label>
+    {% elif field.widget_type == 'checkboxselectmultiple' %}
+    <fieldset>
+        <legend class="p-label">{{ field.label }}</legend>
+        <div class="grid gap-2 sm:grid-cols-2">
+            {% for option in field %}
+            <label class="p-option">
+                {{ option.tag }}
+                <span>{{ option.choice_label }}</span>
+            </label>
+            {% empty %}
+            <p class="rounded-xl border border-dashed px-4 py-3 text-sm p-muted" style="border-color: var(--p-field);">Nobody to choose yet.</p>
+            {% endfor %}
+        </div>
+        {% if field.help_text %}<p class="p-help">{{ field.help_text }}</p>{% endif %}
+    </fieldset>
+    {% else %}
+    <label for="{{ field.id_for_label }}" class="p-label">
+        {{ field.label }}{% if field.field.required %}<span class="p-required" aria-hidden="true">*</span>{% endif %}
+    </label>
+    {{ field }}
+    {% if field.help_text %}<p class="p-help">{{ field.help_text }}</p>{% endif %}
+    {% endif %}
+    {% for error in field.errors %}
+    <p class="p-error">{{ error }}</p>
+    {% endfor %}
+</div>
+{% endif %}
