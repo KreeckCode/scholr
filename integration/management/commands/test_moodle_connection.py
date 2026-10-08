@@ -8,6 +8,7 @@ from django.utils import timezone
 from integration.models import MoodleInstance
 from integration.moodle_client import MoodleClient
 from integration.services import MoodleIntegrationService
+from integration.utils import generate_moodle_password
 from integration.exceptions import (
     MoodleConnectionError, MoodleAPIError, MoodleAuthenticationError
 )
@@ -223,13 +224,14 @@ class Command(BaseCommand):
         test_username = f'testuser_{int(timezone.now().timestamp())}'
         
         user_data = {
-            'username': 'test_username',
-            'password': 'TestPass123!',
+            'username': test_username,
+            'password': generate_moodle_password(),
             'firstname': 'Test',
             'lastname': 'User',
-            'email': f'test@test.local',
+            'email': f'{test_username}@test.local',
         }
-        
+        user_id = None
+
         try:
             self.stdout.write(f'  Creating test user: {test_username}... ', ending='')
             user_id = client.create_user(user_data)
@@ -244,19 +246,24 @@ class Command(BaseCommand):
             else:
                 self.stdout.write(self.style.ERROR('✗ User not found'))
             
-            # Clean up - delete test user
-            self.stdout.write(f'  Deleting test user... ', ending='')
-            client.delete_user(user_id)
-            self.stdout.write(self.style.SUCCESS('✓'))
-        
         except MoodleAPIError as e:
             if 'already exists' in str(e).lower():
                 self.stdout.write(self.style.WARNING(f'⚠ User already exists'))
             else:
                 self.stdout.write(self.style.ERROR(f'✗ ({str(e)})'))
-        
+
         except Exception as e:
             self.stdout.write(self.style.ERROR(f'✗ ({str(e)})'))
+
+        finally:
+            # I'm deleting in finally so a failed check never leaves a throwaway account behind
+            if user_id:
+                self.stdout.write(f'  Deleting test user... ', ending='')
+                try:
+                    client.delete_user(user_id)
+                    self.stdout.write(self.style.SUCCESS('✓'))
+                except Exception as e:
+                    self.stdout.write(self.style.ERROR(f'✗ Delete {test_username} by hand ({str(e)})'))
     
     def _test_category_creation(self, instance):
         """Test creating a category"""
