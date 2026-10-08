@@ -12,6 +12,7 @@ def features(request):
         'site_profile':              settings.SITE_PROFILE,
         'brand':                     settings.SITE_BRAND,
         'SCHOLR_SELF_REGISTRATION': settings.SCHOLR_SELF_REGISTRATION,
+        'SCHOLR_PARTNERS_ENABLED':   settings.SCHOLR_PARTNERS_ENABLED,
     }
 
 

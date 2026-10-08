@@ -1,5 +1,5 @@
-from django.http import Http404
 from django.conf import settings
+from django.http import Http404
 
 
 class FeatureFlagMiddleware:
@@ -8,6 +8,11 @@ class FeatureFlagMiddleware:
     Only active when the corresponding flag is False.
     """
 
+    # The shop is mounted at /courses/ in scholr/urls.py
+    LMS_PREFIXES = ('/courses/',)
+    ACADEMICS_PREFIXES = ('/academics/',)
+    PARTNERS_PREFIXES = ('/partners/',)
+
     def __init__(self, get_response):
         self.get_response = get_response
 
@@ -15,11 +20,15 @@ class FeatureFlagMiddleware:
         path = request.path
 
         if not getattr(settings, 'SCHOLR_ACADEMICS_ENABLED', True):
-            if path.startswith('/academics/'):
+            if path.startswith(self.ACADEMICS_PREFIXES):
                 raise Http404
 
         if not getattr(settings, 'SCHOLR_LMS_ENABLED', True):
-            if path.startswith('/shop/') or path.startswith('/my-courses/'):
+            if path.startswith(self.LMS_PREFIXES):
+                raise Http404
+
+        if not getattr(settings, 'SCHOLR_PARTNERS_ENABLED', False):
+            if path.startswith(self.PARTNERS_PREFIXES):
                 raise Http404
 
         return self.get_response(request)

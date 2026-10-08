@@ -676,7 +676,7 @@
                     </p>
                 </div>
                 <div class="flex flex-wrap gap-3 shrink-0">
-                    <a href="mailto:metp.info@paoc.org?subject=METP%20training%20location%20enquiry"
+                    <a href="{% if SCHOLR_PARTNERS_ENABLED %}{% url 'partners:enquire' %}{% else %}mailto:metp.info@paoc.org?subject=METP%20training%20location%20enquiry{% endif %}"
                        class="metp-display inline-flex items-center px-6 py-3 rounded-xl font-semibold m-btn-primary text-sm">
                         Request an introduction call
                     </a>
