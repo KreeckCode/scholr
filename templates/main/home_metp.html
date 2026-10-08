@@ -1,0 +1,817 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}Get METP{% endblock %}
+{% block title_suffix %}Ministry Essentials Training Program{% endblock %}
+{% block meta_description %}Study the Ministry Essentials Training Program online, or launch a licensed METP training location for your church, denomination or college.{% endblock %}
+
+{% block extra_head %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+    .metp-page {
+        --m-navy:        #0E1B33;
+        --m-navy-deep:   #08111F;
+        --m-navy-soft:   #1B2C4D;
+        --m-teal:        #12A594;
+        --m-teal-bright: #16C2AE;
+        --m-teal-deep:   #0C7A6D;
+        --m-accent:      #F26A21;
+        --m-accent-deep: #B54708;
+        --m-paper:       #EDF1F5;
+        --m-slate:       #4A5A73;
+        --m-muted:       #8494A8;
+        --m-line:        rgba(14, 27, 51, 0.10);
+
+        font-family: 'Inter', system-ui, sans-serif;
+        color: var(--m-slate);
+        background: #fff;
+    }
+
+    .metp-display       { font-family: 'Poppins', system-ui, sans-serif; letter-spacing: -0.02em; }
+    .metp-eyebrow       { font-family: 'Poppins', sans-serif; font-weight: 600; font-size: 0.72rem;
+                          letter-spacing: 0.16em; text-transform: uppercase; }
+
+    .m-bg-navy          { background: var(--m-navy); }
+    .m-bg-navy-deep     { background: var(--m-navy-deep); }
+    .m-bg-paper         { background: var(--m-paper); }
+    .m-text-navy        { color: var(--m-navy); }
+    .m-text-muted       { color: var(--m-muted); }
+    .m-text-teal-bright { color: var(--m-teal-bright); }
+    .m-text-teal-deep   { color: var(--m-teal-deep); }
+    .m-text-accent      { color: var(--m-accent); }
+    .m-border           { border-color: var(--m-line); }
+    .m-dot              { background: var(--m-teal); }
+
+    .m-rule             { position: relative; height: 3px; width: 64px; background: var(--m-line);
+                          overflow: hidden; border-radius: 2px; }
+    .m-rule-dark        { background: rgba(255,255,255,0.14); }
+    .m-rule::after      { content: ''; position: absolute; inset: 0; background: var(--m-accent);
+                          transform: scaleX(0); transform-origin: left;
+                          transition: transform 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) 0.15s; }
+    .is-visible .m-rule::after { transform: scaleX(1); }
+
+    .m-btn-primary      { background: var(--m-teal); color: #fff; transition: background 0.2s, transform 0.2s; }
+    .m-btn-primary:hover{ background: var(--m-teal-bright); transform: translateY(-1px); }
+    .m-btn-ghost        { border: 1px solid rgba(255,255,255,0.28); color: #E8EDF3;
+                          transition: border-color 0.2s, background 0.2s; }
+    .m-btn-ghost:hover  { border-color: rgba(255,255,255,0.6); background: rgba(255,255,255,0.06); }
+    .m-btn-navy         { background: var(--m-navy); color: #fff; transition: background 0.2s, transform 0.2s; }
+    .m-btn-navy:hover   { background: var(--m-navy-soft); transform: translateY(-1px); }
+    .m-btn-quiet        { background: var(--m-paper); color: var(--m-slate); transition: background 0.18s, color 0.18s; }
+    .m-btn-quiet:hover  { background: #E2E8EE; color: var(--m-navy); }
+
+    .m-return           { background: var(--m-navy-deep); border-bottom: 1px solid rgba(255,255,255,0.08); }
+    .m-return a         { color: #93A2B7; transition: color 0.18s; }
+    .m-return a:hover   { color: var(--m-teal-bright); }
+
+    .m-hero             { position: relative; background: var(--m-navy-deep); }
+    .m-hero-photo       { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0.38; }
+    .m-hero-scrim       { position: absolute; inset: 0;
+                          background: linear-gradient(105deg, rgba(8,17,31,0.96) 0%, rgba(8,17,31,0.84) 48%, rgba(8,17,31,0.45) 100%); }
+
+    .m-card             { background: #fff; border: 1px solid var(--m-line); border-radius: 1rem; }
+    .m-card-lift        { transition: transform 0.25s, box-shadow 0.25s, border-color 0.25s; }
+    .m-card-lift:hover  { transform: translateY(-4px); border-color: rgba(18,165,148,0.35);
+                          box-shadow: 0 18px 40px -22px rgba(14,27,51,0.45); }
+
+    .m-course           { background: #fff; border: 1px solid var(--m-line); border-radius: 0.9rem;
+                          transition: border-color 0.2s, box-shadow 0.2s; }
+    .m-course:hover     { border-color: rgba(18,165,148,0.4); box-shadow: 0 12px 28px -20px rgba(14,27,51,0.45); }
+    .m-course-code      { font-family: 'Poppins', sans-serif; font-weight: 700; font-size: 0.72rem;
+                          letter-spacing: 0.08em; color: var(--m-accent-deep); }
+
+    .m-hhh              { border-top: 3px solid var(--m-teal); }
+    .m-hhh-hand         { border-top-color: var(--m-accent); }
+    .m-hhh-heart        { border-top-color: var(--m-navy); }
+
+    .m-dark-card        { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); border-radius: 1rem; }
+
+    .m-step-num         { font-family: 'Poppins', sans-serif; width: 2rem; height: 2rem; border-radius: 999px;
+                          display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+                          font-size: 0.8rem; font-weight: 700; }
+    .m-step-light       { background: #fff; color: var(--m-navy); border: 1px solid var(--m-line); }
+    .m-step-dark        { background: rgba(22,194,174,0.14); color: var(--m-teal-bright); }
+
+    .m-video            { position: relative; aspect-ratio: 16 / 9; border-radius: 1rem; overflow: hidden;
+                          background: var(--m-navy-soft); }
+    .m-video iframe     { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+
+    .m-photo            { width: 100%; height: 100%; object-fit: cover; background: #D6DEE7; }
+
+    .m-chain-arrow      { color: var(--m-muted); }
+
+    .reveal             { opacity: 1; transform: none; }
+    .js-on .reveal      { opacity: 0; transform: translateY(18px);
+                          transition: opacity 0.6s ease, transform 0.6s cubic-bezier(0.2,0.8,0.2,1); }
+    .js-on .reveal.is-visible { opacity: 1; transform: none; }
+
+    @media (prefers-reduced-motion: reduce) {
+        .js-on .reveal, .js-on .reveal.is-visible { opacity: 1; transform: none; transition: none; }
+        .m-rule::after { transition: none; transform: scaleX(1); }
+        .m-card-lift:hover, .m-btn-primary:hover, .m-btn-navy:hover { transform: none; }
+    }
+
+    .metp-page a:focus-visible,
+    .metp-page button:focus-visible { outline: 3px solid var(--m-teal-bright); outline-offset: 3px; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="metp-page">
+
+    <div class="m-return">
+        <div class="max-w-6xl mx-auto px-5 sm:px-8 py-2.5 flex items-center justify-between gap-4 text-xs">
+            <a href="https://metp.ca/" class="inline-flex items-center gap-1.5">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                Back to metp.ca
+            </a>
+            <span class="hidden sm:inline" style="color: #56657C;">A program of the GlobalEd Institute at Summit Pacific College</span>
+        </div>
+    </div>
+
+    <section class="m-hero">
+        <img src="{% static 'images/metp/hero.jpg' %}" alt="" class="m-hero-photo" aria-hidden="true">
+        <div class="m-hero-scrim"></div>
+
+        <div class="relative max-w-6xl mx-auto px-5 sm:px-8 pt-20 pb-16 sm:pt-28 sm:pb-24">
+            <div class="max-w-2xl">
+                <p class="metp-eyebrow m-text-teal-bright mb-6">Ministry Essentials Training Program</p>
+
+                <h1 class="metp-display text-5xl sm:text-6xl lg:text-7xl font-bold text-white leading-[1.02] mb-6">
+                    Get METP
+                </h1>
+
+                <p class="metp-display text-xl sm:text-2xl font-medium text-white/90 leading-snug mb-6 max-w-xl">
+                    Twelve courses that cover what a pastor needs to lead a congregation well.
+                </p>
+
+                <p class="text-lg text-slate-300 leading-relaxed mb-9 max-w-xl">
+                    Study the program online at your own pace, or bring it to your church, denomination
+                    or college as a licensed training location. Both start here.
+                </p>
+
+                <div class="flex flex-wrap items-center gap-3 mb-4">
+                    <a href="#online"
+                       class="metp-display inline-flex items-center gap-2 px-7 py-3.5 rounded-xl font-semibold m-btn-primary">
+                        Study online
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
+                    </a>
+                    <a href="#partner"
+                       class="metp-display inline-flex items-center px-7 py-3.5 rounded-xl font-semibold m-btn-ghost">
+                        Launch a training location
+                    </a>
+                </div>
+
+                <p class="text-sm text-slate-400">
+                    Already studying?
+                    <a href="{% url 'accounts:login' %}" class="m-text-teal-bright underline underline-offset-4 hover:text-white transition-colors">Sign in</a>
+                </p>
+            </div>
+        </div>
+
+        <div class="relative border-t" style="border-color: rgba(255,255,255,0.12);">
+            <div class="max-w-6xl mx-auto px-5 sm:px-8">
+                <dl class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5">
+                    <div class="py-6 pr-4 sm:py-8">
+                        <dt class="metp-display text-2xl sm:text-3xl font-bold text-white">12</dt>
+                        <dd class="text-xs sm:text-sm text-slate-400 mt-1">Courses in sequence</dd>
+                    </div>
+                    <div class="py-6 pr-4 sm:py-8">
+                        <dt class="metp-display text-2xl sm:text-3xl font-bold text-white">144</dt>
+                        <dd class="text-xs sm:text-sm text-slate-400 mt-1">Classroom hours</dd>
+                    </div>
+                    <div class="py-6 pr-4 sm:py-8">
+                        <dt class="metp-display text-2xl sm:text-3xl font-bold text-white">48</dt>
+                        <dd class="text-xs sm:text-sm text-slate-400 mt-1">Learning outcomes</dd>
+                    </div>
+                    <div class="py-6 pr-4 sm:py-8">
+                        <dt class="metp-display text-2xl sm:text-3xl font-bold text-white">2,000<span class="m-text-teal-bright">+</span></dt>
+                        <dd class="text-xs sm:text-sm text-slate-400 mt-1">Graduates by 2024</dd>
+                    </div>
+                    <div class="py-6 pr-4 sm:py-8">
+                        <dt class="metp-display text-2xl sm:text-3xl font-bold text-white">15<span class="m-text-teal-bright">+</span></dt>
+                        <dd class="text-xs sm:text-sm text-slate-400 mt-1">Languages</dd>
+                    </div>
+                </dl>
+            </div>
+        </div>
+    </section>
+
+    <section id="paths" class="py-20 sm:py-24 m-bg-paper scroll-mt-16">
+        <div class="max-w-6xl mx-auto px-5 sm:px-8">
+
+            <div class="reveal max-w-2xl mb-12">
+                <div class="m-rule mb-7"></div>
+                <h2 class="metp-display text-3xl sm:text-4xl font-bold m-text-navy leading-tight mb-4">
+                    How will you take part?
+                </h2>
+                <p class="text-base leading-relaxed">
+                    Most people come to METP one of three ways. Pick the one that fits you.
+                </p>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-6">
+
+                <article class="reveal m-card m-card-lift p-8 flex flex-col">
+                    <p class="metp-eyebrow m-text-teal-deep mb-4">For individuals</p>
+                    <h3 class="metp-display text-xl font-semibold m-text-navy mb-3">Study online</h3>
+                    <p class="text-sm leading-relaxed mb-6 flex-1">
+                        Enrol in the online courses, begin with a short orientation, and work through the
+                        program on your own schedule from a phone or computer.
+                    </p>
+                    <a href="#online" class="metp-display inline-flex items-center justify-center px-5 py-3 rounded-xl font-semibold m-btn-primary text-sm">
+                        See how it works
+                    </a>
+                </article>
+
+                <article class="reveal m-card m-card-lift p-8 flex flex-col">
+                    <p class="metp-eyebrow m-text-teal-deep mb-4">For churches and colleges</p>
+                    <h3 class="metp-display text-xl font-semibold m-text-navy mb-3">Launch a training location</h3>
+                    <p class="text-sm leading-relaxed mb-6 flex-1">
+                        License the curriculum, train local facilitators, and run classroom cohorts in
+                        your own language and context, with certificates for every graduate.
+                    </p>
+                    <a href="#partner" class="metp-display inline-flex items-center justify-center px-5 py-3 rounded-xl font-semibold m-btn-navy text-sm">
+                        See the partnership
+                    </a>
+                </article>
+
+                <article class="reveal m-card m-card-lift p-8 flex flex-col">
+                    <p class="metp-eyebrow m-text-teal-deep mb-4">For supporters</p>
+                    <h3 class="metp-display text-xl font-semibold m-text-navy mb-3">Give to METP</h3>
+                    <p class="text-sm leading-relaxed mb-6 flex-1">
+                        Gifts are received through the Pentecostal Assemblies of Canada and directed to
+                        the Ministry Essentials Training Program.
+                    </p>
+                    <a href="https://paoc.org/donate/ministryessentialstrainingprogram-metp" target="_blank" rel="noopener"
+                       class="metp-display inline-flex items-center justify-center gap-1.5 px-5 py-3 rounded-xl font-semibold m-btn-quiet text-sm">
+                        Donate
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                    </a>
+                </article>
+
+            </div>
+        </div>
+    </section>
+
+    <section id="programme" class="py-20 sm:py-28 bg-white scroll-mt-16">
+        <div class="max-w-6xl mx-auto px-5 sm:px-8">
+
+            <div class="reveal grid lg:grid-cols-12 gap-8 mb-14">
+                <div class="lg:col-span-6">
+                    <div class="m-rule mb-7"></div>
+                    <h2 class="metp-display text-3xl sm:text-4xl font-bold m-text-navy leading-tight">
+                        Twelve courses, built to be taken in order
+                    </h2>
+                </div>
+                <div class="lg:col-span-6 lg:pt-10">
+                    <p class="text-base leading-relaxed mb-4">
+                        Each course runs for at least twelve classroom hours and closes with a short exam.
+                        Later courses assume what earlier ones taught, so the sequence matters.
+                    </p>
+                    <a href="https://metp.ca/wp-content/uploads/2025/03/METP-Course-Overview-2025-03-02.pdf" target="_blank" rel="noopener"
+                       class="text-sm font-medium m-text-teal-deep hover:underline">
+                        Read the full course overview (PDF)
+                    </a>
+                </div>
+            </div>
+
+            <ol class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <li class="reveal m-course p-5">
+                    <p class="m-course-code mb-2">METP 101</p>
+                    <h3 class="metp-display font-semibold m-text-navy mb-1">Knowing and Loving God</h3>
+                    <p class="text-xs m-text-muted">Theology and spirituality</p>
+                </li>
+                <li class="reveal m-course p-5">
+                    <p class="m-course-code mb-2">METP 102</p>
+                    <h3 class="metp-display font-semibold m-text-navy mb-1">Learning God&rsquo;s Word</h3>
+                    <p class="text-xs m-text-muted">Biblical theology and interpretation</p>
+                </li>
+                <li class="reveal m-course p-5">
+                    <p class="m-course-code mb-2">METP 103</p>
+                    <h3 class="metp-display font-semibold m-text-navy mb-1">Caring for God&rsquo;s People</h3>
+                    <p class="text-xs m-text-muted">Pastoral theology and counselling</p>
+                </li>
+                <li class="reveal m-course p-5">
+                    <p class="m-course-code mb-2">METP 104</p>
+                    <h3 class="metp-display font-semibold m-text-navy mb-1">Communicating God&rsquo;s Word</h3>
+                    <p class="text-xs m-text-muted">Preaching and Christian education</p>
+                </li>
+                <li class="reveal m-course p-5">
+                    <p class="m-course-code mb-2">METP 105</p>
+                    <h3 class="metp-display font-semibold m-text-navy mb-1">Ministering in Power</h3>
+                    <p class="text-xs m-text-muted">Pentecostal and charismatic emphases</p>
+                </li>
+                <li class="reveal m-course p-5">
+                    <p class="m-course-code mb-2">METP 106</p>
+                    <h3 class="metp-display font-semibold m-text-navy mb-1">Spiritual Warfare</h3>
+                    <p class="text-xs m-text-muted">Theology of the kingdom</p>
+                </li>
+                <li class="reveal m-course p-5">
+                    <p class="m-course-code mb-2">METP 107</p>
+                    <h3 class="metp-display font-semibold m-text-navy mb-1">Reaching the Lost, Making Disciples</h3>
+                    <p class="text-xs m-text-muted">Evangelism and discipleship</p>
+                </li>
+                <li class="reveal m-course p-5">
+                    <p class="m-course-code mb-2">METP 108</p>
+                    <h3 class="metp-display font-semibold m-text-navy mb-1">Financial Stewardship</h3>
+                    <p class="text-xs m-text-muted">Life skills and administration</p>
+                </li>
+                <li class="reveal m-course p-5">
+                    <p class="m-course-code mb-2">METP 109</p>
+                    <h3 class="metp-display font-semibold m-text-navy mb-1">Marriage, Family and Ministry</h3>
+                    <p class="text-xs m-text-muted">Family discipleship</p>
+                </li>
+                <li class="reveal m-course p-5">
+                    <p class="m-course-code mb-2">METP 110</p>
+                    <h3 class="metp-display font-semibold m-text-navy mb-1">Leading Yourself and Others</h3>
+                    <p class="text-xs m-text-muted">Leadership studies</p>
+                </li>
+                <li class="reveal m-course p-5">
+                    <p class="m-course-code mb-2">METP 111</p>
+                    <h3 class="metp-display font-semibold m-text-navy mb-1">Building Communities of Faith</h3>
+                    <p class="text-xs m-text-muted">Church planting and organisational leadership</p>
+                </li>
+                <li class="reveal m-course p-5">
+                    <p class="m-course-code mb-2">METP 112</p>
+                    <h3 class="metp-display font-semibold m-text-navy mb-1">Developing Christian Leaders</h3>
+                    <p class="text-xs m-text-muted">Leadership development and mentorship</p>
+                </li>
+            </ol>
+        </div>
+    </section>
+
+    <section class="py-20 sm:py-28 m-bg-paper">
+        <div class="max-w-6xl mx-auto px-5 sm:px-8">
+
+            <div class="reveal max-w-2xl mb-14">
+                <div class="m-rule mb-7"></div>
+                <h2 class="metp-display text-3xl sm:text-4xl font-bold m-text-navy leading-tight mb-4">
+                    Every course aims at three things
+                </h2>
+                <p class="text-base leading-relaxed">
+                    METP is measured by what a leader knows, what they can do, and what they have come to value.
+                </p>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-6 mb-14">
+                <div class="reveal m-card m-hhh p-8">
+                    <p class="metp-display text-4xl font-bold m-text-navy mb-1">Head</p>
+                    <p class="metp-eyebrow m-text-teal-deep mb-5">Educated</p>
+                    <p class="text-sm leading-relaxed">
+                        The doctrines, the story of Scripture, and how to interpret and apply it faithfully.
+                    </p>
+                </div>
+                <div class="reveal m-card m-hhh m-hhh-hand p-8">
+                    <p class="metp-display text-4xl font-bold m-text-navy mb-1">Hand</p>
+                    <p class="metp-eyebrow mb-5" style="color: var(--m-accent-deep);">Equipped</p>
+                    <p class="text-sm leading-relaxed">
+                        The practical work of ministry: preaching, counselling, resolving conflict, leading and mentoring.
+                    </p>
+                </div>
+                <div class="reveal m-card m-hhh m-hhh-heart p-8">
+                    <p class="metp-display text-4xl font-bold m-text-navy mb-1">Heart</p>
+                    <p class="metp-eyebrow m-text-navy mb-5">Enriched</p>
+                    <p class="text-sm leading-relaxed">
+                        A growing intimacy with God, love for people, and reliance on the Holy Spirit in ministry.
+                    </p>
+                </div>
+            </div>
+
+            <div class="reveal grid sm:grid-cols-3 gap-6 pt-10 border-t m-border">
+                <div>
+                    <h3 class="metp-display font-semibold m-text-navy text-sm mb-2">Attendance</h3>
+                    <p class="text-sm leading-relaxed">Classroom sessions are monitored as part of each student&rsquo;s record.</p>
+                </div>
+                <div>
+                    <h3 class="metp-display font-semibold m-text-navy text-sm mb-2">Forty-eight outcomes</h3>
+                    <p class="text-sm leading-relaxed">Linked to specific courses, but they can be demonstrated at any point in the program.</p>
+                </div>
+                <div>
+                    <h3 class="metp-display font-semibold m-text-navy text-sm mb-2">A short exam per course</h3>
+                    <p class="text-sm leading-relaxed">Each of the twelve courses closes with a test of what was covered.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="py-20 sm:py-24 bg-white">
+        <div class="max-w-6xl mx-auto px-5 sm:px-8">
+
+            <div class="reveal max-w-2xl mb-12">
+                <div class="m-rule mb-7"></div>
+                <h2 class="metp-display text-3xl sm:text-4xl font-bold m-text-navy leading-tight">
+                    Two certificates, both worth having
+                </h2>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-6">
+                <div class="reveal m-card p-8 sm:p-10">
+                    <p class="metp-eyebrow m-text-teal-deep mb-4">GlobalEd Institute</p>
+                    <h3 class="metp-display text-2xl font-bold m-text-navy mb-4">METP Certificate</h3>
+                    <p class="text-sm leading-relaxed mb-4">
+                        Awarded on completing all twelve courses and passing each exam. It references the
+                        GlobalEd Institute as part of Summit Pacific College, an accredited Bible college in
+                        Abbotsford, British Columbia.
+                    </p>
+                    <p class="text-sm leading-relaxed m-text-muted">
+                        Training partners who meet the partnership requirements can have their own logo added.
+                    </p>
+                </div>
+                <div class="reveal m-card p-8 sm:p-10">
+                    <p class="metp-eyebrow m-text-teal-deep mb-4">Re-Forma &middot; endorsed by the WEA</p>
+                    <h3 class="metp-display text-2xl font-bold m-text-navy mb-4">Certificate of Ministry</h3>
+                    <p class="text-sm leading-relaxed mb-4">
+                        For students who demonstrate all forty-eight learning outcomes, assessed against
+                        Re-Forma&rsquo;s global standards for non-formal ministry training and endorsed by the
+                        World Evangelical Alliance.
+                    </p>
+                    <p class="text-sm leading-relaxed m-text-muted">
+                        Outcome assessments were added to METP in 2025.
+                    </p>
+                </div>
+            </div>
+
+            <p class="reveal text-xs m-text-muted leading-relaxed mt-6 max-w-3xl">
+                METP is a non-formal program and does not carry academic credit. Any ministry credentials or
+                advanced standing granted by another organisation or institution are at that body&rsquo;s discretion.
+            </p>
+        </div>
+    </section>
+
+    <section id="online" class="py-20 sm:py-28 m-bg-paper scroll-mt-16">
+        <div class="max-w-6xl mx-auto px-5 sm:px-8">
+            <div class="grid lg:grid-cols-12 gap-12 lg:gap-16 items-start">
+
+                <div class="reveal lg:col-span-7">
+                    <p class="metp-eyebrow m-text-teal-deep mb-4">For individuals</p>
+                    <div class="m-rule mb-7"></div>
+                    <h2 class="metp-display text-3xl sm:text-4xl font-bold m-text-navy leading-tight mb-6">
+                        Study online
+                    </h2>
+                    <p class="text-base leading-relaxed mb-10">
+                        The online courses follow the same sequence as the classroom program. Work through
+                        them alone, at the pace your ministry allows.
+                    </p>
+
+                    <ol class="space-y-6">
+                        <li class="flex items-start gap-4">
+                            <span class="m-step-num m-step-light">1</span>
+                            <div>
+                                <h3 class="metp-display font-semibold m-text-navy mb-1">Create your account</h3>
+                                <p class="text-sm leading-relaxed">A phone number or an email address is enough to start.</p>
+                            </div>
+                        </li>
+                        <li class="flex items-start gap-4">
+                            <span class="m-step-num m-step-light">2</span>
+                            <div>
+                                <h3 class="metp-display font-semibold m-text-navy mb-1">Begin with the orientation</h3>
+                                <p class="text-sm leading-relaxed">A short introduction to how the program and its assessments work.</p>
+                            </div>
+                        </li>
+                        <li class="flex items-start gap-4">
+                            <span class="m-step-num m-step-light">3</span>
+                            <div>
+                                <h3 class="metp-display font-semibold m-text-navy mb-1">Work through the courses in order</h3>
+                                <p class="text-sm leading-relaxed">METP recommends ten to fifteen hours per course, spread over one to three weeks.</p>
+                            </div>
+                        </li>
+                        <li class="flex items-start gap-4">
+                            <span class="m-step-num m-step-light">4</span>
+                            <div>
+                                <h3 class="metp-display font-semibold m-text-navy mb-1">Track your progress</h3>
+                                <p class="text-sm leading-relaxed">Your dashboard shows where you are in each course and across the program.</p>
+                            </div>
+                        </li>
+                    </ol>
+
+                    <div class="flex flex-wrap items-center gap-3 mt-10">
+                        <a href="{% url 'shop:catalog' %}"
+                           class="metp-display inline-flex items-center gap-2 px-7 py-3.5 rounded-xl font-semibold m-btn-primary">
+                            Browse online courses
+                        </a>
+                        <a href="{% url 'accounts:register' %}"
+                           class="metp-display inline-flex items-center px-7 py-3.5 rounded-xl font-semibold m-btn-navy">
+                            Create an account
+                        </a>
+                    </div>
+                </div>
+
+                <div class="reveal lg:col-span-5 space-y-6">
+                    <div class="rounded-2xl overflow-hidden aspect-[4/3]">
+                        <img src="{% static 'images/metp/students.jpg' %}" alt="METP students in a classroom session" class="m-photo" loading="lazy">
+                    </div>
+                    <div class="m-card p-7">
+                        <h3 class="metp-display font-semibold m-text-navy mb-2">Rather study with others?</h3>
+                        <p class="text-sm leading-relaxed mb-4">
+                            Many students take METP in a classroom with a local facilitator. Ask whether there is a
+                            training location near you.
+                        </p>
+                        <a href="mailto:metp.info@paoc.org?subject=Is%20there%20a%20METP%20location%20near%20me%3F"
+                           class="text-sm font-medium m-text-teal-deep hover:underline">metp.info@paoc.org</a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <section id="partner" class="py-20 sm:py-28 m-bg-navy scroll-mt-16">
+        <div class="max-w-6xl mx-auto px-5 sm:px-8">
+
+            <div class="reveal grid lg:grid-cols-2 gap-12 lg:gap-16 items-center mb-20">
+                <div>
+                    <p class="metp-eyebrow m-text-teal-bright mb-4">For churches, denominations and colleges</p>
+                    <div class="m-rule m-rule-dark mb-7"></div>
+                    <h2 class="metp-display text-3xl sm:text-4xl font-bold text-white leading-tight mb-6">
+                        Launch a METP training location
+                    </h2>
+                    <p class="text-base leading-relaxed text-slate-300 mb-5">
+                        METP reaches most of its students through local partners. You bring the leaders and the
+                        facilitators; the GlobalEd Institute provides the curriculum, the training and the certificates.
+                    </p>
+                    <p class="text-base leading-relaxed text-slate-300">
+                        Partnerships are active in more than twenty countries, and the curriculum has been
+                        translated into more than fifteen languages.
+                    </p>
+                </div>
+                <div class="m-video">
+                    <iframe src="https://player.vimeo.com/video/1129005220?dnt=1"
+                            title="Getting started with METP"
+                            loading="lazy"
+                            allow="fullscreen; picture-in-picture"
+                            allowfullscreen></iframe>
+                </div>
+            </div>
+
+            <div class="grid lg:grid-cols-2 gap-6 mb-20">
+                <div class="reveal m-dark-card p-8">
+                    <h3 class="metp-display text-xl font-semibold text-white mb-5">Who partners with METP</h3>
+                    <ul class="space-y-4">
+                        <li class="flex items-start gap-3">
+                            <span class="mt-2 w-1.5 h-1.5 rounded-full m-dot shrink-0"></span>
+                            <span class="text-sm leading-relaxed text-slate-300"><b class="text-white font-medium">Local churches</b> equipping people for ministry in their own congregation</span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <span class="mt-2 w-1.5 h-1.5 rounded-full m-dot shrink-0"></span>
+                            <span class="text-sm leading-relaxed text-slate-300"><b class="text-white font-medium">Denominations</b> using METP as entry-level training for pastors and church planters</span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <span class="mt-2 w-1.5 h-1.5 rounded-full m-dot shrink-0"></span>
+                            <span class="text-sm leading-relaxed text-slate-300"><b class="text-white font-medium">Organisations</b> training leaders from several denominational backgrounds</span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <span class="mt-2 w-1.5 h-1.5 rounded-full m-dot shrink-0"></span>
+                            <span class="text-sm leading-relaxed text-slate-300"><b class="text-white font-medium">Bible colleges and seminaries</b> running METP as an extension program</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="reveal m-dark-card p-8">
+                    <h3 class="metp-display text-xl font-semibold text-white mb-5">What the annual licence includes</h3>
+                    <ul class="space-y-4">
+                        <li class="flex items-start gap-3">
+                            <span class="mt-2 w-1.5 h-1.5 rounded-full m-dot shrink-0"></span>
+                            <span class="text-sm leading-relaxed text-slate-300">The full METP curriculum and teaching materials</span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <span class="mt-2 w-1.5 h-1.5 rounded-full m-dot shrink-0"></span>
+                            <span class="text-sm leading-relaxed text-slate-300">Student enrolment and progress tracking with the GlobalEd Institute</span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <span class="mt-2 w-1.5 h-1.5 rounded-full m-dot shrink-0"></span>
+                            <span class="text-sm leading-relaxed text-slate-300">Certificates for every graduate, eligible for Re-Forma recognition</span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <span class="mt-2 w-1.5 h-1.5 rounded-full m-dot shrink-0"></span>
+                            <span class="text-sm leading-relaxed text-slate-300">Guidance on organising the program for your context</span>
+                        </li>
+                    </ul>
+                    <p class="text-xs leading-relaxed mt-6 pt-5 border-t" style="color: #7C8CA3; border-color: rgba(255,255,255,0.08);">
+                        The licence fee covers administration. Partners may set their own local student fees.
+                    </p>
+                </div>
+            </div>
+
+            <div class="reveal mb-20">
+                <h3 class="metp-display text-2xl font-bold text-white mb-10">From first call to first class</h3>
+                <ol class="grid sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-8">
+                    <li class="flex items-start gap-4">
+                        <span class="m-step-num m-step-dark">1</span>
+                        <div>
+                            <h4 class="metp-display font-semibold text-white mb-1">Review the courses</h4>
+                            <p class="text-sm leading-relaxed text-slate-400">Read the course overview to see whether METP fits your context.</p>
+                        </div>
+                    </li>
+                    <li class="flex items-start gap-4">
+                        <span class="m-step-num m-step-dark">2</span>
+                        <div>
+                            <h4 class="metp-display font-semibold text-white mb-1">Introduction call</h4>
+                            <p class="text-sm leading-relaxed text-slate-400">A video meeting with the METP team to answer your questions.</p>
+                        </div>
+                    </li>
+                    <li class="flex items-start gap-4">
+                        <span class="m-step-num m-step-dark">3</span>
+                        <div>
+                            <h4 class="metp-display font-semibold text-white mb-1">Partnership strategy</h4>
+                            <p class="text-sm leading-relaxed text-slate-400">Agree roles, scope and expectations in a partnership agreement.</p>
+                        </div>
+                    </li>
+                    <li class="flex items-start gap-4">
+                        <span class="m-step-num m-step-dark">4</span>
+                        <div>
+                            <h4 class="metp-display font-semibold text-white mb-1">Administrator training</h4>
+                            <p class="text-sm leading-relaxed text-slate-400">METP 100a, for your local coordinator and administrator.</p>
+                        </div>
+                    </li>
+                    <li class="flex items-start gap-4">
+                        <span class="m-step-num m-step-dark">5</span>
+                        <div>
+                            <h4 class="metp-display font-semibold text-white mb-1">Facilitator training</h4>
+                            <p class="text-sm leading-relaxed text-slate-400">METP 100b, required for everyone who will teach a course.</p>
+                        </div>
+                    </li>
+                    <li class="flex items-start gap-4">
+                        <span class="m-step-num m-step-dark">6</span>
+                        <div>
+                            <h4 class="metp-display font-semibold text-white mb-1">Your first cohort</h4>
+                            <p class="text-sm leading-relaxed text-slate-400">Enrol students and begin with METP 101.</p>
+                        </div>
+                    </li>
+                </ol>
+            </div>
+
+            <div class="reveal mb-16">
+                <h3 class="metp-display text-2xl font-bold text-white mb-3">Choose a pace that suits your students</h3>
+                <p class="text-sm leading-relaxed text-slate-400 mb-8 max-w-2xl">
+                    Every option keeps the twelve-hour minimum per course. Some outcome assessments may happen outside class time.
+                </p>
+                <div class="grid sm:grid-cols-3 gap-5">
+                    <div class="m-dark-card p-7">
+                        <p class="metp-display text-3xl font-bold text-white mb-1">12 months</p>
+                        <p class="metp-eyebrow m-text-teal-bright mb-4">One course a month</p>
+                        <p class="text-sm leading-relaxed text-slate-400">A Friday evening and full Saturday each month, or three hours a week where students live nearby.</p>
+                    </div>
+                    <div class="m-dark-card p-7">
+                        <p class="metp-display text-3xl font-bold text-white mb-1">6 months</p>
+                        <p class="metp-eyebrow m-text-teal-bright mb-4">Two courses a month</p>
+                        <p class="text-sm leading-relaxed text-slate-400">Two three-hour classes a week for students who work and live close to the location.</p>
+                    </div>
+                    <div class="m-dark-card p-7">
+                        <p class="metp-display text-3xl font-bold text-white mb-1">3 months</p>
+                        <p class="metp-eyebrow m-text-teal-bright mb-4">One course a week</p>
+                        <p class="text-sm leading-relaxed text-slate-400">An intensive residential option that some partners use.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="reveal m-dark-card p-8 sm:p-10 flex flex-col lg:flex-row lg:items-center justify-between gap-8">
+                <div class="max-w-xl">
+                    <h3 class="metp-display text-xl font-semibold text-white mb-2">Ready to talk?</h3>
+                    <p class="text-sm leading-relaxed text-slate-400">
+                        Email the METP office to arrange your introduction call. Facilitators should have some
+                        ministry training and experience; fruitful ministry counts for more than academic qualifications.
+                    </p>
+                </div>
+                <div class="flex flex-wrap gap-3 shrink-0">
+                    <a href="mailto:metp.info@paoc.org?subject=METP%20training%20location%20enquiry"
+                       class="metp-display inline-flex items-center px-6 py-3 rounded-xl font-semibold m-btn-primary text-sm">
+                        Request an introduction call
+                    </a>
+                    <a href="https://metp.ca/wp-content/uploads/2026/03/Introducing-METP-and-Course-Overview-2026-03-25.pdf" target="_blank" rel="noopener"
+                       class="metp-display inline-flex items-center px-6 py-3 rounded-xl font-semibold m-btn-ghost text-sm">
+                        Partnership overview (PDF)
+                    </a>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <section id="why" class="py-20 sm:py-28 bg-white scroll-mt-16">
+        <div class="max-w-6xl mx-auto px-5 sm:px-8">
+            <div class="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+
+                <div class="reveal">
+                    <div class="m-rule mb-7"></div>
+                    <p class="metp-display text-7xl sm:text-8xl font-bold m-text-navy leading-none mb-6">90<span class="m-text-accent">%</span></p>
+                    <h2 class="metp-display text-2xl sm:text-3xl font-bold m-text-navy leading-tight mb-5">
+                        of the people leading churches have never been trained to
+                    </h2>
+                    <p class="text-base leading-relaxed mb-5">
+                        Of roughly 2.4 million Christian leaders worldwide, about one in ten has had theological
+                        training. The rest lead without it, held back by distance, cost and access.
+                    </p>
+                    <p class="text-base leading-relaxed">
+                        METP launched in 2019 to close that gap: a structured, credible program that can be
+                        taught quickly, in any language, wherever a group of leaders can gather.
+                    </p>
+                </div>
+
+                <div class="reveal space-y-6">
+                    <div class="m-card p-8 border-l-4" style="border-left-color: var(--m-teal);">
+                        <p class="metp-eyebrow m-text-teal-deep mb-3">Mission</p>
+                        <p class="metp-display text-lg font-medium m-text-navy leading-snug">
+                            To strengthen churches globally by providing essential resources to equip ministry
+                            leaders with little or no access to formal theological training.
+                        </p>
+                    </div>
+                    <div class="m-card p-8 border-l-4" style="border-left-color: var(--m-accent);">
+                        <p class="metp-eyebrow mb-3" style="color: var(--m-accent-deep);">Vision</p>
+                        <p class="metp-display text-lg font-medium m-text-navy leading-snug">
+                            To see God&rsquo;s kingdom advanced, the church multiplied, and communities flourishing
+                            as a result of trained, confident, and motivated Christian leaders.
+                        </p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <section class="py-16 sm:py-20 m-bg-paper">
+        <div class="max-w-6xl mx-auto px-5 sm:px-8">
+            <div class="reveal text-center max-w-2xl mx-auto mb-10">
+                <h2 class="metp-display text-2xl font-bold m-text-navy mb-3">Who stands behind METP</h2>
+                <p class="text-sm leading-relaxed">
+                    A non-formal program of the GlobalEd Institute, part of the Extension Studies department
+                    at Summit Pacific College.
+                </p>
+            </div>
+
+            <div class="reveal flex flex-col md:flex-row items-stretch justify-center gap-4 md:gap-3">
+                <a href="https://www.globaledinstitute.ca/" target="_blank" rel="noopener" class="m-card m-card-lift px-6 py-5 text-center md:w-64">
+                    <p class="metp-display font-semibold m-text-navy">GlobalEd Institute</p>
+                    <p class="text-xs m-text-muted mt-1">Runs the program</p>
+                </a>
+                <span class="m-chain-arrow hidden md:flex items-center" aria-hidden="true">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                </span>
+                <a href="https://www.summitpacific.ca/" target="_blank" rel="noopener" class="m-card m-card-lift px-6 py-5 text-center md:w-64">
+                    <p class="metp-display font-semibold m-text-navy">Summit Pacific College</p>
+                    <p class="text-xs m-text-muted mt-1">Abbotsford, British Columbia</p>
+                </a>
+                <span class="m-chain-arrow hidden md:flex items-center" aria-hidden="true">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                </span>
+                <a href="https://www.paoc.org/mission-global" target="_blank" rel="noopener" class="m-card m-card-lift px-6 py-5 text-center md:w-64">
+                    <p class="metp-display font-semibold m-text-navy">Mission Global</p>
+                    <p class="text-xs m-text-muted mt-1">Pentecostal Assemblies of Canada</p>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <section class="m-hero">
+        <img src="{% static 'images/metp/hero.jpg' %}" alt="" class="m-hero-photo" aria-hidden="true">
+        <div class="m-hero-scrim"></div>
+
+        <div class="relative max-w-3xl mx-auto px-5 sm:px-8 py-24 sm:py-28 text-center">
+            <p class="metp-eyebrow m-text-teal-bright mb-5">Ministry Essentials Training Program</p>
+            <h2 class="metp-display text-3xl sm:text-4xl font-bold text-white leading-tight mb-5">
+                Equipping Christian ministry leaders everywhere
+            </h2>
+            <p class="text-slate-300 leading-relaxed mb-9 max-w-xl mx-auto">
+                Start on your own today, or start a conversation about training the leaders around you.
+            </p>
+            <div class="flex flex-wrap items-center justify-center gap-3 mb-8">
+                <a href="#online" class="metp-display inline-flex items-center px-7 py-3.5 rounded-xl font-semibold m-btn-primary">
+                    Study online
+                </a>
+                <a href="#partner" class="metp-display inline-flex items-center px-7 py-3.5 rounded-xl font-semibold m-btn-ghost">
+                    Launch a training location
+                </a>
+            </div>
+            <p class="text-sm text-slate-400">
+                Questions?
+                <a href="mailto:metp.info@paoc.org" class="m-text-teal-bright underline underline-offset-4 hover:text-white transition-colors">metp.info@paoc.org</a>
+            </p>
+        </div>
+    </section>
+
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    (function () {
+        var root = document.querySelector('.metp-page');
+        if (!root || !('IntersectionObserver' in window)) { return; }
+
+        root.classList.add('js-on');
+
+        var observer = new IntersectionObserver(function (entries) {
+            entries.forEach(function (entry) {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('is-visible');
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.12, rootMargin: '0px 0px -60px 0px' });
+
+        root.querySelectorAll('.reveal').forEach(function (el) { observer.observe(el); });
+    })();
+</script>
+{% endblock %}

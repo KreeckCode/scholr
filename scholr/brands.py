@@ -56,6 +56,60 @@ SITE_BRANDS = {
         'home_template':    'main/home_snap.html',
     },
 
+
+    'metp': {
+        'profile':          'metp',
+        'name':             'Get METP',
+        'owner':            'Ministry Essentials Training Program',
+        'tagline':          'Ministry Essentials Training Program',
+        'strapline':        'Equipping Christian ministry leaders everywhere',
+        'description':      'Study the Ministry Essentials Training Program online, or launch a '
+                            'licensed METP training location for your church, denomination or college.',
+        'keywords':         'METP, Ministry Essentials Training Program, GlobalEd Institute, '
+                            'Summit Pacific College, pastoral training, non-formal ministry training, '
+                            'ministry certificate, Re-Forma',
+
+        'logo':             'logo/metp.png',
+        'logo_alt':         'Ministry Essentials Training Program',
+        'logo_needs_plate': True,
+        'og_image':         'logo/og-metp.png',
+        'theme_color':      '#0E1B33',
+
+        'email':            'metp.info@paoc.org',
+        'phone':            '',
+        'phone_href':       '',
+        'address':          [],
+        'website':          'https://metp.ca',
+        'website_label':    'metp.ca',
+        'twitter':          '',
+
+        'schema_type':      'EducationalOrganization',
+        'founded':          '2019',
+        'area_served':      'Worldwide',
+        'knows_about':      ['Theology and spirituality', 'Biblical interpretation',
+                             'Pastoral care', 'Preaching', 'Evangelism and discipleship',
+                             'Church leadership', 'Mentorship'],
+        'same_as':          ['https://metp.ca', 'https://www.globaledinstitute.ca'],
+        'locale':           'en_CA',
+
+        'footer_blurb':     'A non-formal ministry training program of the GlobalEd Institute at '
+                            'Summit Pacific College, equipping leaders with little or no access to '
+                            'formal theological training.',
+        'footer_column':    'METP',
+        'footer_links':     [
+            {'label': 'About METP',        'url': 'https://metp.ca/about/', 'external': True},
+            {'label': 'Updates',           'url': 'https://metp.ca/blog/', 'external': True},
+            {'label': 'Course overview',   'url': 'https://metp.ca/wp-content/uploads/2025/03/METP-Course-Overview-2025-03-02.pdf', 'external': True},
+            {'label': 'Donate',            'url': 'https://paoc.org/donate/ministryessentialstrainingprogram-metp', 'external': True},
+        ],
+        'footer_note':      'Part of the GlobalEd department of Mission Global and the '
+                            'Pentecostal Assemblies of Canada.',
+        'copyright':        'GlobalEd Institute',
+        'copyright_note':   '',
+
+        'home_template':    'main/home_metp.html',
+    },
+
     
 
     'school': {
