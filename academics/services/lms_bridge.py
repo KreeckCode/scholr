@@ -314,9 +314,9 @@ class LMSBridgeService:
             'Tiger', 'Maple', 'Delta', 'Solar', 'Cloud',
             'Storm', 'Ridge', 'Frost', 'Amber', 'Brook',
         ]
-        import random
-        word = random.choice(words)
-        digits = ''.join(random.choices(string.digits, k=4))
+        # I'm using secrets rather than random so the password cannot be predicted from earlier ones
+        word = secrets.choice(words)
+        digits = ''.join(secrets.choice(string.digits) for _ in range(4))
         return f"{word}#{digits}"
 
     def _sync_user_to_moodle(self, user) -> bool:

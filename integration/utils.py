@@ -4,6 +4,8 @@ Helper methods for common operations
 """
 
 import logging
+import secrets
+import string
 from typing import Dict, List, Optional
 from datetime import datetime, timedelta
 from django.utils import timezone
@@ -80,18 +82,24 @@ def sanitize_username(username: str) -> str:
     return sanitized
 
 
-def generate_default_password(username: str) -> str:
+MOODLE_PASSWORD_SYMBOLS = '!#$%*+-=?@^_'
+
+
+def generate_moodle_password(length: int = 24) -> str:
     """
-    Generate a default password for Moodle users
-    Format: JH{username}123!
-    
-    Args:
-        username: User's username
-        
-    Returns:
-        Default password
+    A random password that satisfies Moodle's default password policy
+    (at least one lower case letter, upper case letter, digit and symbol).
+
+    Scholr users reach Moodle through auth_userkey single sign-on, so nobody ever
+    types this password. It only has to be impossible to guess.
     """
-    return f"JH{username}123!"
+    length = max(length, 12)
+    groups = [string.ascii_lowercase, string.ascii_uppercase, string.digits, MOODLE_PASSWORD_SYMBOLS]
+    alphabet = ''.join(groups)
+    characters = [secrets.choice(group) for group in groups]
+    characters += [secrets.choice(alphabet) for _ in range(length - len(groups))]
+    secrets.SystemRandom().shuffle(characters)
+    return ''.join(characters)
 
 
 def get_country_code(country_name: str) -> str:
