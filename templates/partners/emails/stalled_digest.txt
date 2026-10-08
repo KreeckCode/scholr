@@ -1,0 +1,9 @@
+{% autoescape off %}{{ rows|length }} partnership{{ rows|length|pluralize }} in the METP pipeline need attention: the next step is overdue, or nothing has been recorded for {{ stall_days }} days.
+{% for row in rows %}
+{{ row.partnership.organisation.name }} ({{ row.partnership.organisation.country_name }})
+  Stage: {{ row.partnership.get_stage_display }}
+  Owner: {{ row.partnership.owner.get_full_name|default:"No owner" }}
+  Next step: {{ row.partnership.next_action|default:"Not set" }}{% if row.partnership.next_action_due %}, due {{ row.partnership.next_action_due|date:"d M Y" }}{% endif %}
+  {{ row.url }}
+{% endfor %}
+{% endautoescape %}

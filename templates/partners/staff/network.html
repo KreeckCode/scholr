@@ -1,0 +1,84 @@
+{% extends 'partners/_base.html' %}
+{% load partners_tags %}
+
+{% block title %}Network{% endblock %}
+{% block subnav %}{% include 'partners/staff/_nav.html' %}{% endblock %}
+{% block eyebrow %}Partner network{% endblock %}
+{% block heading %}Who is training where{% endblock %}
+{% block subheading %}<p class="mt-2 text-sm p-slate">Participants by country, region and location. Sensitive locations are counted, but their names are withheld from the export.</p>{% endblock %}
+{% block actions %}<a class="p-btn-ghost" href="{% url 'partners:network_export' %}">Download CSV</a>{% endblock %}
+
+{% block body %}
+<div class="mb-8 grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
+    <div class="p-card p-5"><p class="p-stat-label">Enrolled now</p><p class="p-stat">{{ totals.enrolled }}</p></div>
+    <div class="p-card p-5"><p class="p-stat-label">Completed</p><p class="p-stat">{{ totals.completed }}</p></div>
+    <div class="p-card p-5"><p class="p-stat-label">Studying online</p><p class="p-stat">{{ totals.online }}</p></div>
+    <div class="p-card p-5"><p class="p-stat-label">Running cohorts</p><p class="p-stat">{{ totals.cohorts_running }}</p></div>
+    <div class="p-card p-5"><p class="p-stat-label">Locations</p><p class="p-stat">{{ totals.locations }}</p></div>
+    <div class="p-card p-5"><p class="p-stat-label">Countries</p><p class="p-stat">{{ totals.countries }}</p></div>
+</div>
+
+<div class="grid gap-6 xl:grid-cols-2">
+    <section class="p-card overflow-hidden">
+        <div class="p-card-head"><h2 class="p-card-title">By country</h2></div>
+        <div class="overflow-x-auto">
+            <table class="p-table">
+                <thead><tr><th scope="col">Country</th><th scope="col" class="p-num">Locations</th><th scope="col" class="p-num">Enrolled</th><th scope="col" class="p-num">Completed</th><th scope="col" class="p-num">Online</th></tr></thead>
+                <tbody>
+                    {% for row in by_country %}
+                    <tr><td class="font-medium p-navy">{{ row.country_name }}</td><td class="p-num">{{ row.locations }}</td><td class="p-num">{{ row.enrolled }}</td><td class="p-num">{{ row.completed }}</td><td class="p-num">{{ row.online }}</td></tr>
+                    {% empty %}
+                    <tr><td colspan="5" class="p-empty">No locations yet.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section class="p-card overflow-hidden">
+        <div class="p-card-head"><h2 class="p-card-title">By region</h2></div>
+        <div class="overflow-x-auto">
+            <table class="p-table">
+                <thead><tr><th scope="col">Region</th><th scope="col" class="p-num">Locations</th><th scope="col" class="p-num">Enrolled</th><th scope="col" class="p-num">Completed</th><th scope="col" class="p-num">Sessions held</th></tr></thead>
+                <tbody>
+                    {% for row in by_region %}
+                    <tr><td><span class="font-medium p-navy">{{ row.region }}</span> <span class="text-xs p-muted">{{ row.country_name }}</span></td><td class="p-num">{{ row.locations }}</td><td class="p-num">{{ row.enrolled }}</td><td class="p-num">{{ row.completed }}</td><td class="p-num">{{ row.sessions_held }}</td></tr>
+                    {% empty %}
+                    <tr><td colspan="5" class="p-empty">No locations yet.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+</div>
+
+<section class="p-card mt-6 overflow-hidden">
+    <div class="p-card-head"><h2 class="p-card-title">Locations</h2></div>
+    <div class="overflow-x-auto">
+        <table class="p-table">
+            <thead>
+                <tr>
+                    <th scope="col">Location</th><th scope="col">Partner</th><th scope="col">Status</th>
+                    <th scope="col" class="p-num">Enrolled</th><th scope="col" class="p-num">Completed</th>
+                    <th scope="col" class="p-num">Cohorts running</th><th scope="col" class="p-num">Attendance</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in rows %}
+                <tr>
+                    <td><a class="p-link" href="{% url 'partners:location_dashboard' location_id=row.location.public_id %}">{{ row.location.name }}</a><span class="block text-xs p-muted">{{ row.region }}, {{ row.country_name }}</span></td>
+                    <td>{{ row.location.organisation.name }}</td>
+                    <td>{% include 'partners/_badge.html' with value=row.location.status label=row.location.get_status_display %}</td>
+                    <td class="p-num">{{ row.enrolled }}</td>
+                    <td class="p-num">{{ row.completed }}</td>
+                    <td class="p-num">{{ row.cohorts_running }}</td>
+                    <td class="p-num">{% if row.attendance_rate is not None %}{{ row.attendance_rate }}%{% else %}<span class="p-muted">None yet</span>{% endif %}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="7" class="p-empty">No locations yet. Add one from a partner's page.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}

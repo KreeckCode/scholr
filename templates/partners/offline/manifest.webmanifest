@@ -1,0 +1,13 @@
+{
+    "name": "{{ brand.name|escapejs }} offline registers",
+    "short_name": "METP registers",
+    "description": "Take registers and record exam scores without signal.",
+    "start_url": "{{ app_url|escapejs }}",
+    "scope": "{{ scope_url|escapejs }}",
+    "display": "standalone",
+    "background_color": "#F1F5F9",
+    "theme_color": "{{ brand.theme_color|default:'#0E1B33'|escapejs }}",
+    "icons": [
+        {"src": "{{ icon_url|escapejs }}", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable"}
+    ]
+}

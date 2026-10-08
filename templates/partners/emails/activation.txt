@@ -1,0 +1,11 @@
+{% autoescape off %}Hello {{ user.first_name }},
+
+You have been added to the team at {{ location.name }} on {{ brand.name }}.
+
+Choose your password with this link. It works once and expires in a few days:
+{{ url }}
+
+Your username is {{ user.username }}.
+
+If you were not expecting this, you can ignore this email.
+{% endautoescape %}

@@ -11,6 +11,7 @@ from .models import (
 )
 from .moodle_client import MoodleClient
 from .exceptions import MoodleConnectionError, MoodleAPIError, UserNotSyncedError
+from .utils import generate_moodle_password
 
 User = get_user_model()
 logger = logging.getLogger(__name__)
@@ -227,7 +228,7 @@ class MoodleIntegrationService:
                         # Create new user in Moodle
                         user_data = {
                             'username': user.username,
-                            'password': f"JH{user.username}123!",  # Default password
+                            'password': generate_moodle_password(),
                             'firstname': user.first_name,
                             'lastname': user.last_name,
                             'email': user.email or f"{user.username}@judea.local",
@@ -730,7 +731,7 @@ class MoodleIntegrationService:
             'courseids[0]': moodle_course_id
         }
         
-        response = requests.post(url, data=params)
+        response = requests.post(url, data=params, timeout=self.client.timeout)
         response.raise_for_status()
         
         data = response.json()
@@ -780,7 +781,7 @@ class MoodleIntegrationService:
             'courses[0][enddate]': end_timestamp,      # ADDED
         }
         
-        response = requests.post(url, data=params)
+        response = requests.post(url, data=params, timeout=self.client.timeout)
         response.raise_for_status()
         
         data = response.json()
