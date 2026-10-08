@@ -32,7 +32,7 @@ On deployment failure, automatic rollback:
 ### Manual Rollback
 
 ```bash
-ssh root@165.232.37.122
+ssh root@178.62.25.167
 
 cd /var/www/scholr
 git log --oneline -n 10  # Find commit to rollback to
@@ -59,7 +59,7 @@ Automatic backups before each deployment:
 ### Manual Backup
 
 ```bash
-ssh root@165.232.37.122
+ssh root@178.62.25.167
 
 PGPASSWORD='YOUR_DB_PASSWORD' pg_dump \
   -U admin \
@@ -98,7 +98,7 @@ systemctl start gunicorn celery celery-beat
 ### View Deployment Logs
 
 ```bash
-ssh root@165.232.37.122
+ssh root@178.62.25.167
 tail -f /var/www/scholr/logs/deployments.log
 ```
 

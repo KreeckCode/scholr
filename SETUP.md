@@ -14,7 +14,7 @@ redis-cli ping
 
 
 
-ssh root@165.232.37.122   
+ssh root@178.62.25.167   
 
 moodle credentials:L
 username: admin

@@ -152,7 +152,7 @@ jobs:
     # Add required reviewers there if you want manual approval before deploy.
     environment:
       name: production
-      url: https://judea.uorivo.com
+      url: https://metp.uorivo.com
 
     steps:
       - name: Deploy to server
@@ -234,7 +234,7 @@ jobs:
             echo "=== [6/6] Health check ==="
             sleep 5
             HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" \
-              -H "Host: judea.uorivo.com" \
+              -H "Host: metp.uorivo.com" \
               http://127.0.0.1/)
 
             if [ "$HTTP_CODE" != "200" ] && \
@@ -249,5 +249,5 @@ jobs:
             echo " DEPLOYMENT SUCCESSFUL"
             echo " Commit : $NEW_COMMIT"
             echo " Health : HTTP $HTTP_CODE"
-            echo " URL    : https://judea.uorivo.com"
+            echo " URL    : https://metp.uorivo.com"
             echo "============================================"
