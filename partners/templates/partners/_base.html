@@ -1,25 +1,24 @@
 {% extends 'base/base.html' %}
-{% load static %}
 
 {% block robots %}noindex, nofollow{% endblock %}
 {% block title_suffix %}{{ brand.name }}{% endblock %}
 
 {% block extra_head %}
-<link rel="stylesheet" href="{% static 'partners/portal.css' %}">
+{% include 'partners/_styles.html' %}
 {% block partners_head %}{% endblock %}
 {% endblock %}
 
 {% block content %}
-<div class="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
+<div class="p-ui mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
     {% block subnav %}{% endblock %}
 
-    <header class="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+    <header class="p-pagehead">
         <div class="min-w-0">
-            <p class="text-xs font-semibold uppercase tracking-wider p-teal">{% block eyebrow %}{% endblock %}</p>
+            <p class="p-eyebrow">{% block eyebrow %}{% endblock %}</p>
             <h1 class="p-display mt-1 text-2xl sm:text-3xl font-semibold p-navy break-words">{% block heading %}{% endblock %}</h1>
             {% block subheading %}{% endblock %}
         </div>
-        <div class="flex flex-wrap items-center gap-2">{% block actions %}{% endblock %}</div>
+        <div class="p-actions">{% block actions %}{% endblock %}</div>
     </header>
 
     {% block body %}{% endblock %}

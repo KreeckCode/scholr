@@ -17,7 +17,7 @@
         {% csrf_token %}
         {% include 'partners/_form_errors.html' %}
 
-        <h2 class="p-display text-lg font-semibold p-navy">Your organisation</h2>
+        <h2 class="p-section-title p-section-title-lg">Your organisation</h2>
         <div class="mt-4 grid gap-5 sm:grid-cols-2">
             {% field form.organisation_name wide=True %}
             {% field form.kind %}
@@ -26,7 +26,7 @@
             {% field form.expected_participants %}
         </div>
 
-        <h2 class="p-display mt-8 text-lg font-semibold p-navy">You</h2>
+        <h2 class="p-section-title p-section-title-lg mt-8 border-t pt-6" style="border-color: var(--p-line-soft);">You</h2>
         <div class="mt-4 grid gap-5 sm:grid-cols-2">
             {% field form.contact_name %}
             {% field form.role_title %}
@@ -39,7 +39,7 @@
             {{ form.website.label_tag }} {{ form.website }}
         </div>
 
-        <div class="mt-8 flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div class="p-form-actions flex-col-reverse sm:flex-row sm:items-center sm:justify-between">
             <p class="text-xs p-muted">We only use these details to discuss a METP partnership with you.</p>
             <button type="submit" class="p-btn">Send enquiry</button>
         </div>
@@ -47,17 +47,17 @@
 
     <aside class="space-y-4">
         <div class="p-card p-6">
-            <h2 class="p-display text-base font-semibold p-navy">What happens next</h2>
+            <h2 class="p-card-title">What happens next</h2>
             <ol class="mt-4 space-y-4 text-sm p-slate">
-                <li class="flex gap-3"><span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-semibold p-step-done">1</span><span>You review the METP course overview and partnership information.</span></li>
-                <li class="flex gap-3"><span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-semibold p-step-next">2</span><span>An introductory call with the METP team.</span></li>
-                <li class="flex gap-3"><span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-semibold p-step-next">3</span><span>Together you agree a partnership strategy.</span></li>
-                <li class="flex gap-3"><span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-semibold p-step-next">4</span><span>METP 100a training for your coordinator, then METP 100b for your facilitators.</span></li>
-                <li class="flex gap-3"><span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-semibold p-step-next">5</span><span>Your first cohort begins with METP 101.</span></li>
+                <li class="flex items-start gap-3"><span class="p-dot p-dot-on">1</span><span class="pt-0.5">You review the METP course overview and partnership information.</span></li>
+                <li class="flex items-start gap-3"><span class="p-dot">2</span><span class="pt-0.5">An introductory call with the METP team.</span></li>
+                <li class="flex items-start gap-3"><span class="p-dot">3</span><span class="pt-0.5">Together you agree a partnership strategy.</span></li>
+                <li class="flex items-start gap-3"><span class="p-dot">4</span><span class="pt-0.5">METP 100a training for your coordinator, then METP 100b for your facilitators.</span></li>
+                <li class="flex items-start gap-3"><span class="p-dot">5</span><span class="pt-0.5">Your first cohort begins with METP 101.</span></li>
             </ol>
         </div>
         <div class="p-card p-6">
-            <h2 class="p-display text-base font-semibold p-navy">Prefer email?</h2>
+            <h2 class="p-card-title">Prefer email?</h2>
             <p class="mt-2 text-sm p-slate">Write to <a class="p-link" href="mailto:{{ brand.email }}">{{ brand.email }}</a>.</p>
         </div>
     </aside>

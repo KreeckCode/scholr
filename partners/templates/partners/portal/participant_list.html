@@ -11,10 +11,9 @@
 {% endblock %}
 
 {% block body %}
-<form method="get" class="mb-6 flex flex-wrap items-center gap-3">
+<form method="get" class="p-toolbar p-toolbar-center">
     <label for="q" class="sr-only">Search participants</label>
-    <input id="q" type="search" name="q" value="{{ query }}" placeholder="Search by name or church"
-           class="w-full max-w-sm rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm">
+    <input id="q" type="search" name="q" value="{{ query }}" placeholder="Search by name or church" class="w-full sm:max-w-sm">
     <button type="submit" class="p-btn-ghost">Search</button>
 </form>
 
@@ -42,7 +41,7 @@
                     </td>
                 </tr>
                 {% empty %}
-                <tr><td colspan="{% if can_view_contacts %}4{% else %}3{% endif %}" class="py-10 text-center p-muted">No participants{% if query %} match "{{ query }}"{% endif %}.</td></tr>
+                <tr><td colspan="{% if can_view_contacts %}4{% else %}3{% endif %}" class="p-empty">No participants{% if query %} match "{{ query }}"{% endif %}.</td></tr>
                 {% endfor %}
             </tbody>
         </table>

@@ -3,9 +3,9 @@
 
 {% block title %}Licence {{ licence.number }}{% endblock %}
 {% block subnav %}{% include 'partners/staff/_nav.html' %}{% endblock %}
-{% block eyebrow %}<a class="hover:underline" href="{% url 'partners:organisation_detail' org_id=licence.organisation.public_id %}">{{ licence.organisation.name }}</a>{% endblock %}
+{% block eyebrow %}<a href="{% url 'partners:organisation_detail' org_id=licence.organisation.public_id %}">{{ licence.organisation.name }}</a>{% endblock %}
 {% block heading %}<span class="font-mono">{{ licence.number }}</span>{% endblock %}
-{% block subheading %}<div class="mt-2">{% include 'partners/_badge.html' with value=licence.status label=licence.get_status_display %}</div>{% endblock %}
+{% block subheading %}<div class="mt-3">{% include 'partners/_badge.html' with value=licence.status label=licence.get_status_display %}</div>{% endblock %}
 {% block actions %}
 {% if licence.status != 'terminated' %}<a class="p-btn-ghost" href="{% url 'partners:licence_edit' licence_id=licence.public_id %}">Edit</a>{% endif %}
 {% if licence.agreement_file %}<a class="p-btn-ghost" href="{% url 'partners:licence_agreement' licence_id=licence.public_id %}">Download agreement</a>{% endif %}
@@ -15,24 +15,24 @@
 <div class="grid gap-6 lg:grid-cols-3">
     <div class="space-y-6 lg:col-span-2">
         <section class="p-card p-6">
-            <dl class="grid gap-5 text-sm sm:grid-cols-3">
-                <div><dt class="text-xs p-muted">Starts</dt><dd class="mt-1 font-medium p-navy">{{ licence.starts_on|date:'d M Y' }}</dd></div>
-                <div><dt class="text-xs p-muted">Ends</dt><dd class="mt-1 font-medium p-navy">{{ licence.ends_on|date:'d M Y' }}</dd></div>
-                <div><dt class="text-xs p-muted">Signed</dt><dd class="mt-1 font-medium p-navy">{{ licence.signed_on|date:'d M Y'|default:'Not yet' }}</dd></div>
-                <div><dt class="text-xs p-muted">Fee</dt><dd class="mt-1 font-medium p-navy">{{ licence.fee_currency }} {{ licence.fee_amount }}</dd></div>
-                <div><dt class="text-xs p-muted">Fee status</dt><dd class="mt-1 font-medium p-navy">{{ licence.get_fee_status_display }}</dd></div>
-                <div><dt class="text-xs p-muted">Locations allowed</dt><dd class="mt-1 font-medium p-navy">{{ licence.max_locations|default:'No limit' }}</dd></div>
-                <div class="sm:col-span-3"><dt class="text-xs p-muted">Agreement</dt><dd class="mt-1 font-medium p-navy">{% if licence.agreement_file %}Uploaded{% else %}Not uploaded{% endif %}</dd></div>
-                {% if licence.status_reason %}<div class="sm:col-span-3"><dt class="text-xs p-muted">Last status change</dt><dd class="mt-1 p-slate">{{ licence.status_reason }} <span class="p-muted">({{ licence.status_changed_at|date:'d M Y' }})</span></dd></div>{% endif %}
-                {% if licence.notes %}<div class="sm:col-span-3"><dt class="text-xs p-muted">Notes</dt><dd class="mt-1 whitespace-pre-line p-slate">{{ licence.notes }}</dd></div>{% endif %}
+            <dl class="p-meta grid gap-5 text-sm sm:grid-cols-3">
+                <div><dt>Starts</dt><dd>{{ licence.starts_on|date:'d M Y' }}</dd></div>
+                <div><dt>Ends</dt><dd>{{ licence.ends_on|date:'d M Y' }}</dd></div>
+                <div><dt>Signed</dt><dd>{{ licence.signed_on|date:'d M Y'|default:'Not yet' }}</dd></div>
+                <div><dt>Fee</dt><dd>{{ licence.fee_currency }} {{ licence.fee_amount }}</dd></div>
+                <div><dt>Fee status</dt><dd>{{ licence.get_fee_status_display }}</dd></div>
+                <div><dt>Locations allowed</dt><dd>{{ licence.max_locations|default:'No limit' }}</dd></div>
+                <div class="sm:col-span-3"><dt>Agreement</dt><dd>{% if licence.agreement_file %}Uploaded{% else %}Not uploaded{% endif %}</dd></div>
+                {% if licence.status_reason %}<div class="sm:col-span-3"><dt>Last status change</dt><dd class="font-normal p-slate">{{ licence.status_reason }} <span class="p-muted">({{ licence.status_changed_at|date:'d M Y' }})</span></dd></div>{% endif %}
+                {% if licence.notes %}<div class="sm:col-span-3"><dt>Notes</dt><dd class="whitespace-pre-line font-normal p-slate">{{ licence.notes }}</dd></div>{% endif %}
             </dl>
         </section>
 
         <section class="p-card">
-            <h2 class="p-card-head p-display text-base font-semibold p-navy">Locations under this licence</h2>
-            <ul class="divide-y" style="border-color: var(--snap-line);">
+            <div class="p-card-head"><h2 class="p-card-title">Locations under this licence</h2></div>
+            <ul class="p-list">
                 {% for location in locations %}
-                <li class="flex items-center justify-between px-5 py-3.5 text-sm">
+                <li class="flex items-center justify-between gap-3 px-5 py-3.5 text-sm">
                     <a class="p-link" href="{% url 'partners:location_dashboard' location_id=location.public_id %}">{{ location.name }}</a>
                     {% include 'partners/_badge.html' with value=location.status label=location.get_status_display %}
                 </li>
@@ -47,38 +47,38 @@
         {% if licence.status == 'draft' or licence.status == 'suspended' %}
         <form method="post" action="{% url 'partners:licence_action' licence_id=licence.public_id action='activate' %}" class="p-card p-5">
             {% csrf_token %}
-            <h2 class="p-display text-base font-semibold p-navy">{% if licence.status == 'draft' %}Activate{% else %}Reinstate{% endif %}</h2>
+            <h2 class="p-card-title">{% if licence.status == 'draft' %}Activate{% else %}Reinstate{% endif %}</h2>
             <p class="mt-1 text-sm p-slate">{% if licence.status == 'draft' %}Needs a signed date and the uploaded agreement.{% else %}Allows new cohorts and online access again.{% endif %}</p>
-            <button type="submit" class="p-btn mt-4 w-full">{% if licence.status == 'draft' %}Activate licence{% else %}Reinstate licence{% endif %}</button>
+            <button type="submit" class="p-btn p-btn-block mt-4">{% if licence.status == 'draft' %}Activate licence{% else %}Reinstate licence{% endif %}</button>
         </form>
         {% endif %}
 
         {% if licence.status == 'active' %}
         <form method="post" action="{% url 'partners:licence_action' licence_id=licence.public_id action='suspend' %}" class="p-card p-5">
             {% csrf_token %}
-            <h2 class="p-display text-base font-semibold p-navy">Suspend</h2>
+            <h2 class="p-card-title">Suspend</h2>
             <p class="mt-1 text-sm p-slate">Stops new cohorts and online access. Running cohorts can still be recorded.</p>
-            <label for="suspend-reason" class="mt-3 block text-xs font-medium p-muted">Reason</label>
-            <textarea id="suspend-reason" name="reason" rows="2" required class="mt-1 block w-full rounded-xl border border-slate-200 px-3 py-2 text-sm"></textarea>
-            <button type="submit" class="p-btn-ghost mt-3 w-full">Suspend licence</button>
+            <label for="suspend-reason" class="p-label mt-4">Reason</label>
+            <textarea id="suspend-reason" name="reason" rows="2" required class="block w-full"></textarea>
+            <button type="submit" class="p-btn-ghost p-btn-block mt-3">Suspend licence</button>
         </form>
         {% endif %}
 
         {% if licence.status != 'terminated' %}
-        <form method="post" action="{% url 'partners:licence_action' licence_id=licence.public_id action='terminate' %}" class="p-card p-5" onsubmit="return confirm('Terminate this licence? This cannot be undone.');">
+        <form method="post" action="{% url 'partners:licence_action' licence_id=licence.public_id action='terminate' %}" class="p-card p-5" style="border-color: #F6D3CF;" onsubmit="return confirm('Terminate this licence? This cannot be undone.');">
             {% csrf_token %}
-            <h2 class="p-display text-base font-semibold p-navy">Terminate</h2>
+            <h2 class="p-card-title">Terminate</h2>
             <p class="mt-1 text-sm p-slate">Final. No new work and no further recording at its locations.</p>
-            <label for="terminate-reason" class="mt-3 block text-xs font-medium p-muted">Reason</label>
-            <textarea id="terminate-reason" name="reason" rows="2" required class="mt-1 block w-full rounded-xl border border-slate-200 px-3 py-2 text-sm"></textarea>
-            <button type="submit" class="p-btn-danger mt-3 w-full">Terminate licence</button>
+            <label for="terminate-reason" class="p-label mt-4">Reason</label>
+            <textarea id="terminate-reason" name="reason" rows="2" required class="block w-full"></textarea>
+            <button type="submit" class="p-btn-danger p-btn-block mt-3">Terminate licence</button>
         </form>
         {% endif %}
 
         {% if licence.status == 'draft' and not locations %}
         <form method="post" action="{% url 'partners:licence_delete' licence_id=licence.public_id %}" class="p-card p-5" onsubmit="return confirm('Delete this draft licence?');">
             {% csrf_token %}
-            <button type="submit" class="p-btn-danger w-full">Delete draft</button>
+            <button type="submit" class="p-btn-danger p-btn-block">Delete draft</button>
         </form>
         {% endif %}
     </aside>

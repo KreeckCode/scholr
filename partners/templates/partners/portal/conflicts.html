@@ -16,12 +16,12 @@
                 <p class="text-sm font-semibold p-navy">{{ conflict.detail.participant }} &middot; {{ conflict.detail.course }}</p>
                 <p class="mt-0.5 text-xs p-muted">Sent by {{ conflict.user.get_full_name }} on {{ conflict.received_at|date:'d M Y, H:i' }}{% if conflict.recorded_at %}, entered {{ conflict.recorded_at|date:'d M Y, H:i' }}{% endif %}</p>
             </div>
-            <dl class="flex gap-6 text-sm">
-                <div><dt class="text-xs p-muted">Now saved</dt><dd class="mt-0.5 text-lg font-semibold p-navy">{{ conflict.detail.server.exam_score|default:'None' }}</dd></div>
-                <div><dt class="text-xs p-muted">From the device</dt><dd class="mt-0.5 text-lg font-semibold p-navy">{{ conflict.detail.incoming.exam_score|default:'None' }}</dd></div>
+            <dl class="flex gap-3 text-sm">
+                <div class="min-w-[7rem] rounded-lg border px-3 py-2" style="border-color: var(--p-line); background: var(--p-subtle);"><dt class="text-xs p-muted">Now saved</dt><dd class="mt-0.5 text-lg font-semibold p-navy">{{ conflict.detail.server.exam_score|default:'None' }}</dd></div>
+                <div class="min-w-[7rem] rounded-lg border border-teal-200 bg-teal-50 px-3 py-2"><dt class="text-xs text-teal-800">From the device</dt><dd class="mt-0.5 text-lg font-semibold p-navy">{{ conflict.detail.incoming.exam_score|default:'None' }}</dd></div>
             </dl>
         </div>
-        <div class="mt-4 flex flex-wrap gap-3">
+        <div class="mt-4 flex flex-wrap gap-2 border-t pt-4" style="border-color: var(--p-line-soft);">
             <form method="post" action="{% url 'partners:conflict_resolve' location_id=location.public_id op_id=conflict.op_id %}">
                 {% csrf_token %}<input type="hidden" name="choice" value="server">
                 <button type="submit" class="p-btn-ghost p-btn-sm">Keep the saved score</button>
@@ -33,7 +33,7 @@
         </div>
     </section>
     {% empty %}
-    <div class="p-card p-6 text-sm p-muted">Nothing to resolve. Every offline change has been applied.</div>
+    <div class="p-card p-empty">Nothing to resolve. Every offline change has been applied.</div>
     {% endfor %}
 </div>
 {% endblock %}

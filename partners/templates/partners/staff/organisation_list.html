@@ -8,12 +8,11 @@
 {% block actions %}<a href="{% url 'partners:organisation_create' %}" class="p-btn">Add partner</a>{% endblock %}
 
 {% block body %}
-<form method="get" class="mb-6 flex flex-wrap items-center gap-3">
+<form method="get" class="p-toolbar p-toolbar-center">
     <label for="q" class="sr-only">Search partners</label>
-    <input id="q" type="search" name="q" value="{{ query }}" placeholder="Search by name or city"
-           class="w-full max-w-sm rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm">
-    <label class="flex items-center gap-2 text-sm p-slate">
-        <input type="checkbox" name="archived" value="1" {% if show_archived %}checked{% endif %} class="h-4 w-4 rounded border-slate-300 text-teal-600">
+    <input id="q" type="search" name="q" value="{{ query }}" placeholder="Search by name or city" class="w-full sm:max-w-sm">
+    <label class="p-check-inline">
+        <input type="checkbox" name="archived" value="1" {% if show_archived %}checked{% endif %}>
         Include archived
     </label>
     <button type="submit" class="p-btn-ghost">Search</button>
@@ -36,8 +35,8 @@
                 <tr>
                     <td>
                         <a class="p-link" href="{% url 'partners:organisation_detail' org_id=organisation.public_id %}">{{ organisation.name }}</a>
-                        {% if organisation.is_archived %}<span class="ml-2 text-xs p-muted">Archived</span>{% endif %}
-                        {% if organisation.is_sensitive %}<span class="ml-2 text-xs font-medium text-amber-700">Sensitive</span>{% endif %}
+                        {% if organisation.is_archived %}<span class="ml-2 rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700">Archived</span>{% endif %}
+                        {% if organisation.is_sensitive %}<span class="ml-2 rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-800 ring-1 ring-inset ring-amber-200">Sensitive</span>{% endif %}
                     </td>
                     <td>{{ organisation.get_kind_display }}</td>
                     <td>{{ organisation.country|country }}{% if organisation.city %}<span class="p-muted">, {{ organisation.city }}</span>{% endif %}</td>
@@ -45,7 +44,7 @@
                     <td class="p-num">{{ organisation.location_count }}</td>
                 </tr>
                 {% empty %}
-                <tr><td colspan="5" class="py-10 text-center p-muted">No partners match.</td></tr>
+                <tr><td colspan="5" class="p-empty">No partners match.</td></tr>
                 {% endfor %}
             </tbody>
         </table>
