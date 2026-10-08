@@ -1,0 +1,28 @@
+{% extends 'partners/_base.html' %}
+{% load partners_tags %}
+
+{% block title %}{% if organisation %}Edit {{ organisation.name }}{% else %}Add partner{% endif %}{% endblock %}
+{% block subnav %}{% include 'partners/staff/_nav.html' %}{% endblock %}
+{% block eyebrow %}{% if organisation %}{{ organisation.name }}{% else %}New partner{% endif %}{% endblock %}
+{% block heading %}{% if organisation %}Edit partner details{% else %}Add a partner{% endif %}{% endblock %}
+
+{% block body %}
+<form method="post" class="p-card max-w-3xl p-6 sm:p-8" novalidate>
+    {% csrf_token %}
+    {% include 'partners/_form_errors.html' %}
+    <div class="grid gap-5 sm:grid-cols-2">
+        {% field form.name wide=True %}
+        {% field form.kind %}
+        {% field form.country %}
+        {% field form.region %}
+        {% field form.city %}
+        {% field form.website wide=True %}
+        {% field form.notes wide=True %}
+        {% field form.is_sensitive wide=True %}
+    </div>
+    <div class="mt-8 flex flex-wrap gap-3">
+        <button type="submit" class="p-btn">Save</button>
+        <a class="p-btn-ghost" href="{% if organisation %}{% url 'partners:organisation_detail' org_id=organisation.public_id %}{% else %}{% url 'partners:pipeline' %}{% endif %}">Cancel</a>
+    </div>
+</form>
+{% endblock %}

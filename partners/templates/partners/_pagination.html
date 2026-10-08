@@ -1,0 +1,13 @@
+{% if is_paginated %}
+<nav class="mt-6 flex items-center justify-between text-sm" aria-label="Pagination">
+    <p class="p-muted">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</p>
+    <div class="flex gap-2">
+        {% if page_obj.has_previous %}
+        <a class="p-btn-ghost p-btn-sm" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key|urlencode }}={{ value|urlencode }}&amp;{% endif %}{% endfor %}page={{ page_obj.previous_page_number }}">Previous</a>
+        {% endif %}
+        {% if page_obj.has_next %}
+        <a class="p-btn-ghost p-btn-sm" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key|urlencode }}={{ value|urlencode }}&amp;{% endif %}{% endfor %}page={{ page_obj.next_page_number }}">Next</a>
+        {% endif %}
+    </div>
+</nav>
+{% endif %}

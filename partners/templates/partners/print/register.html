@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Register {{ session_obj.course.code }} {{ session_obj.session_date|date:'Y-m-d' }}</title>
+<style>
+    @page { size: A4; margin: 16mm 14mm 18mm; @bottom-right { content: "Page " counter(page) " of " counter(pages); font-size: 8pt; color: #667085; } }
+    body { font-family: 'Helvetica Neue', Arial, sans-serif; color: #101828; font-size: 10pt; }
+    header { border-bottom: 2px solid #0E1B33; padding-bottom: 8pt; margin-bottom: 12pt; }
+    h1 { font-size: 16pt; margin: 0 0 2pt; color: #0E1B33; }
+    .meta { color: #475467; font-size: 9pt; }
+    .meta span { margin-right: 14pt; }
+    table { width: 100%; border-collapse: collapse; }
+    th { text-align: left; font-size: 8pt; text-transform: uppercase; letter-spacing: 0.04em; color: #475467; border-bottom: 1px solid #98A2B3; padding: 5pt 4pt; }
+    td { border-bottom: 1px solid #D0D5DD; padding: 7pt 4pt; height: 14pt; }
+    td.box { width: 38pt; text-align: center; }
+    .square { display: inline-block; width: 11pt; height: 11pt; border: 1px solid #344054; }
+    .num { width: 20pt; color: #667085; }
+    .sign { margin-top: 22pt; display: flex; gap: 24pt; font-size: 9pt; color: #475467; }
+    .sign div { flex: 1; border-top: 1px solid #344054; padding-top: 4pt; }
+    .note { margin-top: 12pt; font-size: 8pt; color: #667085; }
+</style>
+</head>
+<body>
+<header>
+    <h1>{{ session_obj.course.code }} &middot; {{ session_obj.course.title }}</h1>
+    <div class="meta">
+        <span>{{ location.name }}</span>
+        <span>{{ cohort.name }}</span>
+        <span>{{ session_obj.session_date|date:'l d F Y' }}</span>
+        <span>{{ session_obj.hours }} hours</span>
+        {% if session_obj.facilitator %}<span>Facilitator: {{ session_obj.facilitator.get_full_name }}</span>{% endif %}
+    </div>
+</header>
+<table>
+    <thead>
+        <tr>
+            <th class="num">#</th>
+            <th>Name</th>
+            {% for value, label in statuses %}<th class="box">{{ label }}</th>{% endfor %}
+        </tr>
+    </thead>
+    <tbody>
+        {% for membership in memberships %}
+        <tr>
+            <td class="num">{{ forloop.counter }}</td>
+            <td>{{ membership.participant.full_name }}</td>
+            {% for value, label in statuses %}<td class="box"><span class="square"></span></td>{% endfor %}
+        </tr>
+        {% endfor %}
+        {% for blank in "12345" %}
+        <tr><td class="num"></td><td></td>{% for value, label in statuses %}<td class="box"><span class="square"></span></td>{% endfor %}</tr>
+        {% endfor %}
+    </tbody>
+</table>
+<div class="sign">
+    <div>Facilitator signature</div>
+    <div>Date</div>
+</div>
+<p class="note">Tick one box per person. Add anyone new on a blank line, then register them in the portal before entering this sheet. Printed {{ generated_at|date:'d M Y, H:i' }} from {{ brand.name }}.</p>
+</body>
+</html>

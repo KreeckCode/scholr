@@ -1,0 +1,97 @@
+.p-display { font-family: 'Poppins', system-ui, -apple-system, sans-serif; }
+.p-navy { color: var(--snap-navy); }
+.p-slate { color: var(--snap-slate); }
+.p-muted { color: var(--snap-muted); }
+.p-teal { color: var(--snap-teal-deep); }
+
+.p-card {
+    background: #fff;
+    border: 1px solid var(--snap-line);
+    border-radius: 1rem;
+}
+.p-card-head {
+    border-bottom: 1px solid var(--snap-line);
+    padding: 1rem 1.25rem;
+}
+
+.p-btn,
+.p-btn-ghost,
+.p-btn-danger {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border-radius: 9999px;
+    padding: 0.55rem 1.1rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    line-height: 1.25rem;
+    transition: background 0.2s, border-color 0.2s, color 0.2s, box-shadow 0.2s;
+    white-space: nowrap;
+}
+.p-btn { background: var(--snap-teal); color: #fff; }
+.p-btn:hover { background: var(--snap-teal-deep); box-shadow: 0 8px 20px -12px rgba(18, 165, 148, 0.8); }
+.p-btn-ghost { background: #fff; color: var(--snap-navy); border: 1px solid var(--snap-line); }
+.p-btn-ghost:hover { border-color: rgba(14, 27, 51, 0.25); background: var(--snap-paper); }
+.p-btn-danger { background: #fff; color: #B42318; border: 1px solid #FECDCA; }
+.p-btn-danger:hover { background: #FEF3F2; }
+.p-btn-sm { padding: 0.35rem 0.8rem; font-size: 0.8125rem; }
+.p-btn[disabled], .p-btn-ghost[disabled] { opacity: 0.5; cursor: not-allowed; }
+
+.p-link { color: var(--snap-teal-deep); font-weight: 500; text-underline-offset: 3px; }
+.p-link:hover { text-decoration: underline; }
+
+.p-table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 0.875rem; }
+.p-table th {
+    text-align: left;
+    font-weight: 600;
+    font-size: 0.75rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--snap-muted);
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--snap-line);
+    background: #FAFBFC;
+}
+.p-table td { padding: 0.8rem 1rem; border-bottom: 1px solid var(--snap-line); color: var(--snap-slate); vertical-align: middle; }
+.p-table tr:last-child td { border-bottom: 0; }
+.p-table tbody tr:hover td { background: #FBFCFD; }
+.p-num { text-align: right; font-variant-numeric: tabular-nums; }
+
+.p-tab {
+    border-radius: 9999px;
+    padding: 0.45rem 0.95rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--snap-slate);
+    transition: background 0.2s, color 0.2s;
+}
+.p-tab:hover { background: #fff; color: var(--snap-navy); }
+.p-tab-on { background: #fff; color: var(--snap-teal-deep); box-shadow: inset 0 0 0 1px rgba(18, 165, 148, 0.25); }
+
+.p-stat { font-family: 'Poppins', system-ui, sans-serif; font-size: 1.75rem; font-weight: 600; color: var(--snap-navy); line-height: 1.1; }
+
+.p-mark input { position: absolute; opacity: 0; pointer-events: none; }
+.p-mark span {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-width: 2.5rem; height: 2.25rem; padding: 0 0.6rem;
+    border-radius: 0.6rem; border: 1px solid var(--snap-line);
+    font-size: 0.8125rem; font-weight: 600; color: var(--snap-slate); background: #fff;
+    cursor: pointer; transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.p-mark input:focus-visible + span { outline: 3px solid var(--snap-teal); outline-offset: 2px; }
+.p-mark input:checked + span.p-mark-present { background: #E6F6F4; border-color: #12A594; color: #0C7A6D; }
+.p-mark input:checked + span.p-mark-late { background: #FFF6E5; border-color: #F5A524; color: #8A4B00; }
+.p-mark input:checked + span.p-mark-absent { background: #FEF3F2; border-color: #F04438; color: #B42318; }
+.p-mark input:checked + span.p-mark-excused { background: #F2F4F7; border-color: #98A2B3; color: #344054; }
+
+.p-step-done { background: var(--snap-teal); color: #fff; }
+.p-step-now { background: #fff; color: var(--snap-teal-deep); box-shadow: inset 0 0 0 2px var(--snap-teal); }
+.p-step-next { background: #EEF2F6; color: var(--snap-muted); }
+
+a.p-link:focus-visible, .p-btn:focus-visible, .p-btn-ghost:focus-visible, .p-btn-danger:focus-visible, .p-tab:focus-visible {
+    outline: 3px solid var(--snap-teal);
+    outline-offset: 2px;
+}
+
+[x-cloak] { display: none !important; }

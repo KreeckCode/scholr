@@ -26,7 +26,11 @@ class User(AbstractUser):
     ADMIN_CLERK = 'admin_clerk'
     PARENT = 'parent'
     LEARNER = 'learner'
-    
+
+    # Partner network roles - partners app context
+    PROGRAMME_STAFF = 'programme_staff'
+    PARTNER = 'partner'
+
     ROLE_CHOICES = [
         # LMS roles
         (STUDENT, 'Student (Pastor)'),
@@ -39,11 +43,15 @@ class User(AbstractUser):
         (ADMIN_CLERK, 'Administrative Clerk'),
         (PARENT, 'Parent / Guardian'),
         (LEARNER, 'Learner'),
+        # Partner network roles
+        (PROGRAMME_STAFF, 'Programme Staff'),
+        (PARTNER, 'Partner Staff'),
     ]
     # Role groupings - I'm using these to avoid scattering role checks everywhere
     LMS_ROLES = {STUDENT, DEAN, ADMIN}
     SCHOOL_ROLES = {TEACHER, PRINCIPAL, HOD, ADMIN_CLERK, PARENT, LEARNER}
     STAFF_ROLES = {TEACHER, PRINCIPAL, HOD, ADMIN_CLERK}
+    PARTNER_NETWORK_ROLES = {PROGRAMME_STAFF, PARTNER}
     
     # Phone validator for international format
     phone_regex = RegexValidator(

@@ -1,0 +1,65 @@
+{% extends 'partners/_base.html' %}
+{% load partners_tags %}
+
+{% block title %}{{ participant.full_name }}{% endblock %}
+{% block subnav %}{% include 'partners/portal/_nav.html' %}{% endblock %}
+{% block eyebrow %}Participant{% endblock %}
+{% block heading %}{{ participant.full_name }}{% endblock %}
+{% block subheading %}<p class="mt-2 text-sm p-slate">{% if participant.position_title %}{{ participant.position_title }}{% endif %}{% if participant.position_title and participant.church_name %}, {% endif %}{{ participant.church_name }}</p>{% endblock %}
+{% block actions %}
+{% if is_coordinator %}<a class="p-btn-ghost" href="{% url 'partners:participant_edit' location_id=location.public_id participant_id=participant.public_id %}">Edit</a>{% endif %}
+{% endblock %}
+
+{% block body %}
+<div class="grid gap-6 lg:grid-cols-3">
+    <aside class="p-card h-fit p-6">
+        <dl class="space-y-4 text-sm">
+            {% if can_view_contacts %}
+            <div><dt class="text-xs p-muted">Phone</dt><dd class="mt-0.5 font-medium p-navy">{% if participant.phone %}<a class="p-link" href="tel:{{ participant.phone }}">{{ participant.phone }}</a>{% else %}Not given{% endif %}</dd></div>
+            <div><dt class="text-xs p-muted">Email</dt><dd class="mt-0.5 font-medium p-navy break-all">{% if participant.email %}<a class="p-link" href="mailto:{{ participant.email }}">{{ participant.email }}</a>{% else %}Not given{% endif %}</dd></div>
+            {% endif %}
+            <div><dt class="text-xs p-muted">Country</dt><dd class="mt-0.5 font-medium p-navy">{{ participant.country|country|default:'Not given' }}</dd></div>
+            <div><dt class="text-xs p-muted">Online account</dt><dd class="mt-0.5 font-medium p-navy">{% if participant.user %}{{ participant.user.username }}{% else %}None{% endif %}</dd></div>
+            <div><dt class="text-xs p-muted">Registered</dt><dd class="mt-0.5 font-medium p-navy">{{ participant.created_at|date:'d M Y' }}{% if participant.client_uuid %} <span class="text-xs font-normal p-muted">(offline)</span>{% endif %}</dd></div>
+        </dl>
+    </aside>
+
+    <div class="space-y-6 lg:col-span-2">
+        {% for row in membership_rows %}
+        {% with membership=row.membership %}
+        <section class="p-card">
+            <div class="p-card-head flex flex-wrap items-center justify-between gap-2">
+                <div>
+                    <a class="p-display text-base font-semibold p-navy hover:underline" href="{% url 'partners:cohort_detail' location_id=location.public_id cohort_id=membership.cohort.public_id %}">{{ membership.cohort.name }}</a>
+                    <p class="text-xs p-muted">Joined {{ membership.joined_on|date:'d M Y' }}{% if row.attendance_rate is not None %} &middot; {{ row.attendance_rate }}% attendance{% endif %}</p>
+                </div>
+                <div class="flex flex-wrap gap-2">
+                    {% include 'partners/_badge.html' with value=membership.status label=membership.get_status_display %}
+                    {% if membership.cohort.delivery == 'blended' %}{% include 'partners/_badge.html' with value=row.access_status label=row.access_label %}{% endif %}
+                </div>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="p-table">
+                    <thead><tr><th scope="col">Course</th><th scope="col" class="p-num">Exam</th><th scope="col">Result</th><th scope="col">Signed off</th></tr></thead>
+                    <tbody>
+                        {% for result in row.results %}
+                        <tr>
+                            <td><span class="font-medium p-navy">{{ result.course.code }}</span> <span class="text-xs p-muted">{{ result.course.title }}</span></td>
+                            <td class="p-num">{% if result.exam_score is not None %}{{ result.exam_score|floatformat:0 }}%{% endif %}</td>
+                            <td>{% include 'partners/_badge.html' with value=result.status label=result.get_status_display %}</td>
+                            <td class="text-xs">{% if result.signed_off_at %}{{ result.signed_off_at|date:'d M Y' }}{% else %}<span class="p-muted">Not yet</span>{% endif %}</td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="4" class="py-6 text-center p-muted">No results recorded yet.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+        {% endwith %}
+        {% empty %}
+        <div class="p-card p-6 text-sm p-muted">Not enrolled in a cohort you can see.</div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
