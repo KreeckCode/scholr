@@ -59,7 +59,7 @@ SITE_BRANDS = {
 
     'metp': {
         'profile':          'metp',
-        'name':             'Get METP',
+        'name':             'METP',
         'owner':            'Ministry Essentials Training Program',
         'tagline':          'Ministry Essentials Training Program',
         'strapline':        'Equipping Christian ministry leaders everywhere',
@@ -72,7 +72,7 @@ SITE_BRANDS = {
         'logo':             'logo/metp.png',
         'logo_alt':         'Ministry Essentials Training Program',
         'logo_needs_plate': True,
-        'og_image':         'logo/og-metp.png',
+        'og_image':         'logo/metp.png',
         'theme_color':      '#0E1B33',
 
         'email':            'metp.info@paoc.org',
