@@ -1,4 +1,4 @@
-{% extends 'partners/_base.html' %}
+{% extends 'ui/base.html' %}
 {% load partners_tags %}
 
 {% block robots %}index, follow{% endblock %}
@@ -15,7 +15,7 @@
 <div class="grid gap-8 lg:grid-cols-3">
     <form method="post" class="p-card p-6 sm:p-8 lg:col-span-2" novalidate>
         {% csrf_token %}
-        {% include 'partners/_form_errors.html' %}
+        {% include 'ui/_form_errors.html' %}
 
         <h2 class="p-section-title p-section-title-lg">Your organisation</h2>
         <div class="mt-4 grid gap-5 sm:grid-cols-2">

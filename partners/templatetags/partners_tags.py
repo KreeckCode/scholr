@@ -40,6 +40,6 @@ def get_item(mapping, key):
         return None
 
 
-@register.inclusion_tag('partners/_field.html')
+@register.inclusion_tag('ui/_field.html')
 def field(bound_field, wide=False):
     return {'field': bound_field, 'wide': wide}

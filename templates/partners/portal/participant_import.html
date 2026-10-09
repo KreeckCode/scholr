@@ -1,4 +1,4 @@
-{% extends 'partners/_base.html' %}
+{% extends 'ui/base.html' %}
 {% load partners_tags %}
 
 {% block title %}Import participants{% endblock %}
@@ -58,7 +58,7 @@
 {% else %}
 <form method="post" enctype="multipart/form-data" class="p-card max-w-2xl p-6 sm:p-8" novalidate>
     {% csrf_token %}
-    {% include 'partners/_form_errors.html' %}
+    {% include 'ui/_form_errors.html' %}
     {% field form.file %}
     <div class="p-code mt-6">first_name,last_name,phone,email,church_name,position_title<br>Grace,Mokoena,+27821234567,,Living Word Church,Youth pastor</div>
     <div class="p-form-actions">

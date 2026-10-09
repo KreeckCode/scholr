@@ -1,227 +1,73 @@
-{% extends 'base/base.html' %}
+{% extends 'ui/base.html' %}
 
-{% block title %}Dean Dashboard - scholr{% endblock %}
+{% block title %}Dean dashboard{% endblock %}
+{% block subnav %}{% include 'accounts/_nav.html' %}{% endblock %}
+{% block eyebrow %}{% if user.profile.region %}{{ user.profile.region }}{% if user.profile.country %}, {{ user.profile.country }}{% endif %}{% else %}Your region{% endif %}{% endblock %}
+{% block heading %}Students in your region{% endblock %}
+{% block subheading %}<p class="mt-2 text-sm p-slate">Verify new students so they can open their courses.</p>{% endblock %}
 
-{% block content %}
-<div class="min-h-screen bg-gray-50">
-    <!-- Hero Section -->
-    <div class="bg-gradient-to-r from-purple-600 to-purple-700 text-white">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-            <h1 class="text-3xl font-bold">Dean Dashboard</h1>
-            <p class="mt-2 text-purple-100">{{ user.profile.region }}, {{ user.profile.country }}</p>
-        </div>
-    </div>
-    
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-8 pb-12">
-        <!-- Stats Overview -->
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-            <div class="bg-white rounded-xl shadow p-6">
-                <div class="flex items-center">
-                    <div class="flex-shrink-0 bg-blue-100 rounded-lg p-3">
-                        <svg class="h-6 w-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
-                        </svg>
-                    </div>
-                    <div class="ml-4">
-                        <p class="text-sm font-medium text-gray-500">Total Students</p>
-                        <p class="text-2xl font-bold text-gray-900">{{ stats.total_students }}</p>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="bg-white rounded-xl shadow p-6">
-                <div class="flex items-center">
-                    <div class="flex-shrink-0 bg-green-100 rounded-lg p-3">
-                        <svg class="h-6 w-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                        </svg>
-                    </div>
-                    <div class="ml-4">
-                        <p class="text-sm font-medium text-gray-500">Verified</p>
-                        <p class="text-2xl font-bold text-gray-900">{{ stats.verified_students }}</p>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="bg-white rounded-xl shadow p-6">
-                <div class="flex items-center">
-                    <div class="flex-shrink-0 bg-yellow-100 rounded-lg p-3">
-                        <svg class="h-6 w-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                        </svg>
-                    </div>
-                    <div class="ml-4">
-                        <p class="text-sm font-medium text-gray-500">Pending</p>
-                        <p class="text-2xl font-bold text-gray-900">{{ stats.pending_verifications }}</p>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="bg-white rounded-xl shadow p-6">
-                <div class="flex items-center">
-                    <div class="flex-shrink-0 bg-purple-100 rounded-lg p-3">
-                        <svg class="h-6 w-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
-                        </svg>
-                    </div>
-                    <div class="ml-4">
-                        <p class="text-sm font-medium text-gray-500">Active</p>
-                        <p class="text-2xl font-bold text-gray-900">{{ stats.active_students }}</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Pending Verifications (High Priority) -->
-        {% if pending_verifications %}
-        <div class="bg-white rounded-xl shadow mb-8">
-            <div class="px-6 py-5 border-b border-gray-200 bg-yellow-50">
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center">
-                        <svg class="h-5 w-5 text-yellow-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
-                        </svg>
-                        <h3 class="text-lg font-semibold text-gray-900">Pending Verifications</h3>
-                    </div>
-                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800">
-                        {{ pending_verifications.count }} waiting
-                    </span>
-                </div>
-            </div>
-            <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-gray-50">
-                        <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Student</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Church</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Phone</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Registered</th>
-                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody class="bg-white divide-y divide-gray-200">
-                        {% for student in pending_verifications %}
-                        <tr class="hover:bg-gray-50">
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="flex items-center">
-                                    <div class="flex-shrink-0 h-10 w-10 rounded-full bg-purple-100 flex items-center justify-center">
-                                        <span class="text-purple-600 font-semibold text-sm">
-                                            {{ student.first_name.0 }}{{ student.last_name.0 }}
-                                        </span>
-                                    </div>
-                                    <div class="ml-4">
-                                        <div class="text-sm font-medium text-gray-900">{{ student.get_full_name }}</div>
-                                        <div class="text-sm text-gray-500">{{ student.username }}</div>
-                                    </div>
-                                </div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                {{ student.profile.church_name|default:"—" }}
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                {{ student.phone_number }}
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                {{ student.created_at|date:"d M Y" }}
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                <a href="{% url 'accounts:verify_student' student.id %}" 
-                                   class="inline-flex items-center px-3 py-1.5 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700">
-                                    Verify
-                                </a>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-            <div class="px-6 py-4 bg-gray-50 border-t border-gray-200">
-                <a href="{% url 'accounts:student_list' %}?verified=no" 
-                   class="text-sm font-medium text-blue-600 hover:text-blue-500">
-                    View all pending verifications →
-                </a>
-            </div>
-        </div>
-        {% endif %}
-        
-        <!-- Recent Students -->
-        <div class="bg-white rounded-xl shadow">
-            <div class="px-6 py-5 border-b border-gray-200">
-                <div class="flex items-center justify-between">
-                    <h3 class="text-lg font-semibold text-gray-900">Recent Students</h3>
-                    <a href="{% url 'accounts:student_list' %}" 
-                       class="text-sm font-medium text-blue-600 hover:text-blue-500">
-                        View all →
-                    </a>
-                </div>
-            </div>
-            <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-gray-50">
-                        <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Student</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Church</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody class="bg-white divide-y divide-gray-200">
-                        {% for student in students %}
-                        <tr class="hover:bg-gray-50">
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="flex items-center">
-                                    <div class="flex-shrink-0 h-10 w-10 rounded-full bg-gray-100 flex items-center justify-center">
-                                        <span class="text-gray-600 font-semibold text-sm">
-                                            {{ student.first_name.0 }}{{ student.last_name.0 }}
-                                        </span>
-                                    </div>
-                                    <div class="ml-4">
-                                        <div class="text-sm font-medium text-gray-900">{{ student.get_full_name }}</div>
-                                    </div>
-                                </div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                {{ student.profile.church_name|default:"—" }}
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                {% if student.is_verified %}
-                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                        <svg class="mr-1 h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
-                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-                                        </svg>
-                                        Verified
-                                    </span>
-                                {% else %}
-                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                                        <svg class="mr-1 h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
-                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
-                                        </svg>
-                                        Pending
-                                    </span>
-                                {% endif %}
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                <a href="{% url 'accounts:student_detail' student.id %}" 
-                                   class="text-blue-600 hover:text-blue-900">
-                                    View
-                                </a>
-                            </td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="4" class="px-6 py-12 text-center">
-                                <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
-                                </svg>
-                                <h3 class="mt-2 text-sm font-medium text-gray-900">No students yet</h3>
-                                <p class="mt-1 text-sm text-gray-500">Students will appear here once they register in your region.</p>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
+{% block actions %}
+<a class="p-btn-ghost" href="{% url 'accounts:student_list' %}">All students</a>
+{% endblock %}
+
+{% block body %}
+{% if not user.profile.region %}
+<div class="p-alert p-alert-warn">
+    <p class="p-alert-title">Your profile has no region</p>
+    <p class="mt-1">Students are matched to you by region. <a class="font-semibold underline" href="{% url 'accounts:profile_edit' %}">Add your region</a> to see them.</p>
 </div>
+{% endif %}
+
+<div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
+    {% url 'accounts:student_list' as students_url %}
+    {% include 'ui/_stat.html' with label='Students' value=stats.total_students href=students_url %}
+    {% include 'ui/_stat.html' with label='Verified' value=stats.verified_students %}
+    {% include 'ui/_stat.html' with label='Awaiting verification' value=stats.pending_verifications href=students_url|add:'?verified=no' %}
+    {% include 'ui/_stat.html' with label='Active' value=stats.active_students note='Verified and able to sign in' %}
+</div>
+
+{% if pending_verifications %}
+<section class="p-card mt-8 overflow-hidden">
+    <div class="p-card-head">
+        <h2 class="p-card-title">Awaiting verification</h2>
+        <a class="p-btn-ghost p-btn-sm" href="{{ students_url }}?verified=no">See all {{ stats.pending_verifications }}</a>
+    </div>
+    <div class="overflow-x-auto">
+        <table class="p-table">
+            <thead><tr><th>Student</th><th>Church</th><th>Registered</th><th></th></tr></thead>
+            <tbody>
+                {% for person in pending_verifications %}
+                <tr>
+                    <td>{% url 'accounts:student_detail' person.id as person_url %}{% include 'accounts/_person.html' with href=person_url sub=person.phone_number %}</td>
+                    <td>{{ person.profile.church_name|default:'Not provided' }}</td>
+                    <td class="whitespace-nowrap">{{ person.created_at|date:'d M Y' }}</td>
+                    <td class="text-right"><a class="p-btn p-btn-sm" href="{% url 'accounts:verify_student' person.id %}">Verify</a></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endif %}
+
+<section class="p-card mt-8 overflow-hidden">
+    <div class="p-card-head"><h2 class="p-card-title">Newest students</h2></div>
+    <div class="overflow-x-auto">
+        <table class="p-table">
+            <thead><tr><th>Student</th><th>Church</th><th>Status</th><th></th></tr></thead>
+            <tbody>
+                {% for person in students %}
+                <tr>
+                    <td>{% url 'accounts:student_detail' person.id as person_url %}{% include 'accounts/_person.html' with href=person_url sub=person.phone_number %}</td>
+                    <td>{{ person.profile.church_name|default:'Not provided' }}</td>
+                    <td>{% include 'accounts/_status.html' %}</td>
+                    <td class="text-right"><a class="p-btn-ghost p-btn-sm" href="{{ person_url }}">Open</a></td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="4" class="p-empty">Students appear here once they register in your region.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
 {% endblock %}

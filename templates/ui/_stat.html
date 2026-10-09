@@ -1,0 +1,5 @@
+{% if href %}<a href="{{ href }}" class="p-card block p-5">{% else %}<div class="p-card p-5">{% endif %}
+    <p class="p-stat-label">{{ label }}</p>
+    <p class="p-stat">{{ value }}</p>
+    {% if note %}<p class="mt-1 text-xs p-muted">{{ note }}</p>{% endif %}
+{% if href %}</a>{% else %}</div>{% endif %}

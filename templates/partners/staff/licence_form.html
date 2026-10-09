@@ -1,4 +1,4 @@
-{% extends 'partners/_base.html' %}
+{% extends 'ui/base.html' %}
 {% load partners_tags %}
 
 {% block title %}{% if licence %}Edit {{ licence.number }}{% else %}Draft licence{% endif %}{% endblock %}
@@ -10,7 +10,7 @@
 {% block body %}
 <form method="post" enctype="multipart/form-data" class="p-card max-w-3xl p-6 sm:p-8" novalidate>
     {% csrf_token %}
-    {% include 'partners/_form_errors.html' %}
+    {% include 'ui/_form_errors.html' %}
     <h2 class="p-section-title">Term</h2>
     <div class="mt-4 grid gap-5 sm:grid-cols-3">
         {% field form.starts_on %}

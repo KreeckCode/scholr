@@ -1,156 +1,101 @@
-{% extends 'base/base.html' %}
+{% extends 'ui/base.html' %}
 
-{% block title %}Analytics - scholr CAS{% endblock %}
+{% block title %}Analytics{% endblock %}
+{% block subnav %}{% include 'accounts/_nav.html' %}{% endblock %}
+{% block eyebrow %}{{ brand.name }}{% endblock %}
+{% block heading %}Analytics{% endblock %}
+{% block subheading %}<p class="mt-2 text-sm p-slate">Who is studying, where they serve and how quickly they are verified.</p>{% endblock %}
 
-{% block content %}
-<div class="space-y-6">
-    <div class="bg-white shadow rounded-lg">
-        <div class="px-4 py-5 sm:p-6">
-            <h2 class="text-2xl font-bold text-gray-900">System Analytics</h2>
-            <p class="mt-1 text-sm text-gray-600">Demographic insights and system-wide statistics</p>
-        </div>
+{% block actions %}
+{% if SCHOLR_PARTNERS_ENABLED %}<a class="p-btn-ghost" href="{% url 'partners:network' %}">Partner network figures</a>{% endif %}
+{% endblock %}
+
+{% block body %}
+<div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
+    {% include 'ui/_stat.html' with label='Students' value=total_students note=total_users|stringformat:'s'|add:' accounts in total' %}
+    {% include 'ui/_stat.html' with label='Verified' value=verified_students %}
+    {% include 'ui/_stat.html' with label='Verification rate' value=verification_rate|floatformat:0|add:'%' %}
+    {% include 'ui/_stat.html' with label='Countries' value=countries|length %}
+</div>
+
+<section class="p-card mt-8">
+    <div class="p-card-head">
+        <h2 class="p-card-title">New accounts, last 30 days</h2>
+        <span class="text-sm font-semibold tabular-nums p-navy">{{ registrations_total }}</span>
     </div>
-    
-    <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-        <div class="bg-white overflow-hidden shadow rounded-lg">
-            <div class="p-5">
-                <div class="flex items-center">
-                    <div class="flex-shrink-0">
-                        <svg class="h-6 w-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
-                        </svg>
-                    </div>
-                    <div class="ml-5 w-0 flex-1">
-                        <dl>
-                            <dt class="text-sm font-medium text-gray-500 truncate">Total Students</dt>
-                            <dd class="text-lg font-semibold text-gray-900">{{ total_students }}</dd>
-                        </dl>
-                    </div>
-                </div>
-            </div>
+    <div class="p-5">
+        {% if registrations_peak %}
+        <div class="p-columns" role="img" aria-label="{{ registrations_total }} new accounts in the last 30 days">
+            {% for row in recent_registrations %}<span style="height: {% widthratio row.count registrations_peak 100 %}%" title="{{ row.day|date:'d M' }}: {{ row.count }}"></span>{% endfor %}
         </div>
-        
-        <div class="bg-white overflow-hidden shadow rounded-lg">
-            <div class="p-5">
-                <div class="flex items-center">
-                    <div class="flex-shrink-0">
-                        <svg class="h-6 w-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                        </svg>
-                    </div>
-                    <div class="ml-5 w-0 flex-1">
-                        <dl>
-                            <dt class="text-sm font-medium text-gray-500 truncate">Verified</dt>
-                            <dd class="text-lg font-semibold text-gray-900">{{ verified_students }}</dd>
-                        </dl>
-                    </div>
-                </div>
-            </div>
+        <div class="mt-2 flex justify-between text-xs p-muted">
+            <span>{{ recent_registrations.0.day|date:'d M' }}</span>
+            <span>Today</span>
         </div>
-        
-        <div class="bg-white overflow-hidden shadow rounded-lg">
-            <div class="p-5">
-                <div class="flex items-center">
-                    <div class="flex-shrink-0">
-                        <svg class="h-6 w-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
-                        </svg>
-                    </div>
-                    <div class="ml-5 w-0 flex-1">
-                        <dl>
-                            <dt class="text-sm font-medium text-gray-500 truncate">Verification Rate</dt>
-                            <dd class="text-lg font-semibold text-gray-900">{{ verification_rate|floatformat:1 }}%</dd>
-                        </dl>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="bg-white overflow-hidden shadow rounded-lg">
-            <div class="p-5">
-                <div class="flex items-center">
-                    <div class="flex-shrink-0">
-                        <svg class="h-6 w-6 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                        </svg>
-                    </div>
-                    <div class="ml-5 w-0 flex-1">
-                        <dl>
-                            <dt class="text-sm font-medium text-gray-500 truncate">Countries</dt>
-                            <dd class="text-lg font-semibold text-gray-900">{{ countries|length }}</dd>
-                        </dl>
-                    </div>
-                </div>
-            </div>
-        </div>
+        {% else %}
+        <p class="p-empty">No new accounts in the last 30 days.</p>
+        {% endif %}
     </div>
-    
-    <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <div class="bg-white shadow rounded-lg">
-            <div class="px-4 py-5 sm:p-6">
-                <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Geographic Distribution</h3>
-                <div class="space-y-3">
-                    {% for country in countries %}
-                    <div class="flex items-center justify-between">
-                        <span class="text-sm font-medium text-gray-900">{{ country.country }}</span>
-                        <div class="flex items-center space-x-2">
-                            <div class="w-32 bg-gray-200 rounded-full h-2">
-                                <div class="bg-blue-600 h-2 rounded-full" 
-                                     style="width: {{ country.count }}%"></div>
-                            </div>
-                            <span class="text-sm text-gray-500 w-12 text-right">{{ country.count }}</span>
-                        </div>
-                    </div>
-                    {% endfor %}
+</section>
+
+<div class="mt-8 grid items-start gap-4 lg:grid-cols-2">
+    <section class="p-card">
+        <div class="p-card-head"><h2 class="p-card-title">Countries</h2></div>
+        {% if countries %}
+        <ul class="space-y-4 p-5">
+            {% for row in countries %}
+            <li>
+                <div class="mb-1.5 flex items-center justify-between text-sm">
+                    <span class="font-medium p-navy">{{ row.country }}</span>
+                    <span class="tabular-nums p-muted">{{ row.count }}</span>
                 </div>
-            </div>
-        </div>
-        
-        <div class="bg-white shadow rounded-lg">
-            <div class="px-4 py-5 sm:p-6">
-                <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Education Levels</h3>
-                <div class="space-y-3">
-                    {% for edu in education %}
-                    <div class="flex items-center justify-between">
-                        <span class="text-sm font-medium text-gray-900 capitalize">{{ edu.education_level}}</span>
-                        <span class="text-sm text-gray-500">{{ edu.count }} students</span>
-                    </div>
-                    {% endfor %}
-                </div>
-            </div>
-        </div>
-        
-        <div class="bg-white shadow rounded-lg">
-            <div class="px-4 py-5 sm:p-6">
-                <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Church Sizes</h3>
-                <div class="space-y-3">
-                    {% for size in church_sizes %}
-                    <div class="flex items-center justify-between">
-                        <span class="text-sm font-medium text-gray-900 capitalize">{{ size.church_size}}</span>
-                        <span class="text-sm text-gray-500">{{ size.count }} pastors</span>
-                    </div>
-                    {% endfor %}
-                </div>
-            </div>
-        </div>
-        
-        <div class="bg-white shadow rounded-lg">
-            <div class="px-4 py-5 sm:p-6">
-                <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Top Regions</h3>
-                <div class="space-y-3">
-                    {% for region in regions|slice:":10" %}
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-sm font-medium text-gray-900">{{ region.region }}</p>
-                            <p class="text-xs text-gray-500">{{ region.country }}</p>
-                        </div>
-                        <span class="text-sm text-gray-500">{{ region.count }}</span>
-                    </div>
-                    {% endfor %}
-                </div>
-            </div>
-        </div>
-    </div>
+                <div class="p-meter"><span style="width: {% widthratio row.count countries_peak 100 %}%"></span></div>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p class="p-empty">No profiles have a country yet.</p>
+        {% endif %}
+    </section>
+
+    <section class="p-card overflow-hidden">
+        <div class="p-card-head"><h2 class="p-card-title">Top regions</h2></div>
+        <table class="p-table">
+            <thead><tr><th>Region</th><th>Country</th><th class="p-num">Profiles</th></tr></thead>
+            <tbody>
+                {% for row in regions|slice:':10' %}
+                <tr><td class="font-medium p-navy">{{ row.region }}</td><td>{{ row.country|default:'Not given' }}</td><td class="p-num">{{ row.count }}</td></tr>
+                {% empty %}
+                <tr><td colspan="3" class="p-empty">No profiles have a region yet.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </section>
+
+    <section class="p-card overflow-hidden">
+        <div class="p-card-head"><h2 class="p-card-title">Education level</h2></div>
+        <table class="p-table">
+            <tbody>
+                {% for row in education %}
+                <tr><td class="p-navy">{{ row.label }}</td><td class="p-num">{{ row.count }}</td></tr>
+                {% empty %}
+                <tr><td colspan="2" class="p-empty">Nobody has given an education level yet.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </section>
+
+    <section class="p-card overflow-hidden">
+        <div class="p-card-head"><h2 class="p-card-title">Church size</h2></div>
+        <table class="p-table">
+            <tbody>
+                {% for row in church_sizes %}
+                <tr><td class="p-navy">{{ row.label }}</td><td class="p-num">{{ row.count }}</td></tr>
+                {% empty %}
+                <tr><td colspan="2" class="p-empty">Nobody has given a church size yet.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </section>
 </div>
 {% endblock %}

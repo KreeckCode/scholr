@@ -1,128 +1,36 @@
-{% extends 'base/base.html' %}
+{% extends 'ui/base.html' %}
 
-{% block title %}My Profile - scholr CAS{% endblock %}
+{% block title %}My profile{% endblock %}
+{% block eyebrow %}My profile{% endblock %}
+{% block heading %}{{ user.get_full_name|default:user.username }}{% endblock %}
+{% block subheading %}<div class="mt-3 flex flex-wrap items-center gap-2 text-sm p-slate">{% include 'accounts/_status.html' with person=user %}<span>{{ user.get_role_display }}</span></div>{% endblock %}
 
-{% block content %}
-<div class="max-w-4xl mx-auto space-y-6">
-    <div class="bg-white shadow rounded-lg">
-        <div class="px-4 py-5 sm:p-6">
-            <div class="flex items-center justify-between mb-4">
-                <h2 class="text-2xl font-bold text-gray-900">My Profile</h2>
-                <a href="{% url 'accounts:profile_edit' %}" 
-                   class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700">
-                    Edit Profile
-                </a>
-            </div>
-            
-            {% if not profile_complete %}
-            <div class="mb-4 bg-yellow-50 border-l-4 border-yellow-400 p-4">
-                <p class="text-sm text-yellow-700">
-                    Your profile is incomplete. Please add missing information to access all features.
-                </p>
-            </div>
-            {% endif %}
-            
-            <div class="border-t border-gray-200 pt-4">
-                <dl class="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
-                    <div>
-                        <dt class="text-sm font-medium text-gray-500">Full Name</dt>
-                        <dd class="mt-1 text-sm text-gray-900">{{ user.get_full_name }}</dd>
-                    </div>
-                    
-                    <div>
-                        <dt class="text-sm font-medium text-gray-500">Username</dt>
-                        <dd class="mt-1 text-sm text-gray-900">{{ user.username }}</dd>
-                    </div>
-                    
-                    <div>
-                        <dt class="text-sm font-medium text-gray-500">Phone Number</dt>
-                        <dd class="mt-1 text-sm text-gray-900">{{ user.phone_number }}</dd>
-                    </div>
-                    
-                    <div>
-                        <dt class="text-sm font-medium text-gray-500">Email</dt>
-                        <dd class="mt-1 text-sm text-gray-900">{{ user.email|default:"Not provided" }}</dd>
-                    </div>
-                    
-                    <div>
-                        <dt class="text-sm font-medium text-gray-500">Country</dt>
-                        <dd class="mt-1 text-sm text-gray-900">{{ profile.country }}</dd>
-                    </div>
-                    
-                    <div>
-                        <dt class="text-sm font-medium text-gray-500">Region</dt>
-                        <dd class="mt-1 text-sm text-gray-900">{{ profile.region }}</dd>
-                    </div>
-                    
-                    <div>
-                        <dt class="text-sm font-medium text-gray-500">Village/Town</dt>
-                        <dd class="mt-1 text-sm text-gray-900">{{ profile.village_town|default:"Not provided" }}</dd>
-                    </div>
-                    
-                    <div>
-                        <dt class="text-sm font-medium text-gray-500">Church Name</dt>
-                        <dd class="mt-1 text-sm text-gray-900">{{ profile.church_name }}</dd>
-                    </div>
-                    
-                    <div>
-                        <dt class="text-sm font-medium text-gray-500">Church Affiliation</dt>
-                        <dd class="mt-1 text-sm text-gray-900">{{ profile.church_affiliation|default:"Not provided" }}</dd>
-                    </div>
-                    
-                    <div>
-                        <dt class="text-sm font-medium text-gray-500">Church Size</dt>
-                        <dd class="mt-1 text-sm text-gray-900">{{ profile.get_church_size_display|default:"Not provided" }}</dd>
-                    </div>
-                    
-                    <div>
-                        <dt class="text-sm font-medium text-gray-500">Position</dt>
-                        <dd class="mt-1 text-sm text-gray-900">{{ profile.position_title|default:"Not provided" }}</dd>
-                    </div>
-                    
-                    <div>
-                        <dt class="text-sm font-medium text-gray-500">Years in Ministry</dt>
-                        <dd class="mt-1 text-sm text-gray-900">{{ profile.years_in_ministry|default:"Not provided" }}</dd>
-                    </div>
-                    
-                    <div>
-                        <dt class="text-sm font-medium text-gray-500">Education Level</dt>
-                        <dd class="mt-1 text-sm text-gray-900">{{ profile.get_education_level_display|default:"Not provided" }}</dd>
-                    </div>
-                    
-                    <div>
-                        <dt class="text-sm font-medium text-gray-500">Languages Spoken</dt>
-                        <dd class="mt-1 text-sm text-gray-900">{{ profile.languages_spoken|default:"Not provided" }}</dd>
-                    </div>
-                    
-                    {% if profile.bio %}
-                    <div class="sm:col-span-2">
-                        <dt class="text-sm font-medium text-gray-500">Biography</dt>
-                        <dd class="mt-1 text-sm text-gray-900">{{ profile.bio }}</dd>
-                    </div>
-                    {% endif %}
-                    
-                    <div>
-                        <dt class="text-sm font-medium text-gray-500">Account Status</dt>
-                        <dd class="mt-1">
-                            {% if user.is_verified %}
-                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                                    Verified
-                                </span>
-                            {% else %}
-                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
-                                    Pending Verification
-                                </span>
-                            {% endif %}
-                        </dd>
-                    </div>
-                    
-                    <div>
-                        <dt class="text-sm font-medium text-gray-500">Member Since</dt>
-                        <dd class="mt-1 text-sm text-gray-900">{{ user.created_at|date:"d F Y" }}</dd>
-                    </div>
-                </dl>
-            </div>
-        </div>
+{% block actions %}
+<a class="p-btn" href="{% url 'accounts:profile_edit' %}">Edit profile</a>
+{% endblock %}
+
+{% block body %}
+{% if not profile_complete %}
+<a class="p-alert p-alert-warn" href="{% url 'accounts:profile_complete' %}">
+    <span>
+        <span class="p-alert-title block">Your profile is not complete</span>
+        <span class="mt-1 block">Add your country, region, church and education level to unlock everything.</span>
+    </span>
+    <span class="p-btn-ghost p-btn-sm shrink-0">Complete profile</span>
+</a>
+{% endif %}
+
+<div class="grid gap-6 lg:grid-cols-3">
+    <div class="min-w-0 space-y-6 lg:col-span-2">
+        {% include 'accounts/_profile_details.html' with person=user %}
     </div>
+    <aside class="min-w-0 space-y-6">
+        {% if profile.profile_photo %}
+        <div class="p-card overflow-hidden">
+            <img src="{{ profile.profile_photo.url }}" alt="{{ user.get_full_name }}" class="aspect-square w-full object-cover">
+        </div>
+        {% endif %}
+        {% include 'accounts/_account_card.html' with person=user %}
+    </aside>
 </div>
 {% endblock %}

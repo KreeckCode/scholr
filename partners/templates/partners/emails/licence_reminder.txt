@@ -1,6 +1,0 @@
-{% autoescape off %}Licence {{ licence.number }} for {{ organisation.name }} ends on {{ licence.ends_on|date:"d F Y" }}, in {{ days }} day{{ days|pluralize }}.
-
-After that date no new cohorts can open and no new online access can be given at its locations. Cohorts already running can still be recorded.
-
-To renew, reply to this email or contact the METP team at {{ brand.email }}.
-{% endautoescape %}

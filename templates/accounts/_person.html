@@ -1,0 +1,7 @@
+<div class="flex min-w-0 items-center gap-3">
+    <span class="p-avatar" aria-hidden="true">{{ person.first_name|first|default:person.username|first }}{{ person.last_name|first }}</span>
+    <div class="min-w-0">
+        {% if href %}<a class="p-link block truncate text-sm" href="{{ href }}">{{ person.get_full_name|default:person.username }}</a>{% else %}<p class="truncate text-sm font-semibold p-navy">{{ person.get_full_name|default:person.username }}</p>{% endif %}
+        {% if sub %}<p class="truncate text-xs p-muted">{{ sub }}</p>{% endif %}
+    </div>
+</div>

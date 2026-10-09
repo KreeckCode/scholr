@@ -1,215 +1,99 @@
-{% extends 'base/base.html' %}
+{% extends 'ui/base.html' %}
 
-{% block title %}Dashboard - scholr{% endblock %}
+{% block title %}My learning{% endblock %}
+{% block eyebrow %}{{ profile.church_name|default:brand.name }}{% if profile.region %} &middot; {{ profile.region }}{% endif %}{% endblock %}
+{% block heading %}Welcome back, {{ user.first_name|default:user.username }}{% endblock %}
 
-{% block content %}
-<div class="min-h-screen bg-gray-50">
-    <!-- Hero Section -->
-    <div class="bg-gradient-to-r from-blue-600 to-blue-700 text-white">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-            <h1 class="text-3xl font-bold">Welcome back, {{ user.first_name }}!</h1>
-            <p class="mt-2 text-blue-100">{{ profile.church_name }}{% if profile.region %}, {{ profile.region }}{% endif %}</p>
-        </div>
-    </div>
-    
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-8 pb-12">
-        <!-- Alerts -->
-        {% if not user.is_verified %}
-        <div class="mb-6 bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-r-lg shadow-sm">
-            <div class="flex">
-                <svg class="h-5 w-5 text-yellow-400 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
-                </svg>
-                <p class="ml-3 text-sm text-yellow-700">
-                    <span class="font-semibold">Account Pending Verification</span> — Your dean will review your application soon. Once verified, you'll be able to access the learning platform.
-                </p>
-            </div>
-        </div>
-        {% endif %}
-        
-        {% if not profile_complete %}
-        <div class="mb-6 bg-blue-50 border-l-4 border-blue-400 p-4 rounded-r-lg shadow-sm">
-            <div class="flex">
-                <svg class="h-5 w-5 text-blue-400 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
-                </svg>
-                <p class="ml-3 text-sm text-blue-700">
-                    <span class="font-semibold">Complete Your Profile</span> — 
-                    <a href="{% url 'accounts:profile_complete' %}" class="underline hover:text-blue-800">Add your details</a> to help us serve you better.
-                </p>
-            </div>
-        </div>
-        {% endif %}
-        
-        <!-- Quick Action Cards (Primary CTAs) -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <!-- Access Learning Platform -->
-            {% if user.is_verified %}
-            <a href="{% url 'integration:access_lms' %}" 
-               class="group block bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-200 border-2 border-transparent hover:border-blue-500 p-6 transform hover:-translate-y-1">
-                <div class="flex items-center justify-between mb-3">
-                    <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg p-3 shadow-md">
-                        <svg class="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
-                        </svg>
-                    </div>
-                    <svg class="h-5 w-5 text-gray-400 group-hover:text-blue-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-                    </svg>
-                </div>
-                <h3 class="text-lg font-bold text-gray-900 mb-1">Learning Platform</h3>
-                <p class="text-sm text-gray-600">Access your courses and study materials</p>
-            </a>
-            {% else %}
-            <div class="block bg-gray-50 rounded-xl shadow-sm p-6 opacity-60 border-2 border-gray-200">
-                <div class="flex items-center justify-between mb-3">
-                    <div class="bg-gray-300 rounded-lg p-3">
-                        <svg class="h-6 w-6 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
-                        </svg>
-                    </div>
-                </div>
-                <h3 class="text-lg font-bold text-gray-500 mb-1">Learning Platform</h3>
-                <p class="text-sm text-gray-400">Requires account verification</p>
-            </div>
-            {% endif %}
-            
-            <!-- Browse Courses -->
-            <a href="{% url 'shop:catalog' %}" 
-               class="group block bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-200 border-2 border-transparent hover:border-green-500 p-6 transform hover:-translate-y-1">
-                <div class="flex items-center justify-between mb-3">
-                    <div class="bg-gradient-to-br from-green-500 to-green-600 rounded-lg p-3 shadow-md">
-                        <svg class="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                        </svg>
-                    </div>
-                    <svg class="h-5 w-5 text-gray-400 group-hover:text-green-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-                    </svg>
-                </div>
-                <h3 class="text-lg font-bold text-gray-900 mb-1">Browse Courses</h3>
-                <p class="text-sm text-gray-600">Discover new training programs</p>
-            </a>
-            
-            <!-- My Courses -->
-            <a href="{% url 'shop:my_courses' %}" 
-               class="group block bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-200 border-2 border-transparent hover:border-purple-500 p-6 transform hover:-translate-y-1">
-                <div class="flex items-center justify-between mb-3">
-                    <div class="bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg p-3 shadow-md">
-                        <svg class="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
-                        </svg>
-                    </div>
-                    <svg class="h-5 w-5 text-gray-400 group-hover:text-purple-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-                    </svg>
-                </div>
-                <h3 class="text-lg font-bold text-gray-900 mb-1">My Courses</h3>
-                <p class="text-sm text-gray-600">View your enrollments and progress</p>
-            </a>
-        </div>
-        
-        <!-- Stats Grid -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <div class="bg-white rounded-xl shadow p-6">
-                <div class="flex items-center">
-                    <div class="flex-shrink-0 bg-blue-100 rounded-lg p-3">
-                        <svg class="h-8 w-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
-                        </svg>
-                    </div>
-                    <div class="ml-5">
-                        <p class="text-sm font-medium text-gray-500">Enrolled Courses</p>
-                        <p class="text-3xl font-bold text-gray-900">{{ enrolled_courses|length }}</p>
-                    </div>
-                </div>
-                <div class="mt-4">
-                    <a href="{% url 'shop:my_courses' %}" class="text-sm text-blue-600 hover:text-blue-500 font-medium">
-                        View all →
-                    </a>
-                </div>
-            </div>
-            
-            <div class="bg-white rounded-xl shadow p-6">
-                <div class="flex items-center">
-                    <div class="flex-shrink-0 bg-green-100 rounded-lg p-3">
-                        <svg class="h-8 w-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                        </svg>
-                    </div>
-                    <div class="ml-5">
-                        <p class="text-sm font-medium text-gray-500">Certificates Earned</p>
-                        <p class="text-3xl font-bold text-gray-900">{{ certificates|length }}</p>
-                    </div>
-                </div>
-                <div class="mt-4">
-                    <span class="text-sm text-gray-500">Keep learning to earn more</span>
-                </div>
-            </div>
-            
-            <div class="bg-white rounded-xl shadow p-6">
-                <div class="flex items-center">
-                    <div class="flex-shrink-0 bg-purple-100 rounded-lg p-3">
-                        <svg class="h-8 w-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-                        </svg>
-                    </div>
-                    <div class="ml-5">
-                        <p class="text-sm font-medium text-gray-500">Profile Status</p>
-                        <p class="text-3xl font-bold text-gray-900">
-                            {% if profile_complete %}
-                                <span class="text-green-600">✓</span>
-                            {% else %}
-                                <span class="text-yellow-600">!</span>
-                            {% endif %}
+{% block actions %}
+{% if user.is_verified and SCHOLR_LMS_ENABLED %}<a class="p-btn" href="{% url 'integration:access_lms' %}">Open my courses</a>{% endif %}
+{% if SCHOLR_LMS_ENABLED %}<a class="p-btn-ghost" href="{% url 'shop:my_courses' %}">My enrolments</a>{% endif %}
+{% endblock %}
+
+{% block body %}
+{% if not user.is_verified %}
+<div class="p-alert p-alert-warn">
+    <p class="p-alert-title">Your account is waiting for verification</p>
+    <p class="mt-1">Your dean or training centre will confirm your details. Your courses open as soon as you are verified.</p>
+</div>
+{% endif %}
+
+{% if not profile_complete %}
+<a class="p-alert p-alert-warn" href="{% url 'accounts:profile_complete' %}">
+    <span>
+        <span class="p-alert-title block">Finish your profile</span>
+        <span class="mt-1 block">Your country, region, church and education level are still needed.</span>
+    </span>
+    <span class="p-btn-ghost p-btn-sm shrink-0">Complete profile</span>
+</a>
+{% endif %}
+
+<div class="grid gap-6 lg:grid-cols-3">
+    <section class="min-w-0 lg:col-span-2">
+        <h2 class="p-section-title p-section-title-lg mb-4">Your programmes</h2>
+        <div class="space-y-4">
+            {% for enrolment in enrolled_courses %}
+            {% with product=enrolment.product %}
+            <article class="p-card overflow-hidden">
+                <div class="p-card-head">
+                    <div class="min-w-0">
+                        <h3 class="p-card-title truncate">{{ product.name }}</h3>
+                        <p class="text-xs p-muted">
+                            Enrolled {{ enrolment.created_at|date:'d M Y' }}
+                            {% if enrolment.expires_at %} &middot; access until {{ enrolment.expires_at|date:'d M Y' }}{% endif %}
                         </p>
                     </div>
+                    {% if enrolment.is_expired %}<span class="p-badge p-badge-muted">Access ended</span>{% else %}<span class="p-badge p-badge-good">Active</span>{% endif %}
                 </div>
-                <div class="mt-4">
-                    <a href="{% url 'accounts:profile' %}" class="text-sm text-purple-600 hover:text-purple-500 font-medium">
-                        View profile →
-                    </a>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Recent Activity -->
-        <div class="bg-white rounded-xl shadow">
-            <div class="px-6 py-5 border-b border-gray-200">
-                <h3 class="text-lg font-semibold text-gray-900">Recent Activity</h3>
-            </div>
-            <div class="px-6 py-5">
-                {% if recent_activity %}
-                    <ul class="divide-y divide-gray-200">
-                        {% for activity in recent_activity %}
-                        <li class="py-4 flex items-start">
-                            <div class="flex-shrink-0">
-                                <div class="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center">
-                                    <svg class="h-4 w-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                                    </svg>
-                                </div>
-                            </div>
-                            <p class="ml-3 text-sm text-gray-700">{{ activity }}</p>
-                        </li>
-                        {% endfor %}
-                    </ul>
-                {% else %}
-                    <div class="text-center py-12">
-                        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-                        </svg>
-                        <h3 class="mt-2 text-sm font-medium text-gray-900">No activity yet</h3>
-                        <p class="mt-1 text-sm text-gray-500">Get started by browsing our course catalog.</p>
-                        <div class="mt-6">
-                            <a href="{% url 'shop:catalog' %}" class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">
-                                Browse Courses
-                            </a>
-                        </div>
-                    </div>
+
+                {% with courses=product.bundle_items.all %}
+                {% if courses %}
+                <ol class="p-list">
+                    {% for item in courses %}
+                    <li class="flex items-center justify-between gap-3 px-5 py-3">
+                        <span class="flex min-w-0 items-center gap-3">
+                            <span class="p-dot">{{ forloop.counter }}</span>
+                            <span class="truncate text-sm p-navy">{{ item.course.title }}</span>
+                        </span>
+                        {% if item.course.category %}<span class="hidden shrink-0 text-xs p-muted sm:inline">{{ item.course.category.name }}</span>{% endif %}
+                    </li>
+                    {% endfor %}
+                </ol>
                 {% endif %}
+                {% endwith %}
+
+                {% if enrolment.progress_percentage %}
+                <div class="p-card-foot justify-start">
+                    <div class="flex w-full items-center gap-3">
+                        <div class="p-meter flex-1"><span style="width: {{ enrolment.progress_percentage|floatformat:0 }}%"></span></div>
+                        <span class="text-xs font-semibold tabular-nums p-navy">{{ enrolment.progress_percentage|floatformat:0 }}%</span>
+                    </div>
+                </div>
+                {% endif %}
+            </article>
+            {% endwith %}
+            {% empty %}
+            <div class="p-card p-empty">
+                <p class="font-semibold p-navy">You are not enrolled in anything yet</p>
+                <p class="mt-1">{% if SCHOLR_PARTNERS_ENABLED %}If you study at a training location, your coordinator gives you online access.{% else %}Browse the catalogue to find a course.{% endif %}</p>
+                {% if SCHOLR_LMS_ENABLED %}<a class="p-btn-ghost mt-4" href="{% url 'shop:catalog' %}">Browse courses</a>{% endif %}
             </div>
+            {% endfor %}
         </div>
-    </div>
+    </section>
+
+    <aside class="min-w-0 space-y-4">
+        <section class="p-card">
+            <div class="p-card-head"><h2 class="p-card-title">Your profile</h2>{% include 'accounts/_status.html' with person=user %}</div>
+            <dl class="p-meta space-y-4 p-5">
+                <div><dt>Church</dt><dd>{{ profile.church_name|default:'Not provided' }}</dd></div>
+                <div><dt>Location</dt><dd>{% if profile.region %}{{ profile.region }}, {% endif %}{{ profile.country|default:'Not provided' }}</dd></div>
+                <div><dt>Phone number</dt><dd>{{ user.phone_number|default:'Not provided' }}</dd></div>
+            </dl>
+            <div class="p-card-foot justify-start">
+                <a class="p-btn-ghost p-btn-sm" href="{% url 'accounts:profile' %}">View profile</a>
+                <a class="p-btn-ghost p-btn-sm" href="{% url 'accounts:profile_edit' %}">Edit</a>
+            </div>
+        </section>
+    </aside>
 </div>
 {% endblock %}

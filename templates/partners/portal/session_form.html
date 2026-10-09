@@ -1,4 +1,4 @@
-{% extends 'partners/_base.html' %}
+{% extends 'ui/base.html' %}
 {% load partners_tags %}
 
 {% block title %}{% if session_obj %}Edit session{% else %}Add session{% endif %}{% endblock %}
@@ -10,7 +10,7 @@
 <div class="max-w-3xl space-y-6">
     <form method="post" class="p-card p-6 sm:p-8" novalidate>
         {% csrf_token %}
-        {% include 'partners/_form_errors.html' %}
+        {% include 'ui/_form_errors.html' %}
         <div class="grid gap-5 sm:grid-cols-2">
             {% field form.course wide=True %}
             {% field form.session_date %}

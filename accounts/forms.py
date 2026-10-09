@@ -296,6 +296,27 @@ class UserProfileForm(forms.ModelForm):
         return languages
 
 
+class ProfileCompletionForm(UserProfileForm):
+    """
+    Only the fields the completion page shows. Posting the full profile form from that
+    page would clear every field it does not render.
+    """
+
+    REQUIRED = ('country', 'region', 'church_name', 'education_level')
+
+    class Meta(UserProfileForm.Meta):
+        exclude = None
+        fields = [
+            'country', 'region', 'church_name', 'church_size',
+            'position_title', 'education_level', 'languages_spoken',
+        ]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for name in self.REQUIRED:
+            self.fields[name].required = True
+
+
 class UserUpdateForm(forms.ModelForm):
     """
     Form for updating basic user information

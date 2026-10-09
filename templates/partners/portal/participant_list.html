@@ -1,4 +1,4 @@
-{% extends 'partners/_base.html' %}
+{% extends 'ui/base.html' %}
 {% load partners_tags %}
 
 {% block title %}Participants &middot; {{ location.name }}{% endblock %}
@@ -47,5 +47,5 @@
         </table>
     </div>
 </div>
-{% include 'partners/_pagination.html' %}
+{% include 'ui/_pagination.html' %}
 {% endblock %}

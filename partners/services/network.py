@@ -3,15 +3,22 @@ Network-wide counts for programme staff: participants by country, region and loc
 Each measure is its own aggregate, so joins never multiply rows.
 """
 
+from datetime import timedelta
+
 from django.core.cache import cache
 from django.db.models import Count, Q
+from django.utils import timezone
 
 from partners.models import (
+    FORWARD_STAGES,
     Cohort,
     CohortMembership,
     CohortSession,
+    Licence,
     PartnerOrganisation,
+    Partnership,
     SessionAttendance,
+    Stage,
     TrainingLocation,
 )
 from partners.models.base import country_name
@@ -124,3 +131,33 @@ def network_overview(use_cache=True):
     if use_cache:
         cache.set(CACHE_KEY, data, CACHE_SECONDS)
     return data
+
+
+def dashboard_snapshot(today=None, licence_window_days=90):
+    """Network totals, pipeline counts and licences ending soon, for the administration dashboard."""
+    today = today or timezone.localdate()
+    open_partnerships = Partnership.objects.filter(organisation__is_archived=False)
+    counts = dict(open_partnerships.values_list('stage').annotate(total=Count('id')))
+    pipeline = [
+        {'stage': stage, 'label': Stage(stage).label, 'count': counts.get(stage, 0)}
+        for stage in FORWARD_STAGES
+    ]
+    licences_ending = (
+        Licence.objects.filter(
+            status=Licence.Status.ACTIVE,
+            ends_on__gte=today,
+            ends_on__lte=today + timedelta(days=licence_window_days),
+        )
+        .select_related('organisation')
+        .order_by('ends_on')[:5]
+    )
+    return {
+        'totals': network_overview()['totals'],
+        'pipeline': pipeline,
+        'paused': counts.get(Stage.PAUSED, 0),
+        'overdue': open_partnerships.exclude(stage=Stage.LOST).filter(next_action_due__lt=today).count(),
+        'licences_ending': [
+            {'licence': licence, 'days_left': (licence.ends_on - today).days} for licence in licences_ending
+        ],
+        'licence_window_days': licence_window_days,
+    }

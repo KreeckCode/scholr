@@ -1,0 +1,15 @@
+{% with name=request.resolver_match.url_name %}
+<nav class="p-tabs" aria-label="Administration">
+    {% if user.role == 'admin' %}
+    <a href="{% url 'accounts:admin_dashboard' %}" class="p-tab {% if name == 'admin_dashboard' %}p-tab-on{% endif %}" {% if name == 'admin_dashboard' %}aria-current="page"{% endif %}>Overview</a>
+    {% else %}
+    <a href="{% url 'accounts:dean_dashboard' %}" class="p-tab {% if name == 'dean_dashboard' %}p-tab-on{% endif %}" {% if name == 'dean_dashboard' %}aria-current="page"{% endif %}>Overview</a>
+    {% endif %}
+    <a href="{% url 'accounts:student_list' %}" class="p-tab {% if name == 'student_list' or name == 'student_detail' or name == 'verify_student' %}p-tab-on{% endif %}" {% if name == 'student_list' %}aria-current="page"{% endif %}>Students</a>
+    {% if user.role == 'admin' %}
+    <a href="{% url 'accounts:analytics' %}" class="p-tab {% if name == 'analytics' %}p-tab-on{% endif %}" {% if name == 'analytics' %}aria-current="page"{% endif %}>Analytics</a>
+    {% if SCHOLR_PARTNERS_ENABLED %}<a href="{% url 'partners:pipeline' %}" class="p-tab">Partner network</a>{% endif %}
+    {% if SCHOLR_LMS_ENABLED %}<a href="{% url 'integration:sync_dashboard' %}" class="p-tab">Moodle sync</a>{% endif %}
+    {% endif %}
+</nav>
+{% endwith %}

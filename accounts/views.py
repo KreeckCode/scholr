@@ -29,6 +29,7 @@ from scholr.features import (
 from .forms import (
     CustomAuthenticationForm,
     PastorRegistrationForm,
+    ProfileCompletionForm,
     UserProfileForm,
     UserUpdateForm,
 )
@@ -260,22 +261,10 @@ def student_dashboard_view(request):
         .order_by('-created_at')
     )
 
-    recent_activity = [
-        f'Enrolled in {enrollment.product.name} on '
-        f'{enrollment.created_at.strftime("%d %B %Y")}'
-        for enrollment in enrolled_courses[:5]
-        if enrollment.created_at
-    ]
-
-    if not profile_complete:
-        messages.info(request, 'Complete your profile to access all features.')
-
     return render(request, 'accounts/dashboards/student.html', {
         'profile': profile,
         'profile_complete': profile_complete,
         'enrolled_courses': enrolled_courses,
-        'certificates': [],
-        'recent_activity': recent_activity,
     })
 
 
@@ -330,12 +319,17 @@ def admin_dashboard_view(request):
         .order_by('-count')[:5]
     )
 
-    return render(request, 'accounts/dashboards/admin.html', {
+    context = {
         'stats': stats,
-        'recent_users': User.objects.select_related('profile').order_by('-created_at')[:10],
+        'recent_users': User.objects.select_related('profile').order_by('-created_at')[:8],
         'recent_failed_logins': LoginAttempt.objects.filter(success=False).order_by('-timestamp')[:10],
-        'countries': countries,
-    })
+        'countries': list(countries),
+    }
+    if partners_enabled():
+        from partners.services.network import dashboard_snapshot
+        context['network'] = dashboard_snapshot()
+
+    return render(request, 'accounts/dashboards/admin.html', context)
 
 
 # ==================== PROFILE ====================
@@ -400,8 +394,8 @@ def profile_complete_view(request):
     profile = get_or_create_profile(user)
 
     if request.method == 'POST':
-        profile_form = UserProfileForm(request.POST, request.FILES, instance=profile)
-        user_form = UserUpdateForm(request.POST, request.FILES, instance=user)
+        profile_form = ProfileCompletionForm(request.POST, instance=profile)
+        user_form = UserUpdateForm(request.POST, instance=user)
 
         if profile_form.is_valid() and user_form.is_valid():
             with transaction.atomic():
@@ -412,7 +406,7 @@ def profile_complete_view(request):
 
         messages.error(request, 'Please correct the errors below.')
     else:
-        profile_form = UserProfileForm(instance=profile)
+        profile_form = ProfileCompletionForm(instance=profile)
         user_form = UserUpdateForm(instance=user)
 
     required_fields = [
@@ -631,9 +625,6 @@ def student_detail_view(request, user_id):
         'student': student,
         'profile': getattr(student, 'profile', None),
         'enrollments': enrollments,
-        'courses': enrollments,
-        'progress': {},
-        'certificates': [],
     })
 
 
@@ -692,14 +683,33 @@ def analytics_view(request):
         .order_by('-count')
     )
 
+    countries = list(countries)
+    by_day = {row['day']: row['count'] for row in recent_registrations}
+    today = timezone.localdate()
+    registrations = [
+        {'day': day, 'count': by_day.get(day, 0)}
+        for day in (today - timedelta(days=offset) for offset in range(29, -1, -1))
+    ]
+    education_labels = dict(UserProfile.EDUCATION_CHOICES)
+    size_labels = dict(UserProfile.CHURCH_SIZE_CHOICES)
+
     return render(request, 'accounts/analytics.html', {
         'total_users': User.objects.count(),
         'total_students': total_students,
         'verified_students': verified_students,
         'verification_rate': (verified_students / total_students * 100) if total_students else 0,
         'countries': countries,
+        'countries_peak': countries[0]['count'] if countries else 0,
         'regions': regions,
-        'education': education,
-        'church_sizes': church_sizes,
-        'recent_registrations': list(recent_registrations),
+        'education': [
+            {'label': education_labels.get(row['education_level'], row['education_level']), 'count': row['count']}
+            for row in education
+        ],
+        'church_sizes': [
+            {'label': size_labels.get(row['church_size'], row['church_size']), 'count': row['count']}
+            for row in church_sizes
+        ],
+        'recent_registrations': registrations,
+        'registrations_total': sum(row['count'] for row in registrations),
+        'registrations_peak': max((row['count'] for row in registrations), default=0),
     })

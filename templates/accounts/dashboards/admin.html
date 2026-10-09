@@ -1,240 +1,162 @@
-{% extends 'base/base.html' %}
+{% extends 'ui/base.html' %}
 
-{% block title %}Admin Dashboard - scholr{% endblock %}
+{% block title %}Administration{% endblock %}
+{% block subnav %}{% include 'accounts/_nav.html' %}{% endblock %}
+{% block eyebrow %}{{ brand.name }}{% endblock %}
+{% block heading %}Administration{% endblock %}
+{% block subheading %}<p class="mt-2 text-sm p-slate">Students, verification{% if network %} and the partner network{% endif %} at a glance.</p>{% endblock %}
 
-{% block content %}
-<div class="min-h-screen bg-gray-50">
-    <!-- Hero Section -->
-    <div class="bg-gradient-to-r from-gray-800 to-gray-900 text-white">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-            <h1 class="text-3xl font-bold">System Administration</h1>
-            <p class="mt-2 text-gray-300">System-wide overview and management</p>
-        </div>
-    </div>
-    
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-8 pb-12">
-        <!-- Quick Actions -->
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-            <a href="{% url 'integration:sync_dashboard' %}" 
-               class="group block bg-white rounded-xl shadow-md hover:shadow-xl transition-all p-6 border-2 border-transparent hover:border-blue-500">
-                <div class="flex items-center justify-between mb-2">
-                    <div class="bg-blue-100 rounded-lg p-3">
-                        <svg class="h-6 w-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
-                        </svg>
-                    </div>
-                    <svg class="h-5 w-5 text-gray-400 group-hover:text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-                    </svg>
-                </div>
-                <h3 class="text-lg font-semibold text-gray-900">Sync Dashboard</h3>
-                <p class="text-sm text-gray-600 mt-1">Manage Moodle sync</p>
-            </a>
-            
-            <a href="{% url 'integration:course_list' %}" 
-               class="group block bg-white rounded-xl shadow-md hover:shadow-xl transition-all p-6 border-2 border-transparent hover:border-green-500">
-                <div class="flex items-center justify-between mb-2">
-                    <div class="bg-green-100 rounded-lg p-3">
-                        <svg class="h-6 w-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
-                        </svg>
-                    </div>
-                    <svg class="h-5 w-5 text-gray-400 group-hover:text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-                    </svg>
-                </div>
-                <h3 class="text-lg font-semibold text-gray-900">Manage Courses</h3>
-                <p class="text-sm text-gray-600 mt-1">Create and edit courses</p>
-            </a>
-            
-            <a href="{% url 'accounts:student_list' %}" 
-               class="group block bg-white rounded-xl shadow-md hover:shadow-xl transition-all p-6 border-2 border-transparent hover:border-purple-500">
-                <div class="flex items-center justify-between mb-2">
-                    <div class="bg-purple-100 rounded-lg p-3">
-                        <svg class="h-6 w-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
-                        </svg>
-                    </div>
-                    <svg class="h-5 w-5 text-gray-400 group-hover:text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-                    </svg>
-                </div>
-                <h3 class="text-lg font-semibold text-gray-900">Manage Students</h3>
-                <p class="text-sm text-gray-600 mt-1">View all users</p>
-            </a>
-            
-            <a href="{% url 'accounts:analytics' %}" 
-               class="group block bg-white rounded-xl shadow-md hover:shadow-xl transition-all p-6 border-2 border-transparent hover:border-yellow-500">
-                <div class="flex items-center justify-between mb-2">
-                    <div class="bg-yellow-100 rounded-lg p-3">
-                        <svg class="h-6 w-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
-                        </svg>
-                    </div>
-                    <svg class="h-5 w-5 text-gray-400 group-hover:text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-                    </svg>
-                </div>
-                <h3 class="text-lg font-semibold text-gray-900">Analytics</h3>
-                <p class="text-sm text-gray-600 mt-1">View detailed reports</p>
-            </a>
-        </div>
-        
-        <!-- Stats Grid -->
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-            <div class="bg-white rounded-xl shadow p-6">
-                <div class="flex items-center justify-between mb-4">
-                    <div class="flex-shrink-0 bg-blue-100 rounded-lg p-3">
-                        <svg class="h-6 w-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
-                        </svg>
-                    </div>
-                </div>
-                <p class="text-sm font-medium text-gray-500">Total Users</p>
-                <p class="text-3xl font-bold text-gray-900">{{ stats.total_users }}</p>
-            </div>
-            
-            <div class="bg-white rounded-xl shadow p-6">
-                <div class="flex items-center justify-between mb-4">
-                    <div class="flex-shrink-0 bg-green-100 rounded-lg p-3">
-                        <svg class="h-6 w-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
-                        </svg>
-                    </div>
-                </div>
-                <p class="text-sm font-medium text-gray-500">Students</p>
-                <p class="text-3xl font-bold text-gray-900">{{ stats.total_students }}</p>
-            </div>
-            
-            <div class="bg-white rounded-xl shadow p-6">
-                <div class="flex items-center justify-between mb-4">
-                    <div class="flex-shrink-0 bg-purple-100 rounded-lg p-3">
-                        <svg class="h-6 w-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
-                        </svg>
-                    </div>
-                </div>
-                <p class="text-sm font-medium text-gray-500">Deans</p>
-                <p class="text-3xl font-bold text-gray-900">{{ stats.total_deans }}</p>
-            </div>
-            
-            <div class="bg-white rounded-xl shadow p-6">
-                <div class="flex items-center justify-between mb-4">
-                    <div class="flex-shrink-0 bg-yellow-100 rounded-lg p-3">
-                        <svg class="h-6 w-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                        </svg>
-                    </div>
-                </div>
-                <p class="text-sm font-medium text-gray-500">Pending Verification</p>
-                <p class="text-3xl font-bold text-gray-900">{{ stats.pending_verifications }}</p>
-            </div>
-        </div>
-        
-        <!-- Two Column Layout -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-            <!-- Geographic Distribution -->
-            <div class="bg-white rounded-xl shadow">
-                <div class="px-6 py-5 border-b border-gray-200">
-                    <h3 class="text-lg font-semibold text-gray-900">Geographic Distribution</h3>
-                </div>
-                <div class="px-6 py-5">
-                    <div class="space-y-4">
-                        {% for country in countries %}
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-center">
-                                <div class="flex-shrink-0 h-10 w-10 rounded-lg bg-blue-100 flex items-center justify-center">
-                                    <svg class="h-5 w-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                    </svg>
-                                </div>
-                                <span class="ml-3 text-sm font-medium text-gray-900">{{ country.country }}</span>
-                            </div>
-                            <span class="text-sm text-gray-500">{{ country.count }} students</span>
-                        </div>
-                        {% empty %}
-                        <p class="text-sm text-gray-500 text-center py-8">No data available</p>
-                        {% endfor %}
-                    </div>
-                    <div class="mt-6 pt-4 border-t border-gray-200">
-                        <a href="{% url 'accounts:analytics' %}" 
-                           class="text-sm font-medium text-blue-600 hover:text-blue-500">
-                            View detailed analytics →
-                        </a>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Recent Registrations -->
-            <div class="bg-white rounded-xl shadow">
-                <div class="px-6 py-5 border-b border-gray-200">
-                    <h3 class="text-lg font-semibold text-gray-900">Recent Registrations</h3>
-                </div>
-                <div class="px-6 py-5">
-                    <div class="space-y-4">
-                        {% for user in recent_users %}
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-center">
-                                <div class="flex-shrink-0 h-10 w-10 rounded-full bg-gray-100 flex items-center justify-center">
-                                    <span class="text-gray-600 font-semibold text-sm">
-                                        {{ user.first_name.0|default:user.username.0 }}{{ user.last_name.0|default:'' }}
-                                    </span>
-                                </div>
-                                <div class="ml-3">
-                                    <p class="text-sm font-medium text-gray-900">{{ user.get_full_name }}</p>
-                                    <p class="text-xs text-gray-500">{{ user.profile.country }}</p>
-                                </div>
-                            </div>
-                            <span class="text-xs text-gray-500">{{ user.created_at|date:"d M" }}</span>
-                        </div>
-                        {% empty %}
-                        <p class="text-sm text-gray-500 text-center py-8">No recent registrations</p>
-                        {% endfor %}
-                    </div>
-                    <div class="mt-6 pt-4 border-t border-gray-200">
-                        <a href="{% url 'accounts:student_list' %}" 
-                           class="text-sm font-medium text-blue-600 hover:text-blue-500">
-                            View all users →
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Recent Failed Logins -->
-        {% if recent_failed_logins %}
-        <div class="bg-white rounded-xl shadow">
-            <div class="px-6 py-5 border-b border-gray-200">
-                <h3 class="text-lg font-semibold text-gray-900">Recent Failed Login Attempts</h3>
-            </div>
-            <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-gray-50">
-                        <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Username</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">IP Address</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Time</th>
-                        </tr>
-                    </thead>
-                    <tbody class="bg-white divide-y divide-gray-200">
-                        {% for attempt in recent_failed_logins %}
-                        <tr class="hover:bg-gray-50">
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                {{ attempt.username|default:"—" }}
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-mono">
-                                {{ attempt.ip_address }}
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                {{ attempt.timestamp|date:"d M Y H:i" }}
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-        {% endif %}
-    </div>
+{% block actions %}
+{% if stats.pending_verifications %}<a class="p-btn" href="{% url 'accounts:student_list' %}?verified=no">Review {{ stats.pending_verifications }} awaiting verification</a>{% endif %}
+<a class="p-btn-ghost" href="{% url 'accounts:analytics' %}">Analytics</a>
+{% endblock %}
+
+{% block body %}
+<div class="grid grid-cols-2 gap-4 lg:grid-cols-5">
+    {% include 'ui/_stat.html' with label='Accounts' value=stats.total_users note='Every role' %}
+    {% url 'accounts:student_list' as students_url %}
+    {% include 'ui/_stat.html' with label='Students' value=stats.total_students href=students_url %}
+    {% include 'ui/_stat.html' with label='Verified' value=stats.verified_students %}
+    {% include 'ui/_stat.html' with label='Awaiting verification' value=stats.pending_verifications href=students_url|add:'?verified=no' %}
+    {% include 'ui/_stat.html' with label='Deans' value=stats.total_deans %}
 </div>
+
+{% if network %}
+<section class="mt-8">
+    <div class="mb-4 flex flex-wrap items-end justify-between gap-3">
+        <div>
+            <h2 class="p-section-title p-section-title-lg">Partner network</h2>
+            <p class="mt-1 text-sm p-muted">Licensed training locations and the partners working towards launch.</p>
+        </div>
+        <div class="flex flex-wrap gap-2">
+            <a class="p-btn-ghost p-btn-sm" href="{% url 'partners:pipeline' %}">Pipeline</a>
+            <a class="p-btn-ghost p-btn-sm" href="{% url 'partners:network' %}">Network</a>
+            <a class="p-btn-ghost p-btn-sm" href="{% url 'partners:licence_list' %}">Licences</a>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
+        {% url 'partners:organisation_list' as partners_url %}
+        {% url 'partners:network' as network_url %}
+        {% include 'ui/_stat.html' with label='Partners' value=network.totals.partners href=partners_url %}
+        {% include 'ui/_stat.html' with label='Locations' value=network.totals.locations href=network_url %}
+        {% include 'ui/_stat.html' with label='Countries' value=network.totals.countries href=network_url %}
+        {% include 'ui/_stat.html' with label='Running cohorts' value=network.totals.cohorts_running %}
+        {% include 'ui/_stat.html' with label='Participants' value=network.totals.enrolled note='Enrolled in cohorts' %}
+        {% include 'ui/_stat.html' with label='Studying online' value=network.totals.online %}
+    </div>
+
+    <div class="mt-4 grid items-start gap-4 lg:grid-cols-5">
+        <div class="p-card lg:col-span-3">
+            <div class="p-card-head">
+                <h3 class="p-card-title">Pipeline</h3>
+                {% if network.overdue %}<a class="p-badge p-badge-warn" href="{% url 'partners:pipeline' %}">{{ network.overdue }} next step{{ network.overdue|pluralize }} overdue</a>{% endif %}
+            </div>
+            <ol class="p-list">
+                {% for step in network.pipeline %}
+                <li class="flex items-center justify-between gap-3 px-5 py-3">
+                    <span class="flex min-w-0 items-center gap-3">
+                        <span class="p-dot {% if step.count %}p-dot-on{% endif %}">{{ forloop.counter }}</span>
+                        <span class="truncate text-sm p-navy">{{ step.label }}</span>
+                    </span>
+                    <span class="text-sm font-semibold tabular-nums {% if step.count %}p-navy{% else %}p-muted{% endif %}">{{ step.count }}</span>
+                </li>
+                {% endfor %}
+            </ol>
+            {% if network.paused %}<div class="p-card-foot justify-start text-xs p-muted">{{ network.paused }} paused</div>{% endif %}
+        </div>
+
+        <div class="p-card lg:col-span-2">
+            <div class="p-card-head"><h3 class="p-card-title">Licences ending soon</h3></div>
+            {% if network.licences_ending %}
+            <ul class="p-list">
+                {% for item in network.licences_ending %}
+                <li class="flex items-center justify-between gap-3 px-5 py-3">
+                    <div class="min-w-0">
+                        <a class="p-link block truncate text-sm" href="{% url 'partners:licence_detail' licence_id=item.licence.public_id %}">{{ item.licence.organisation.name }}</a>
+                        <p class="font-mono text-xs p-muted">{{ item.licence.number }}</p>
+                    </div>
+                    <span class="p-badge {% if item.days_left <= 30 %}p-badge-bad{% else %}p-badge-warn{% endif %}">{% if item.days_left == 0 %}Ends today{% else %}{{ item.days_left }} day{{ item.days_left|pluralize }} left{% endif %}</span>
+                </li>
+                {% endfor %}
+            </ul>
+            {% else %}
+            <p class="p-empty">No active licence ends in the next {{ network.licence_window_days }} days.</p>
+            {% endif %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<div class="mt-8 grid items-start gap-4 lg:grid-cols-2">
+    <section class="p-card">
+        <div class="p-card-head">
+            <h2 class="p-card-title">Students by country</h2>
+            <a class="p-btn-ghost p-btn-sm" href="{% url 'accounts:analytics' %}">Analytics</a>
+        </div>
+        {% if countries %}
+        <ul class="space-y-4 p-5">
+            {% with peak=countries.0.count %}
+            {% for row in countries %}
+            <li>
+                <div class="mb-1.5 flex items-center justify-between text-sm">
+                    <span class="font-medium p-navy">{{ row.country }}</span>
+                    <span class="tabular-nums p-muted">{{ row.count }}</span>
+                </div>
+                <div class="p-meter"><span style="width: {% widthratio row.count peak 100 %}%"></span></div>
+            </li>
+            {% endfor %}
+            {% endwith %}
+        </ul>
+        {% else %}
+        <p class="p-empty">No profiles have a country yet.</p>
+        {% endif %}
+    </section>
+
+    <section class="p-card">
+        <div class="p-card-head">
+            <h2 class="p-card-title">Newest accounts</h2>
+            <a class="p-btn-ghost p-btn-sm" href="{% url 'accounts:student_list' %}">All students</a>
+        </div>
+        <ul class="p-list">
+            {% for person in recent_users %}
+            <li class="flex items-center justify-between gap-3 px-5 py-3">
+                {% if person.role == 'student' %}
+                {% url 'accounts:student_detail' person.id as person_url %}
+                {% include 'accounts/_person.html' with href=person_url sub=person.profile.country|default:person.get_role_display %}
+                {% else %}
+                {% include 'accounts/_person.html' with href='' sub=person.get_role_display %}
+                {% endif %}
+                <span class="shrink-0 text-xs p-muted">{{ person.created_at|date:'d M' }}</span>
+            </li>
+            {% empty %}
+            <li class="p-empty">No accounts yet.</li>
+            {% endfor %}
+        </ul>
+    </section>
+</div>
+
+{% if recent_failed_logins %}
+<section class="p-card mt-8 overflow-hidden">
+    <div class="p-card-head">
+        <h2 class="p-card-title">Failed sign-ins</h2>
+        <span class="text-xs p-muted">Most recent {{ recent_failed_logins|length }}</span>
+    </div>
+    <div class="overflow-x-auto">
+        <table class="p-table">
+            <thead><tr><th>Username or phone</th><th>IP address</th><th>Device</th><th class="p-num">When</th></tr></thead>
+            <tbody>
+                {% for attempt in recent_failed_logins %}
+                <tr>
+                    <td class="whitespace-nowrap font-medium p-navy">{{ attempt.username|default:attempt.phone_number|default:'Not given' }}</td>
+                    <td class="whitespace-nowrap font-mono text-xs">{{ attempt.ip_address|default:'Unknown' }}</td>
+                    <td class="max-w-xs truncate text-xs p-muted" title="{{ attempt.user_agent }}">{{ attempt.user_agent|truncatechars:60|default:'Unknown' }}</td>
+                    <td class="p-num whitespace-nowrap">{{ attempt.timestamp|date:'d M Y, H:i' }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endif %}
 {% endblock %}

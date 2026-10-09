@@ -1,76 +1,33 @@
-{% extends 'base/base.html' %}
+{% extends 'ui/base.html' %}
 
-{% block title %}Verify Student - scholr CAS{% endblock %}
+{% block title %}Verify {{ student.get_full_name|default:student.username }}{% endblock %}
+{% block subnav %}{% include 'accounts/_nav.html' %}{% endblock %}
+{% block eyebrow %}<a href="{% url 'accounts:student_detail' student.id %}">{{ student.get_full_name|default:student.username }}</a>{% endblock %}
+{% block heading %}Verify this student{% endblock %}
+{% block subheading %}<p class="mt-2 max-w-2xl text-sm p-slate">Once verified, {{ student.first_name|default:'they' }} can sign in{% if SCHOLR_LMS_ENABLED %}, a learning platform account is created, and any paid or licence-funded enrolments are processed{% endif %}.</p>{% endblock %}
 
-{% block content %}
-<div class="max-w-2xl mx-auto">
-    <div class="bg-white shadow rounded-lg">
-        <div class="px-4 py-5 sm:p-6">
-            <h2 class="text-2xl font-bold text-gray-900 mb-6">Verify Student Account</h2>
-            
-            <div class="bg-blue-50 border-l-4 border-blue-400 p-4 mb-6">
-                <p class="text-sm text-blue-700">
-                    Please review the student's information below before verifying their account. 
-                    Once verified, the student will have access to all training materials.
-                </p>
-            </div>
-            
-            <dl class="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2 mb-6">
-                <div>
-                    <dt class="text-sm font-medium text-gray-500">Full Name</dt>
-                    <dd class="mt-1 text-sm text-gray-900">{{ student.get_full_name }}</dd>
-                </div>
-                <div>
-                    <dt class="text-sm font-medium text-gray-500">Phone Number</dt>
-                    <dd class="mt-1 text-sm text-gray-900">{{ student.phone_number }}</dd>
-                </div>
-                <div>
-                    <dt class="text-sm font-medium text-gray-500">Church Name</dt>
-                    <dd class="mt-1 text-sm text-gray-900">{{ profile.church_name }}</dd>
-                </div>
-                <div>
-                    <dt class="text-sm font-medium text-gray-500">Location</dt>
-                    <dd class="mt-1 text-sm text-gray-900">{{ profile.region }}, {{ profile.country }}</dd>
-                </div>
-                <div>
-                    <dt class="text-sm font-medium text-gray-500">Education Level</dt>
-                    <dd class="mt-1 text-sm text-gray-900">{{ profile.get_education_level_display|default:"Not provided" }}</dd>
-                </div>
-                <div>
-                    <dt class="text-sm font-medium text-gray-500">Registered</dt>
-                    <dd class="mt-1 text-sm text-gray-900">{{ student.created_at|date:"d F Y" }}</dd>
-                </div>
-            </dl>
-            
-            <form method="post" class="space-y-4">
-                {% csrf_token %}
-                
-                <div class="flex items-start">
-                    <div class="flex items-center h-5">
-                        <input type="checkbox" 
-                               id="confirm"
-                               required
-                               class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
-                    </div>
-                    <div class="ml-3 text-sm">
-                        <label for="confirm" class="font-medium text-gray-700">
-                            I confirm that I have verified this student's identity and eligibility for training
-                        </label>
-                    </div>
-                </div>
-                
-                <div class="flex justify-end space-x-3 pt-4">
-                    <a href="{% url 'accounts:student_list' %}" 
-                       class="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
-                        Cancel
-                    </a>
-                    <button type="submit" 
-                            class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700">
-                        Verify Student
-                    </button>
-                </div>
-            </form>
-        </div>
+{% block body %}
+<div class="grid gap-6 lg:grid-cols-3">
+    <div class="min-w-0 space-y-6 lg:col-span-2">
+        {% include 'accounts/_profile_details.html' with person=student %}
     </div>
+
+    <aside class="min-w-0">
+        <form method="post" class="p-card lg:sticky lg:top-24">
+            {% csrf_token %}
+            <div class="p-card-head"><h2 class="p-card-title">Confirm</h2></div>
+            <div class="space-y-4 p-5">
+                <p class="text-sm p-slate">Check the name, phone number and church against what you know of this person before you verify them.</p>
+                <label class="p-check">
+                    <input type="checkbox" id="confirm" required>
+                    <span class="text-sm font-semibold p-navy">I have confirmed who this person is and that they may train with us</span>
+                </label>
+            </div>
+            <div class="p-card-foot">
+                <a class="p-btn-ghost" href="{% url 'accounts:student_detail' student.id %}">Cancel</a>
+                <button type="submit" class="p-btn">Verify student</button>
+            </div>
+        </form>
+    </aside>
 </div>
 {% endblock %}
