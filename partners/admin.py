@@ -6,6 +6,8 @@ from .models import (
     CohortSession,
     CourseResult,
     Licence,
+    LocationAccessLog,
+    LocationEvent,
     LocationMembership,
     Participant,
     PartnerContact,
@@ -85,7 +87,10 @@ class TrainingLocationAdmin(admin.ModelAdmin):
     list_display = ['name', 'organisation', 'licence', 'country', 'region', 'status']
     list_filter = ['status', 'country', 'is_sensitive']
     search_fields = ['name', 'organisation__name', 'region']
-    readonly_fields = ['public_id', 'created_by', 'created_at', 'updated_at']
+    readonly_fields = [
+        'public_id', 'created_by', 'created_at', 'updated_at', 'position_source',
+        'position_confirmed_at', 'position_confirmed_by',
+    ]
     inlines = [LocationMembershipInline]
 
 
@@ -146,3 +151,21 @@ class SyncOperationAdmin(ReadOnlyAdmin):
     list_display = ['op_id', 'kind', 'result', 'user', 'location', 'received_at', 'resolved_at']
     list_filter = ['result', 'kind']
     search_fields = ['op_id']
+
+
+@admin.register(LocationEvent)
+class LocationEventAdmin(admin.ModelAdmin):
+    list_display = ['title', 'kind', 'location', 'starts_on', 'status']
+    list_filter = ['kind', 'status']
+    search_fields = ['title', 'location__name']
+    date_hierarchy = 'starts_on'
+    raw_id_fields = ['location', 'cohort', 'created_by']
+    filter_horizontal = ['attendees']
+    readonly_fields = ['public_id', 'created_at', 'updated_at']
+
+
+@admin.register(LocationAccessLog)
+class LocationAccessLogAdmin(ReadOnlyAdmin):
+    list_display = ['location', 'user', 'kind', 'ip_address', 'viewed_at']
+    list_filter = ['kind']
+    search_fields = ['location__name', 'user__username']

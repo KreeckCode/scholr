@@ -33,6 +33,10 @@ class AccessError(PartnersError):
     """Online access could not be granted or withdrawn."""
 
 
+class PlaceError(PartnersError):
+    """A map position, trip or location event could not be accepted."""
+
+
 class SyncConflict(PartnersError):
     """An offline change was based on data someone else has since changed."""
 

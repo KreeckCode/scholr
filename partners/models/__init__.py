@@ -1,5 +1,6 @@
 from .base import CountryField, PrivateStorage, PublicIdModel, TimeStampedModel, country_name, private_storage
 from .cohort import Cohort, CohortMembership, CohortSession, Participant
+from .events import LocationAccessLog, LocationEvent
 from .licence import Licence
 from .location import LocationMembership, TrainingLocation
 from .organisation import PartnerContact, PartnerOrganisation
@@ -16,6 +17,8 @@ __all__ = [
     'CourseResult',
     'FORWARD_STAGES',
     'Licence',
+    'LocationAccessLog',
+    'LocationEvent',
     'LocationMembership',
     'Participant',
     'PartnerContact',

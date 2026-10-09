@@ -43,3 +43,10 @@ def get_item(mapping, key):
 @register.inclusion_tag('ui/_field.html')
 def field(bound_field, wide=False):
     return {'field': bound_field, 'wide': wide}
+
+
+@register.filter
+def whatsapp_url(phone):
+    from partners.services.places import whatsapp_url as build
+
+    return build(phone)

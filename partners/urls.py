@@ -1,6 +1,6 @@
 from django.urls import path
 
-from .views import api, offline, portal, public, staff
+from .views import api, offline, places, portal, public, staff
 
 app_name = 'partners'
 
@@ -19,6 +19,10 @@ urlpatterns = [
     path('pipeline/', staff.PipelineBoardView.as_view(), name='pipeline'),
     path('network/', staff.NetworkView.as_view(), name='network'),
     path('network/export.csv', staff.NetworkExportView.as_view(), name='network_export'),
+    path('map/', places.MapView.as_view(), name='map'),
+    path('map/locations.json', places.MapDataView.as_view(), name='map_data'),
+    path('map/locations/<uuid:location_id>/', places.MapPanelView.as_view(), name='map_panel'),
+    path('map/trip.pdf', places.TripSheetView.as_view(), name='map_trip'),
 
     path('organisations/', staff.OrganisationListView.as_view(), name='organisation_list'),
     path('organisations/new/', staff.OrganisationCreateView.as_view(), name='organisation_create'),
@@ -78,6 +82,12 @@ urlpatterns = [
     path(f'{location}team/', portal.TeamView.as_view(), name='team'),
     path(f'{location}team/invite/', portal.MemberInviteView.as_view(), name='member_invite'),
     path(f'{location}team/<int:pk>/<slug:action>/', portal.MemberActionView.as_view(), name='member_action'),
+
+    path(f'{location}place/', places.LocationPlaceView.as_view(), name='location_place'),
+    path(f'{location}place/edit/', places.LocationPlaceUpdateView.as_view(), name='location_place_edit'),
+    path(f'{location}events/new/', places.EventCreateView.as_view(), name='event_create'),
+    path(f'{location}events/<uuid:event_id>/edit/', places.EventUpdateView.as_view(), name='event_edit'),
+    path(f'{location}events/<uuid:event_id>/cancel/', places.EventCancelView.as_view(), name='event_cancel'),
 
     path(f'{location}conflicts/', portal.ConflictListView.as_view(), name='conflicts'),
     path(f'{location}conflicts/<uuid:op_id>/resolve/', portal.ConflictResolveView.as_view(),
