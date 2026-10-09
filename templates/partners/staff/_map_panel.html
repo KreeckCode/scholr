@@ -1,0 +1,121 @@
+{% if location.hides_identities %}
+<div class="p-card-head">
+    <h2 class="p-card-title">Sensitive location</h2>
+    <span class="p-badge p-badge-muted">Approximate area</span>
+</div>
+<div class="space-y-4 p-5 text-sm p-slate">
+    <p>This location is in {{ location.country_name }}. The dot marks the area it is in, not where it is.</p>
+    <p>Its name, exact position, contacts and events are on its own page. Opening that page is recorded.</p>
+    <a class="p-btn" href="{% url 'partners:location_place' location_id=location.public_id %}">Open the location page</a>
+</div>
+{% else %}
+<div class="p-card-head">
+    <div class="min-w-0">
+        <h2 class="p-card-title">{{ location.name }}</h2>
+        <a class="p-link text-xs" href="{% url 'partners:organisation_detail' org_id=location.organisation.public_id %}">{{ location.organisation.name }}</a>
+    </div>
+    {% include 'partners/_badge.html' with value=location.status label=location.get_status_display %}
+</div>
+
+<div class="space-y-5 p-5">
+    <p class="text-xs p-muted">{% if location.city %}{{ location.city }}, {% endif %}{% if location.region %}{{ location.region }}, {% endif %}{{ location.country_name }} &middot; {{ location.language }}{% if location.organisation.partnership %} &middot; {{ location.organisation.partnership.get_stage_display }}{% endif %}</p>
+
+    {% if not location.position_is_confirmed %}
+    <div class="p-alert p-alert-warn mb-0">The position is estimated from the town name. <a class="font-semibold underline" href="{% url 'partners:location_place_edit' location_id=location.public_id %}">Confirm it</a> before anyone travels.</div>
+    {% endif %}
+
+    {% if links %}
+    <div class="flex flex-wrap gap-2">
+        <a class="p-btn p-btn-sm" href="{{ links.google }}" target="_blank" rel="noopener">Directions in Google Maps</a>
+        <a class="p-btn-ghost p-btn-sm" href="{{ links.apple }}" target="_blank" rel="noopener">Apple Maps</a>
+        <a class="p-btn-ghost p-btn-sm" href="{{ links.osm }}" target="_blank" rel="noopener">OpenStreetMap</a>
+        <button type="button" class="p-btn-ghost p-btn-sm" data-copy="{{ links.coordinates }}">Copy coordinates</button>
+        <a class="p-btn-ghost p-btn-sm" href="{{ links.share }}" target="_blank" rel="noopener">Share on WhatsApp</a>
+        <button type="button" class="p-btn-ghost p-btn-sm" data-trip-add="{{ location.public_id }}" data-name="{{ location.name }}" data-partner="{{ location.organisation.name }}" data-lat="{{ location.latitude }}" data-lng="{{ location.longitude }}">Add to trip</button>
+    </div>
+    {% endif %}
+
+    {% if location.address or location.directions or location.nearest_airport or location.travel_notes %}
+    <dl class="p-meta space-y-4">
+        {% if location.address %}<div><dt>Address</dt><dd>{{ location.address }}</dd></div>{% endif %}
+        {% if location.directions %}<div><dt>How to get there</dt><dd class="p-prose font-normal">{{ location.directions }}</dd></div>{% endif %}
+        {% if location.nearest_airport %}<div><dt>Nearest airport</dt><dd>{{ location.nearest_airport }}</dd></div>{% endif %}
+        {% if location.travel_notes %}<div><dt>Travel notes</dt><dd class="p-prose font-normal">{{ location.travel_notes }}</dd></div>{% endif %}
+    </dl>
+    {% else %}
+    <p class="text-sm p-muted">No directions yet. <a class="p-link" href="{% url 'partners:location_place_edit' location_id=location.public_id %}">Add them</a>.</p>
+    {% endif %}
+
+    <section>
+        <h3 class="p-section-title mb-2 text-sm">People</h3>
+        <ul class="space-y-3">
+            {% if location.arrival_contact_name or location.arrival_contact_phone %}
+            <li class="text-sm">
+                <p class="font-semibold p-navy">{{ location.arrival_contact_name|default:'Arrival contact' }} <span class="font-normal p-muted">&middot; on arrival</span></p>
+                {% include 'partners/_phone_actions.html' with phone=location.arrival_contact_phone email='' %}
+            </li>
+            {% endif %}
+            {% for member in coordinators %}
+            <li class="text-sm">
+                <p class="font-semibold p-navy">{{ member.user.get_full_name|default:member.user.username }} <span class="font-normal p-muted">&middot; coordinator</span></p>
+                {% include 'partners/_phone_actions.html' with phone=member.user.phone_number email=member.user.email %}
+            </li>
+            {% endfor %}
+            {% for member in facilitators %}
+            <li class="text-sm">
+                <p class="font-semibold p-navy">{{ member.user.get_full_name|default:member.user.username }} <span class="font-normal p-muted">&middot; facilitator</span></p>
+                {% include 'partners/_phone_actions.html' with phone=member.user.phone_number email=member.user.email %}
+            </li>
+            {% endfor %}
+            {% if contact %}
+            <li class="text-sm">
+                <p class="font-semibold p-navy">{{ contact.name }} <span class="font-normal p-muted">&middot; {{ contact.role_title|default:'partner contact' }}</span></p>
+                {% include 'partners/_phone_actions.html' with phone=contact.phone email=contact.email %}
+            </li>
+            {% endif %}
+            {% if not coordinators and not facilitators and not contact and not location.arrival_contact_phone %}
+            <li class="text-sm p-muted">Nobody added yet.</li>
+            {% endif %}
+        </ul>
+    </section>
+
+    <section>
+        <h3 class="p-section-title mb-2 text-sm">Coming up</h3>
+        <ul class="space-y-2 text-sm">
+            {% for event in events %}
+            <li class="flex items-start justify-between gap-3">
+                <span class="min-w-0"><span class="font-semibold p-navy">{{ event.title }}</span><span class="block text-xs p-muted">{{ event.get_kind_display }}{% if event.venue %} &middot; {{ event.venue }}{% endif %}</span></span>
+                <span class="shrink-0 text-xs font-semibold tabular-nums p-navy">{{ event.starts_on|date:'d M Y' }}</span>
+            </li>
+            {% endfor %}
+            {% for cohort in running_cohorts %}
+            <li class="flex items-start justify-between gap-3">
+                <span class="min-w-0"><span class="font-semibold p-navy">{{ cohort.name }}</span><span class="block text-xs p-muted">Running{% if cohort.next_session %} &middot; next session {{ cohort.next_session.course.code }}{% endif %}</span></span>
+                {% if cohort.next_session %}<span class="shrink-0 text-xs font-semibold tabular-nums p-navy">{{ cohort.next_session.session_date|date:'d M Y' }}</span>{% endif %}
+            </li>
+            {% endfor %}
+            {% if not events and not running_cohorts %}<li class="p-muted">No running cohorts or planned events.</li>{% endif %}
+        </ul>
+    </section>
+
+    {% if nearby %}
+    <section>
+        <h3 class="p-section-title mb-2 text-sm">Within {{ nearby_km }} km</h3>
+        <ul class="space-y-1.5 text-sm">
+            {% for item in nearby %}
+            <li class="flex items-center justify-between gap-3">
+                <button type="button" class="p-link min-w-0 truncate text-left" data-map-select="{{ item.location.public_id }}">{{ item.location.name }}</button>
+                <span class="shrink-0 text-xs tabular-nums p-muted">{{ item.km }} km</span>
+            </li>
+            {% endfor %}
+        </ul>
+    </section>
+    {% endif %}
+</div>
+
+<div class="p-card-foot justify-start">
+    <a class="p-btn-ghost p-btn-sm" href="{% url 'partners:location_place' location_id=location.public_id %}">Location page</a>
+    <a class="p-btn-ghost p-btn-sm" href="{% url 'partners:location_dashboard' location_id=location.public_id %}">Cohorts</a>
+    <a class="p-btn-ghost p-btn-sm" href="{% url 'partners:location_place_edit' location_id=location.public_id %}">Edit directions</a>
+</div>
+{% endif %}

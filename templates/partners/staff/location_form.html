@@ -5,6 +5,7 @@
 {% block subnav %}{% include 'partners/staff/_nav.html' %}{% endblock %}
 {% block eyebrow %}{{ organisation.name }}{% endblock %}
 {% block heading %}{% if location %}Edit {{ location.name }}{% else %}Add a training location{% endif %}{% endblock %}
+{% block actions %}{% if location %}<a class="p-btn-ghost" href="{% url 'partners:location_place_edit' location_id=location.public_id %}">Position and directions</a>{% endif %}{% endblock %}
 
 {% block body %}
 <form method="post" class="p-card max-w-3xl p-6 sm:p-8" novalidate>

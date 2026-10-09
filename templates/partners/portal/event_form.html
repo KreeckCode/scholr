@@ -1,0 +1,42 @@
+{% extends 'ui/base.html' %}
+{% load partners_tags %}
+
+{% block title %}{% if event %}Edit {{ event.title }}{% else %}Add an event{% endif %}{% endblock %}
+{% block subnav %}{% include 'partners/portal/_nav.html' %}{% endblock %}
+{% block eyebrow %}<a href="{% url 'partners:location_place' location_id=location.public_id %}">{{ location.name }}</a>{% endblock %}
+{% block heading %}{% if event %}Edit {{ event.title }}{% else %}Add an event{% endif %}{% endblock %}
+{% block subheading %}<p class="mt-2 max-w-2xl text-sm p-slate">Graduations and visits show on the network map, so METP staff can plan their travel.</p>{% endblock %}
+
+{% block actions %}
+{% if event and event.is_active %}
+<form method="post" action="{% url 'partners:event_cancel' location_id=location.public_id event_id=event.public_id %}" x-data @submit="if (!window.confirm('Cancel this event?')) $event.preventDefault()">
+    {% csrf_token %}
+    <button type="submit" class="p-btn-danger">Cancel event</button>
+</form>
+{% endif %}
+{% endblock %}
+
+{% block body %}
+<form method="post" class="p-card max-w-3xl" novalidate>
+    {% csrf_token %}
+    <div class="space-y-5 p-6 sm:p-8">
+        {% include 'ui/_form_errors.html' %}
+        <div class="grid gap-5 sm:grid-cols-2">
+            {% field form.kind %}
+            {% if form.status %}{% field form.status %}{% else %}<div></div>{% endif %}
+            {% field form.title wide=True %}
+            {% field form.cohort wide=True %}
+            {% field form.starts_on %}
+            {% field form.ends_on %}
+            {% field form.starts_at %}
+            {% field form.venue %}
+            {% field form.notes wide=True %}
+            {% if form.attendees %}{% field form.attendees wide=True %}{% endif %}
+        </div>
+    </div>
+    <div class="p-card-foot">
+        <a class="p-btn-ghost" href="{% url 'partners:location_place' location_id=location.public_id %}">Back</a>
+        <button type="submit" class="p-btn">Save</button>
+    </div>
+</form>
+{% endblock %}

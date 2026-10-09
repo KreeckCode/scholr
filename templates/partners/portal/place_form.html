@@ -1,0 +1,69 @@
+{% extends 'ui/base.html' %}
+{% load static partners_tags %}
+
+{% block title %}Edit {{ location.name }}: position and directions{% endblock %}
+{% block page_head %}{% include 'partners/_map_head.html' %}{% endblock %}
+{% block subnav %}{% include 'partners/portal/_nav.html' %}{% endblock %}
+{% block eyebrow %}<a href="{% url 'partners:location_place' location_id=location.public_id %}">{{ location.name }}</a>{% endblock %}
+{% block heading %}Position and directions{% endblock %}
+{% block subheading %}<p class="mt-2 max-w-2xl text-sm p-slate">Put the pin on the building where classes meet, and describe the way in for someone who has never been there.{% if location.hides_identities %} This location is marked sensitive, so the network map only ever shows the area around it.{% endif %}</p>{% endblock %}
+
+{% block body %}
+<form method="post" class="max-w-5xl space-y-6" novalidate>
+    {% csrf_token %}
+    {% include 'ui/_form_errors.html' %}
+
+    <section class="p-card overflow-hidden">
+        <div class="p-card-head"><h2 class="p-card-title">Map position</h2></div>
+        <div class="space-y-4 p-5">
+            <div class="flex flex-wrap items-end gap-3">
+                <div class="min-w-[14rem] flex-1">
+                    <label for="place-search" class="p-label-sm">Find a town or district</label>
+                    <input id="place-search" type="search" class="w-full" placeholder="For example Mzuzu, Malawi" autocomplete="off" data-place-search>
+                </div>
+                <button type="button" class="p-btn-ghost" data-place-find>Find</button>
+                <button type="button" class="p-btn" data-place-locate>Use my position</button>
+            </div>
+            <ul class="max-h-56 overflow-y-auto rounded-lg border" style="border-color: var(--p-line);" data-place-results hidden></ul>
+            <p class="text-sm p-slate" aria-live="polite" data-place-status>Click the map to place the pin, then drag it to the exact spot.</p>
+        </div>
+        <div class="p-map rounded-none" data-place-picker role="application" aria-label="Map for placing the location pin"></div>
+        <div class="grid gap-5 p-5 sm:grid-cols-2">
+            {% field form.latitude %}
+            {% field form.longitude %}
+            {% field form.pasted wide=True %}
+            {{ form.position_source }}
+            {% if location.has_position %}{% field form.clear_position wide=True %}{% endif %}
+        </div>
+    </section>
+
+    <section class="p-card">
+        <div class="p-card-head"><h2 class="p-card-title">Getting there</h2></div>
+        <div class="grid gap-5 p-5 sm:grid-cols-2">
+            {% field form.address wide=True %}
+            {% field form.directions wide=True %}
+            {% field form.nearest_airport %}
+            <div></div>
+            {% field form.travel_notes wide=True %}
+        </div>
+    </section>
+
+    <section class="p-card">
+        <div class="p-card-head"><h2 class="p-card-title">Contact on arrival</h2></div>
+        <div class="grid gap-5 p-5 sm:grid-cols-2">
+            {% field form.arrival_contact_name %}
+            {% field form.arrival_contact_phone %}
+        </div>
+        <div class="p-card-foot">
+            <a class="p-btn-ghost" href="{% url 'partners:location_place' location_id=location.public_id %}">Cancel</a>
+            <button type="submit" class="p-btn">Save</button>
+        </div>
+    </section>
+</form>
+{{ config|json_script:"place-config" }}
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{% static 'partners/vendor/leaflet/leaflet.js' %}"></script>
+<script src="{% static 'partners/place.js' %}"></script>
+{% endblock %}

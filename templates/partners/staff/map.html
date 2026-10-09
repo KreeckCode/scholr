@@ -1,0 +1,119 @@
+{% extends 'ui/base.html' %}
+{% load static partners_tags %}
+
+{% block title %}Map{% endblock %}
+{% block page_head %}{% include 'partners/_map_head.html' %}{% endblock %}
+{% block subnav %}{% include 'partners/staff/_nav.html' %}{% endblock %}
+{% block eyebrow %}Partner network{% endblock %}
+{% block heading %}Map{% endblock %}
+{% block subheading %}<p class="mt-2 max-w-2xl text-sm p-slate">Every training location. Select a dot to see who to contact, what is coming up and how to get there.</p>{% endblock %}
+
+{% block body %}
+<div data-map-app>
+    <form class="p-toolbar" data-map-filters role="search">
+        <div class="min-w-[13rem] flex-1">
+            <label for="map-search" class="p-label-sm">Search</label>
+            <input id="map-search" type="search" name="q" placeholder="Location, partner, town" autocomplete="off" class="w-full">
+        </div>
+        <div>
+            <label for="map-country" class="p-label-sm">Country</label>
+            <select id="map-country" name="country" class="min-w-[10rem]"><option value="">All countries</option></select>
+        </div>
+        <div>
+            <label for="map-partner" class="p-label-sm">Partner</label>
+            <select id="map-partner" name="partner" class="min-w-[11rem]"><option value="">All partners</option></select>
+        </div>
+        <fieldset class="flex flex-wrap items-center gap-2">
+            <legend class="p-label-sm">Status</legend>
+            {% for value, label in statuses %}
+            <label class="p-chip cursor-pointer gap-1.5"><input type="checkbox" name="status" value="{{ value }}" {% if value != 'closed' %}checked{% endif %}> {{ label }}</label>
+            {% endfor %}
+        </fieldset>
+        <div class="flex flex-wrap items-center gap-4">
+            <label class="p-check-inline"><input type="checkbox" name="running"> Running cohort</label>
+            <label class="p-check-inline"><input type="checkbox" name="graduation"> Graduation in the next 90 days</label>
+        </div>
+    </form>
+
+    <div class="mb-3 flex flex-wrap items-center justify-between gap-3">
+        <p class="text-sm p-slate" aria-live="polite" data-map-count>Loading locations</p>
+        <div class="flex flex-wrap items-center gap-4">
+            <span class="p-key"><span class="p-pin p-pin-teal"></span>Active</span>
+            <span class="p-key"><span class="p-pin p-pin-orange"></span>Preparing</span>
+            <span class="p-key"><span class="p-pin p-pin-slate"></span>Paused</span>
+            <span class="p-key"><span class="p-pin p-pin-approx"></span>Sensitive, approximate area</span>
+        </div>
+    </div>
+
+    <div class="p-alert p-alert-warn" data-map-missing hidden>
+        <p class="p-alert-title" data-map-missing-title></p>
+        <ul class="mt-2 space-y-1" data-map-missing-list></ul>
+    </div>
+
+    <div class="grid items-start gap-6 lg:grid-cols-3">
+        <div class="min-w-0 lg:col-span-2">
+            <div class="p-map p-card" data-map-canvas role="region" aria-label="Map of training locations"></div>
+        </div>
+
+        <aside class="p-card p-panel min-w-0" data-map-panel aria-live="polite" tabindex="-1">
+            <div data-map-panel-default>
+                <div class="p-card-head"><h2 class="p-card-title">Select a location</h2></div>
+                <div class="p-5 text-sm p-slate">Choose a dot on the map, or a row in the list below, to see its contacts, events and directions.</div>
+                <div class="p-card-head border-t" style="border-color: var(--p-line);"><h2 class="p-card-title">Coming up</h2></div>
+                <ul class="p-list">
+                    {% for event in events %}
+                    <li class="px-5 py-3">
+                        <div class="flex items-start justify-between gap-3">
+                            <div class="min-w-0">
+                                {% if event.location.hides_identities %}
+                                <p class="text-sm font-semibold p-navy">{{ event.get_kind_display }} at a sensitive location</p>
+                                <p class="text-xs p-muted">{{ event.location.country_name }}</p>
+                                {% else %}
+                                <button type="button" class="p-link text-left text-sm" data-map-select="{{ event.location.public_id }}">{{ event.title }}</button>
+                                <p class="text-xs p-muted">{{ event.location.name }} &middot; {{ event.location.country_name }}</p>
+                                {% endif %}
+                            </div>
+                            <span class="shrink-0 text-xs font-semibold tabular-nums p-navy">{{ event.starts_on|date:'d M Y' }}</span>
+                        </div>
+                        {% if event.attendees.all and not event.location.hides_identities %}<p class="mt-1 text-xs p-muted">Going: {% for person in event.attendees.all %}{{ person.get_full_name|default:person.username }}{% if not forloop.last %}, {% endif %}{% endfor %}</p>{% endif %}
+                    </li>
+                    {% empty %}
+                    <li class="p-empty">No graduations or visits planned. Add them from a location's page.</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            <div data-map-panel-body hidden></div>
+        </aside>
+    </div>
+
+    <section class="p-card mt-6" data-map-trip hidden aria-label="Trip">
+        <div class="p-card-head">
+            <h2 class="p-card-title">Trip <span class="ml-1 text-sm font-normal p-muted" data-map-trip-count></span></h2>
+            <button type="button" class="p-btn-ghost p-btn-sm" data-map-trip-clear>Clear</button>
+        </div>
+        <ol class="p-list" data-map-trip-list></ol>
+        <div class="p-card-foot">
+            <label class="p-check-inline mr-auto text-sm"><input type="checkbox" data-map-trip-nearest> Visit nearest first</label>
+            <a class="p-btn-ghost" href="#" target="_blank" rel="noopener" data-map-trip-route>Route in Google Maps</a>
+            <a class="p-btn" href="#" target="_blank" rel="noopener" data-map-trip-sheet>Trip sheet (PDF)</a>
+        </div>
+    </section>
+    <section class="p-card mt-6 overflow-hidden">
+        <div class="p-card-head"><h2 class="p-card-title">Locations</h2></div>
+        <div class="overflow-x-auto">
+            <table class="p-table">
+                <thead><tr><th>Location</th><th>Partner</th><th>Country</th><th>Status</th><th>Next event</th><th></th></tr></thead>
+                <tbody data-map-rows><tr><td colspan="6" class="p-empty">Loading locations</td></tr></tbody>
+            </table>
+        </div>
+    </section>
+
+</div>
+{{ config|json_script:"map-config" }}
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{% static 'partners/vendor/leaflet/leaflet.js' %}"></script>
+<script src="{% static 'partners/vendor/markercluster/leaflet.markercluster.js' %}"></script>
+<script src="{% static 'partners/map.js' %}"></script>
+{% endblock %}

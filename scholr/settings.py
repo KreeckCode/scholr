@@ -264,6 +264,13 @@ PARTNERS_MIN_ATTENDANCE_PERCENT = int(os.getenv('PARTNERS_MIN_ATTENDANCE_PERCENT
 PARTNERS_STALL_DAYS = int(os.getenv('PARTNERS_STALL_DAYS', '21'))
 PARTNERS_PACK_DAYS = int(os.getenv('PARTNERS_PACK_DAYS', '30'))
 PARTNERS_LICENCE_REMINDER_DAYS = (90, 30, 7)
+PARTNERS_MAP_TILE_URL = os.getenv('PARTNERS_MAP_TILE_URL', 'https://tile.openstreetmap.org/{z}/{x}/{y}.png')
+PARTNERS_MAP_ATTRIBUTION = os.getenv(
+    'PARTNERS_MAP_ATTRIBUTION', '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+)
+PARTNERS_MAP_MAX_ZOOM = int(os.getenv('PARTNERS_MAP_MAX_ZOOM', '19'))
+PARTNERS_MAP_SEARCH_URL = os.getenv('PARTNERS_MAP_SEARCH_URL', 'https://nominatim.openstreetmap.org/search')
+PARTNERS_MAP_USER_AGENT = os.getenv('PARTNERS_MAP_USER_AGENT', 'Scholr partner map (https://metp.uorivo.com)')
 
 
 # ==================== FILE UPLOADS ====================

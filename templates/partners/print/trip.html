@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Trip sheet {{ generated_at|date:'Y-m-d' }}</title>
+<style>
+    @page { size: A4; margin: 16mm 14mm 18mm; @bottom-right { content: "Page " counter(page) " of " counter(pages); font-size: 8pt; color: #667085; } }
+    body { font-family: 'Helvetica Neue', Arial, sans-serif; color: #101828; font-size: 10pt; line-height: 1.4; }
+    header { border-bottom: 2px solid #0E1B33; padding-bottom: 8pt; margin-bottom: 12pt; }
+    h1 { font-size: 16pt; margin: 0 0 2pt; color: #0E1B33; }
+    h2 { font-size: 12.5pt; margin: 0; color: #0E1B33; }
+    h3 { font-size: 8pt; text-transform: uppercase; letter-spacing: 0.05em; color: #475467; margin: 10pt 0 3pt; }
+    .meta { color: #475467; font-size: 9pt; }
+    .meta span { margin-right: 14pt; }
+    table.summary { width: 100%; border-collapse: collapse; margin-bottom: 14pt; }
+    .summary th { text-align: left; font-size: 8pt; text-transform: uppercase; letter-spacing: 0.04em; color: #475467; border-bottom: 1px solid #98A2B3; padding: 4pt; }
+    .summary td { border-bottom: 1px solid #D0D5DD; padding: 5pt 4pt; vertical-align: top; }
+    .num { text-align: right; white-space: nowrap; }
+    .stop { border: 1px solid #D0D5DD; border-radius: 6pt; padding: 10pt 12pt; margin-bottom: 10pt; page-break-inside: avoid; }
+    .stop-head { display: flex; justify-content: space-between; gap: 12pt; border-bottom: 1px solid #EAECF0; padding-bottom: 6pt; }
+    .badge { display: inline-block; width: 16pt; height: 16pt; line-height: 16pt; border-radius: 8pt; background: #12A594; color: #fff; text-align: center; font-weight: 700; font-size: 9pt; margin-right: 6pt; }
+    .coords { font-family: 'Courier New', monospace; font-size: 9pt; }
+    .prose { white-space: pre-line; }
+    .muted { color: #667085; font-size: 9pt; }
+    .link { font-size: 8pt; color: #0C7A6D; word-break: break-all; }
+    ul { margin: 0; padding-left: 12pt; }
+    li { margin: 0 0 2pt; }
+    .skipped { margin-top: 10pt; padding: 8pt 10pt; background: #FFFAEB; border: 1px solid #FEDF89; border-radius: 6pt; font-size: 9pt; }
+</style>
+</head>
+<body>
+<header>
+    <h1>Trip sheet</h1>
+    <div class="meta">
+        <span>{{ trip.stops|length }} stop{{ trip.stops|length|pluralize }}</span>
+        {% if trip.total_km %}<span>About {{ trip.total_km }} km between stops in a straight line</span>{% endif %}
+        <span>For {{ traveller.get_full_name|default:traveller.username }}</span>
+        <span>Printed {{ generated_at|date:'d M Y, H:i' }}</span>
+    </div>
+</header>
+
+<table class="summary">
+    <thead><tr><th>#</th><th>Location</th><th>Partner</th><th>Coordinates</th><th class="num">From last stop</th></tr></thead>
+    <tbody>
+        {% for stop in trip.stops %}
+        <tr>
+            <td>{{ forloop.counter }}</td>
+            <td>{{ stop.location.name }}</td>
+            <td>{{ stop.location.organisation.name }}</td>
+            <td class="coords">{{ stop.brief.links.coordinates }}</td>
+            <td class="num">{% if stop.leg_km is not None %}{{ stop.leg_km }} km{% endif %}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+<p class="muted">Whole route in Google Maps:</p>
+<p class="link">{{ trip.route_url }}</p>
+
+{% for stop in trip.stops %}
+{% with location=stop.location brief=stop.brief %}
+<section class="stop">
+    <div class="stop-head">
+        <div>
+            <h2><span class="badge">{{ forloop.counter }}</span>{{ location.name }}</h2>
+            <p class="muted">{{ location.organisation.name }} &middot; {% if location.city %}{{ location.city }}, {% endif %}{% if location.region %}{{ location.region }}, {% endif %}{{ location.country_name }} &middot; {{ location.language }}</p>
+        </div>
+        <div class="coords">{{ brief.links.coordinates }}{% if not location.position_is_confirmed %}<br><span class="muted">Estimated position</span>{% endif %}</div>
+    </div>
+
+    {% if location.address %}<h3>Address</h3><p>{{ location.address }}</p>{% endif %}
+    <h3>How to get there</h3>
+    <p class="prose">{{ location.directions|default:'No directions recorded.' }}</p>
+    {% if location.nearest_airport %}<h3>Nearest airport</h3><p>{{ location.nearest_airport }}</p>{% endif %}
+    {% if location.travel_notes %}<h3>Travel notes</h3><p class="prose">{{ location.travel_notes }}</p>{% endif %}
+
+    <h3>Who to contact</h3>
+    <ul>
+        {% if location.arrival_contact_name or location.arrival_contact_phone %}<li>{{ location.arrival_contact_name|default:'Arrival contact' }} (on arrival){% if location.arrival_contact_phone %}: {{ location.arrival_contact_phone }}{% endif %}</li>{% endif %}
+        {% for member in brief.coordinators %}<li>{{ member.user.get_full_name|default:member.user.username }} (coordinator){% if member.user.phone_number %}: {{ member.user.phone_number }}{% endif %}{% if member.user.email %}, {{ member.user.email }}{% endif %}</li>{% endfor %}
+        {% for member in brief.facilitators %}<li>{{ member.user.get_full_name|default:member.user.username }} (facilitator){% if member.user.phone_number %}: {{ member.user.phone_number }}{% endif %}</li>{% endfor %}
+        {% if brief.contact %}<li>{{ brief.contact.name }} ({{ brief.contact.role_title|default:'partner contact' }}){% if brief.contact.phone %}: {{ brief.contact.phone }}{% endif %}{% if brief.contact.email %}, {{ brief.contact.email }}{% endif %}</li>{% endif %}
+        {% if not brief.coordinators and not brief.facilitators and not brief.contact and not location.arrival_contact_phone %}<li>No contacts recorded.</li>{% endif %}
+    </ul>
+
+    {% if brief.events or brief.running_cohorts %}
+    <h3>Coming up</h3>
+    <ul>
+        {% for event in brief.events %}<li>{{ event.starts_on|date:'D d M Y' }}{% if event.starts_at %}, {{ event.starts_at|time:'H:i' }}{% endif %}: {{ event.title }} ({{ event.get_kind_display|lower }}){% if event.venue %}, at {{ event.venue }}{% endif %}</li>{% endfor %}
+        {% for cohort in brief.running_cohorts %}<li>{{ cohort.name }} is running{% if cohort.next_session %}; next session {{ cohort.next_session.course.code }} on {{ cohort.next_session.session_date|date:'D d M Y' }}{% endif %}</li>{% endfor %}
+    </ul>
+    {% endif %}
+
+    <h3>Directions link</h3>
+    <p class="link">{{ brief.links.google }}</p>
+</section>
+{% endwith %}
+{% endfor %}
+
+{% if trip.skipped %}
+<div class="skipped">
+    <strong>Not on this sheet:</strong>
+    {% for item in trip.skipped %}{{ item.name }} ({% if item.reason == 'sensitive' %}sensitive, plan from its own page{% else %}no map position yet{% endif %}){% if not forloop.last %}; {% endif %}{% endfor %}.
+</div>
+{% endif %}
+<p class="muted" style="margin-top: 12pt;">Distances are straight-line estimates. Check road conditions with the coordinator before you travel. Printed from {{ brand.name }}.</p>
+</body>
+</html>

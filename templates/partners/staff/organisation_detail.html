@@ -161,8 +161,11 @@
                         {% include 'partners/_badge.html' with value=location.status label=location.get_status_display %}
                     </div>
                     <div class="mt-1 flex items-center justify-between gap-3">
-                        <p class="text-xs p-muted">{{ location.city|default:location.country_name }} &middot; {{ location.licence.number }}</p>
-                        <a class="p-btn-ghost p-btn-sm" href="{% url 'partners:location_edit' location_id=location.public_id %}">Edit</a>
+                        <p class="text-xs p-muted">{{ location.city|default:location.country_name }} &middot; {{ location.licence.number }}{% if not location.has_position %} &middot; <a class="p-link" href="{% url 'partners:location_place_edit' location_id=location.public_id %}">not on the map</a>{% endif %}</p>
+                        <span class="flex gap-2">
+                            <a class="p-btn-ghost p-btn-sm" href="{% url 'partners:location_place' location_id=location.public_id %}">Directions</a>
+                            <a class="p-btn-ghost p-btn-sm" href="{% url 'partners:location_edit' location_id=location.public_id %}">Edit</a>
+                        </span>
                     </div>
                 </li>
                 {% empty %}
