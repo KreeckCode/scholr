@@ -7,6 +7,7 @@
 {% block subheading %}<p class="mt-2 text-sm p-slate">Verify new students so they can open their courses.</p>{% endblock %}
 
 {% block actions %}
+{% include 'integration/_lms_portal.html' %}
 <a class="p-btn-ghost" href="{% url 'accounts:student_list' %}">All students</a>
 {% endblock %}
 

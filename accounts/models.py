@@ -52,6 +52,8 @@ class User(AbstractUser):
     SCHOOL_ROLES = {TEACHER, PRINCIPAL, HOD, ADMIN_CLERK, PARENT, LEARNER}
     STAFF_ROLES = {TEACHER, PRINCIPAL, HOD, ADMIN_CLERK}
     PARTNER_NETWORK_ROLES = {PROGRAMME_STAFF, PARTNER}
+    # Roles that open the LMS as teaching staff rather than as students
+    LMS_STAFF_ROLES = {ADMIN, DEAN, PROGRAMME_STAFF}
     
     # Phone validator for international format
     phone_regex = RegexValidator(
@@ -152,6 +154,10 @@ class User(AbstractUser):
     def is_lms_user(self):
         """True for pastoral LMS roles - determines Moodle sync eligibility."""
         return self.role in self.LMS_ROLES
+
+    def can_open_lms_as_staff(self):
+        """True for admins, deans and programme staff, who enter Moodle as teachers."""
+        return self.is_active and self.role in self.LMS_STAFF_ROLES
 
     def get_students(self):
         """

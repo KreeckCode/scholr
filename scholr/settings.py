@@ -250,6 +250,16 @@ BANK_ACCOUNT_TYPE   = os.getenv('BANK_ACCOUNT_TYPE', 'Cheque / Current')
 MOODLE_URL = os.getenv('MOODLE_URL', 'https://judea.uorivo.com/moodle501')
 MOODLE_WS_TOKEN = os.getenv('MOODLE_WS_TOKEN', '')
 
+# Moodle role IDs given to staff who open the LMS from their dashboard.
+# Stock Moodle: 1 Manager, 3 Teacher (editing), 4 Non-editing teacher.
+MOODLE_STAFF_COURSE_ROLES = {
+    'admin':           int(os.getenv('MOODLE_ROLE_ADMIN', '3')),
+    'programme_staff': int(os.getenv('MOODLE_ROLE_PROGRAMME_STAFF', '3')),
+    'dean':            int(os.getenv('MOODLE_ROLE_DEAN', '4')),
+}
+MOODLE_MANAGER_ROLE_ID = int(os.getenv('MOODLE_MANAGER_ROLE_ID', '1'))
+MOODLE_ASSIGN_MANAGER_TO_ADMINS = env_flag('MOODLE_ASSIGN_MANAGER_TO_ADMINS')
+
 
 # ==================== PARTNER NETWORK ====================
 

@@ -42,6 +42,11 @@ urlpatterns = [
     
     # ==================== STUDENT LMS ACCESS ====================
     path('access-lms/', views.access_lms, name='access_lms'),
+
+    # ==================== STAFF LMS PORTAL ====================
+    path('staff-lms/account/', views.staff_lms_account, name='staff_lms_account'),
+    path('staff-lms/access/', views.staff_lms_access, name='staff_lms_access'),
+    path('staff-lms/open/', views.staff_lms_open, name='staff_lms_open'),
     
     # ==================== AJAX ENDPOINTS ====================
     path('api/sync-status/', views.get_sync_status, name='get_sync_status'),

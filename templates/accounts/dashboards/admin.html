@@ -7,6 +7,7 @@
 {% block subheading %}<p class="mt-2 text-sm p-slate">Students, verification{% if network %} and the partner network{% endif %} at a glance.</p>{% endblock %}
 
 {% block actions %}
+{% include 'integration/_lms_portal.html' %}
 {% if stats.pending_verifications %}<a class="p-btn" href="{% url 'accounts:student_list' %}?verified=no">Review {{ stats.pending_verifications }} awaiting verification</a>{% endif %}
 <a class="p-btn-ghost" href="{% url 'accounts:analytics' %}">Analytics</a>
 {% endblock %}

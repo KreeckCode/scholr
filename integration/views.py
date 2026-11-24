@@ -28,6 +28,16 @@ from .forms import (
 )
 from .services import MoodleIntegrationService
 from .exceptions import MoodleConnectionError, MoodleAPIError
+import logging
+from functools import wraps
+
+from django.conf import settings
+from django.http import Http404
+
+from .exceptions import MoodleAuthenticationError, UserNotSyncedError
+from .staff_access import StaffAccessError, StaffLMSAccess
+
+staff_portal_logger = logging.getLogger('integration.staff_portal')
 
 
 def admin_required(view_func):
@@ -758,6 +768,147 @@ def access_lms(request):
             f'Error accessing LMS: {str(e)}'
         )
         return redirect('accounts:dashboard')
+
+
+# ==================== STAFF LMS PORTAL ====================
+# The dashboard button calls account, then access, then opens a new tab on open.
+
+def _primary_moodle_instance():
+    return MoodleInstance.objects.filter(is_active=True, is_primary=True).first()
+
+
+def lms_staff_required(view_func):
+    """Admins, deans and programme staff only, answering in JSON for the progress panel."""
+    @wraps(view_func)
+    def wrapper(request, *args, **kwargs):
+        if not settings.SCHOLR_LMS_ENABLED:
+            raise Http404
+        if not request.user.is_authenticated:
+            return JsonResponse(
+                {'ok': False, 'message': 'Your session has ended. Sign in again and retry.'}, status=401
+            )
+        if not request.user.can_open_lms_as_staff():
+            return JsonResponse(
+                {'ok': False, 'message': 'Your account type cannot open the LMS as staff.'}, status=403
+            )
+        return view_func(request, *args, **kwargs)
+    return wrapper
+
+
+def _staff_portal_failure(error, user):
+    """Turn any failure into a sentence the person can act on."""
+    if isinstance(error, StaffAccessError):
+        return JsonResponse({'ok': False, 'message': str(error)}, status=409)
+    if isinstance(error, MoodleConnectionError):
+        message, status = 'The LMS is not responding. Try again in a minute.', 503
+    elif isinstance(error, MoodleAuthenticationError):
+        message, status = (
+            'The LMS rejected the connection token. An administrator needs to update '
+            'the Moodle settings.', 502
+        )
+    elif isinstance(error, MoodleAPIError):
+        message, status = f'The LMS refused the request: {error}', 502
+    else:
+        staff_portal_logger.exception(f'Staff LMS portal failed for {user.username}')
+        message, status = 'Something went wrong talking to the LMS. The details are in the server log.', 500
+    staff_portal_logger.warning(f'Staff LMS portal: {user.username}: {error}')
+    return JsonResponse({'ok': False, 'message': message}, status=status)
+
+
+def _staff_portal(request):
+    instance = _primary_moodle_instance()
+    if instance is None:
+        raise StaffAccessError('The LMS is not set up yet. An administrator needs to add a Moodle connection.')
+    return StaffLMSAccess(request.user, MoodleIntegrationService(instance))
+
+
+@require_POST
+@lms_staff_required
+def staff_lms_account(request):
+    """Step one: find, link or create the person's Moodle account."""
+    try:
+        result = _staff_portal(request).ensure_account()
+    except Exception as error:
+        return _staff_portal_failure(error, request.user)
+
+    message = {
+        'existing': 'Your LMS account is ready.',
+        'linked': 'Linked your existing LMS account.',
+        'created': 'Created your LMS account.',
+    }[result['status']]
+    return JsonResponse({'ok': True, 'status': result['status'], 'message': message})
+
+
+@require_POST
+@lms_staff_required
+def staff_lms_access(request):
+    """Step two: make sure the person is teaching staff in every course."""
+    try:
+        result = _staff_portal(request).grant_access()
+    except Exception as error:
+        return _staff_portal_failure(error, request.user)
+
+    count, role = result['courses'], result['role']
+    missed = len(result['skipped'])
+    if count == 0 and missed:
+        message = (
+            f'None of the {missed} course{"s" if missed != 1 else ""} could be added. '
+            f'You can still sign in; the details are in the server log.'
+        )
+    elif count == 0:
+        message = 'No courses are in the LMS yet, so there is nothing to add you to.'
+    elif result['status'] == 'current':
+        message = f'{role} access to {count} course{"s" if count != 1 else ""} is up to date.'
+    else:
+        message = f'{role} access to {count} course{"s" if count != 1 else ""}.'
+
+    if missed and count:
+        message += f' {missed} course{"s" if missed != 1 else ""} could not be added, but you can still sign in.'
+    if result['manager'] is True:
+        message += ' Site manager role confirmed.'
+    elif result['manager'] is False:
+        message += ' The site manager role could not be given; check the server log.'
+
+    return JsonResponse({'ok': True, 'status': result['status'], 'message': message})
+
+
+@login_required
+def staff_lms_open(request):
+    """Step three: sign the person into Moodle. Also works as a plain link if a tab was blocked."""
+    if not settings.SCHOLR_LMS_ENABLED:
+        raise Http404
+
+    user = request.user
+    if not user.can_open_lms_as_staff():
+        messages.error(request, 'Your account type cannot open the LMS as staff.')
+        return redirect('accounts:dashboard')
+
+    instance = _primary_moodle_instance()
+    if instance is None:
+        messages.error(request, 'The LMS is not set up yet. An administrator needs to add a Moodle connection.')
+        return redirect('accounts:dashboard')
+
+    try:
+        sso_url = MoodleIntegrationService(instance).generate_sso_url(user)
+    except UserNotSyncedError:
+        messages.error(request, 'Your LMS account is not ready. Use the LMS Portal button on your dashboard.')
+        return redirect('accounts:dashboard')
+    except MoodleConnectionError:
+        messages.error(request, 'The LMS is not responding. Try again in a minute.')
+        return redirect('accounts:dashboard')
+
+    # generate_login_token falls back to the plain login page when auth_userkey refuses
+    if 'auth/userkey/login.php' not in sso_url:
+        staff_portal_logger.warning(f'auth_userkey refused single sign-on for {user.username}')
+        messages.error(
+            request,
+            'The LMS would not sign you in automatically. Moodle may not allow single sign-on '
+            'for this account; an administrator can check the auth_userkey settings.'
+        )
+        return redirect('accounts:dashboard')
+
+    staff_portal_logger.info(f'Staff member {user.username} opened the LMS')
+    return redirect(sso_url)
 
 
 # ==================== AJAX / API ENDPOINTS ====================

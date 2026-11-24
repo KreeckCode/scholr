@@ -206,6 +206,14 @@ class MoodleClient:
             return response['users'][0]
         
         return None
+
+    def get_user_by_email(self, email: str) -> Optional[Dict]:
+        """Get a user by email address, or None when no account uses it."""
+        response = self._make_request(
+            'core_user_get_users', {'criteria': [{'key': 'email', 'value': email}]}
+        )
+        users = (response or {}).get('users') or []
+        return users[0] if users else None
     
     def update_user(self, user_id: int, user_data: Dict) -> bool:
         """
@@ -456,6 +464,31 @@ class MoodleClient:
         
         self._make_request('enrol_manual_enrol_users', {'enrolments': enrolments})
         logger.info(f"Enrolled user {user_id} in course {course_id}")
+        return True
+
+    def enrol_user_in_courses(self, user_id: int, course_ids: List[int], role_id: int) -> bool:
+        """Enrol one user in many courses with the same role, in a single request."""
+        enrolments = [
+            {'roleid': role_id, 'userid': user_id, 'courseid': course_id}
+            for course_id in course_ids
+        ]
+        self._make_request('enrol_manual_enrol_users', {'enrolments': enrolments})
+        logger.info(f"Enrolled user {user_id} in {len(course_ids)} course(s) with role {role_id}")
+        return True
+
+    def assign_system_role(self, user_id: int, role_id: int) -> bool:
+        """
+        Give a user a role across the whole site, such as Manager.
+        Needs core_role_assign_roles enabled on the web service.
+        """
+        assignments = [{
+            'roleid': role_id,
+            'userid': user_id,
+            'contextlevel': 'system',
+            'instanceid': 0,
+        }]
+        self._make_request('core_role_assign_roles', {'assignments': assignments})
+        logger.info(f"Assigned system role {role_id} to user {user_id}")
         return True
     
     def unenrol_user(self, user_id: int, course_id: int, role_id: int = 5) -> bool:

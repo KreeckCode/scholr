@@ -9,6 +9,7 @@
 <p class="mt-2 text-sm p-slate">Every partner on the road to launching METP, in the six launch steps.{% if overdue_count %} <span class="font-semibold text-amber-700">{{ overdue_count }} next step{{ overdue_count|pluralize }} overdue.</span>{% endif %}</p>
 {% endblock %}
 {% block actions %}
+{% include 'integration/_lms_portal.html' with portal_button_class='p-btn-ghost' %}
 <a href="{% url 'partners:organisation_create' %}" class="p-btn">Add partner</a>
 {% endblock %}
 
