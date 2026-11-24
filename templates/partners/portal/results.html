@@ -6,7 +6,7 @@
 {% block eyebrow %}{{ cohort.name }}{% endblock %}
 {% block heading %}Results{% endblock %}
 {% block subheading %}{% if course %}<p class="mt-2 text-sm p-slate">A course is passed with {{ pass_mark }}% or more in the exam and at least {{ required_hours }} of {{ course.classroom_hours }} classroom hours attended.</p>{% endif %}{% endblock %}
-{% block actions %}<a class="p-btn-ghost" href="{% url 'partners:cohort_detail' location_id=location.public_id cohort_id=cohort.public_id %}">Back to cohort</a>{% endblock %}
+{% block actions %}<a class="p-btn-ghost" href="{% url 'partners:cohort_results_overview' location_id=location.public_id cohort_id=cohort.public_id %}">Overview</a><a class="p-btn-ghost" href="{% url 'partners:cohort_detail' location_id=location.public_id cohort_id=cohort.public_id %}">Back to cohort</a>{% endblock %}
 
 {% block body %}
 <nav class="mb-6 flex flex-wrap gap-1.5" aria-label="Courses">
@@ -30,12 +30,36 @@
     </div>
     <div class="overflow-x-auto">
         <table class="p-table">
-            <thead><tr><th scope="col">Participant</th><th scope="col" class="p-num">Hours attended</th><th scope="col" class="p-num">Exam %</th><th scope="col">Result</th></tr></thead>
+            <thead><tr><th scope="col">Participant</th><th scope="col" class="p-num">Hours attended</th>{% if is_online_course %}<th scope="col">Online quizzes</th>{% endif %}<th scope="col" class="p-num">Exam %</th><th scope="col">Result</th></tr></thead>
             <tbody>
                 {% for row in rows %}
                 <tr>
                     <td class="font-semibold p-navy">{{ row.membership.participant.full_name }}</td>
                     <td class="p-num {% if row.attended < required_hours %}font-semibold text-amber-700{% endif %}">{{ row.attended|floatformat:1 }}</td>
+                    {% if is_online_course %}
+                    <td class="whitespace-nowrap">
+                        {% with online=row.online %}
+                        {% if not online %}
+                            <span class="text-xs p-muted">No online results</span>
+                        {% elif online.is_complete %}
+                            <span class="p-badge {% if online.passed %}p-badge-good{% else %}p-badge-bad{% endif %}">{{ online.overall_percentage|floatformat:0 }}%</span>
+                            <span class="ml-1 text-xs p-muted">all {{ online.quizzes_total }} quizzes</span>
+                            {% if editable and not row.result.signed_off_at %}
+                            <button type="button" class="p-btn-ghost p-btn-sm ml-2"
+                                    onclick="var box = document.getElementById('{{ row.score_field.id_for_label }}'); box.value = '{{ online.overall_percentage }}'; box.focus();"
+                                    title="Copy the online score into the exam score. It is saved when you press Save scores.">Use</button>
+                            {% endif %}
+                        {% elif online.quizzes_attempted %}
+                            <span class="text-xs font-semibold p-navy">{{ online.quizzes_attempted }} of {{ online.quizzes_total }} quizzes</span>
+                            <span class="block text-xs p-muted">averaging {{ online.attempted_percentage|floatformat:0 }}%</span>
+                        {% elif online.quizzes_total %}
+                            <span class="text-xs p-muted">Not started</span>
+                        {% else %}
+                            <span class="text-xs p-muted">No quizzes</span>
+                        {% endif %}
+                        {% endwith %}
+                    </td>
+                    {% endif %}
                     <td class="p-num">
                         {% if editable %}{{ row.score_field }}{{ row.version_field }}{% elif row.result.exam_score is not None %}{{ row.result.exam_score|floatformat:0 }}{% endif %}
                         {% for error in row.score_field.errors %}<p class="mt-1 text-xs text-red-600">{{ error }}</p>{% endfor %}
@@ -45,13 +69,14 @@
                     </td>
                 </tr>
                 {% empty %}
-                <tr><td colspan="4" class="p-empty">No participants in this cohort yet.</td></tr>
+                <tr><td colspan="{% if is_online_course %}5{% else %}4{% endif %}" class="p-empty">No participants in this cohort yet.</td></tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
     {% if editable and rows %}
     <div class="p-card-foot">
+        {% if is_online_course %}<p class="mr-auto text-xs p-muted">Online scores update {% if online_synced_at %}nightly; last fetched {{ online_synced_at|timesince }} ago{% else %}nightly{% endif %}. Using one only fills the box; nothing changes until you save.</p>{% endif %}
         <button type="submit" class="p-btn">Save scores</button>
     </div>
     {% endif %}

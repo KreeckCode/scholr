@@ -1,0 +1,14 @@
+<div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+    <nav class="flex flex-wrap gap-1.5" aria-label="Which results">
+        <a href="?{% if query %}{{ query }}&amp;{% endif %}view=programme" class="p-chip {% if view == 'programme' %}p-chip-on{% endif %}" {% if view == 'programme' %}aria-current="page"{% endif %}>Programme results</a>
+        <a href="?{% if query %}{{ query }}&amp;{% endif %}view=online" class="p-chip {% if view == 'online' %}p-chip-on{% endif %}" {% if view == 'online' %}aria-current="page"{% endif %}>Online quiz results</a>
+    </nav>
+    {% if view == 'online' %}
+    <form method="post" action="{% url 'integration:refresh_online_results' %}" class="flex items-center gap-3">
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{{ request.get_full_path }}">
+        <span class="text-xs p-muted">{% if online_synced_at %}Updated {{ online_synced_at|timesince }} ago{% else %}Not fetched from the LMS yet{% endif %}</span>
+        <button type="submit" class="p-btn-ghost p-btn-sm">Refresh from LMS</button>
+    </form>
+    {% endif %}
+</div>

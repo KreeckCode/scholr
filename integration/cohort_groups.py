@@ -89,14 +89,6 @@ def desired_user_ids(cohort):
     return wanted
 
 
-def moodle_ids(user_ids):
-    return set(
-        MoodleUserMapping.objects.filter(
-            cas_user_id__in=user_ids, moodle_user_id__isnull=False,
-        ).values_list('moodle_user_id', flat=True)
-    )
-
-
 class CohortGroupSync:
 
     def __init__(self, service=None):
@@ -112,11 +104,24 @@ class CohortGroupSync:
         waiting for their Moodle enrolment to finish (picked up on a later run).
         """
         cohorts = list(online_cohorts() if cohorts is None else cohorts)
-        report = {'cohorts': len(cohorts), 'courses': 0, 'created': 0, 'added': 0, 'removed': 0, 'waiting': 0}
+        report = {
+            'cohorts': len(cohorts), 'courses': 0, 'created': 0, 'added': 0, 'removed': 0,
+            'waiting': 0, 'no_account': 0,
+        }
         if not cohorts:
             return report
 
-        desired = {cohort.pk: moodle_ids(desired_user_ids(cohort)) for cohort in cohorts}
+        desired, without_account = {}, set()
+        for cohort in cohorts:
+            user_ids = desired_user_ids(cohort)
+            mapped = dict(
+                MoodleUserMapping.objects.filter(cas_user_id__in=user_ids, moodle_user_id__isnull=False)
+                .values_list('cas_user_id', 'moodle_user_id')
+            )
+            desired[cohort.pk] = set(mapped.values())
+            # Usually coordinators and facilitators who have not opened the LMS Portal yet
+            without_account |= set(user_ids) - set(mapped)
+        report['no_account'] = len(without_account)
 
         for course in programme_courses():
             report['courses'] += 1

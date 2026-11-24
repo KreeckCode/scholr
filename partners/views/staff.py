@@ -2,6 +2,7 @@
 
 from datetime import timedelta
 
+from django.conf import settings
 from django.contrib import messages
 from django.core.exceptions import PermissionDenied
 from django.db.models import Count, Prefetch, Q
@@ -33,8 +34,9 @@ from partners.models import (
     Partnership,
     Stage,
     TrainingLocation,
+    country_name,
 )
-from partners.services import licences, network, organisations, pipeline
+from partners.services import licences, network, organisations, pipeline, results, scope
 from partners.utils import write_csv
 
 
@@ -556,3 +558,57 @@ class NetworkExportView(ProgrammeStaffRequiredMixin, View):
                 '' if row['attendance_rate'] is None else row['attendance_rate'],
             ])
         return write_csv(response, header, rows)
+
+
+class ResultsOverviewView(ProgrammeStaffRequiredMixin, TemplateView):
+    """Results across the network, filtered down to a country, partner, location or cohort."""
+
+    template_name = 'partners/staff/results_overview.html'
+    page_size = 50
+
+    def get_context_data(self, **kwargs):
+        from django.core.paginator import Paginator
+
+        context = super().get_context_data(**kwargs)
+        params = self.request.GET
+        view = params.get('view') if params.get('view') in results.VIEWS else results.PROGRAMME
+        filters = {key: params.get(key, '') for key in ('country', 'organisation', 'location', 'cohort')}
+
+        cohorts = scope.cohorts_for(self.request.user).select_related('location__organisation')
+        organisations = PartnerOrganisation.objects.filter(locations__cohorts__in=cohorts).distinct().order_by('name')
+        countries = sorted(set(organisations.values_list('country', flat=True)))
+        if filters['country']:
+            organisations = organisations.filter(country=filters['country'])
+            cohorts = cohorts.filter(location__organisation__country=filters['country'])
+        if filters['organisation']:
+            cohorts = cohorts.filter(location__organisation__public_id=filters['organisation'])
+        locations = TrainingLocation.objects.filter(cohorts__in=cohorts).distinct().order_by('name')
+        if filters['location']:
+            cohorts = cohorts.filter(location__public_id=filters['location'])
+
+        courses = results.active_courses()
+        page = Paginator(results.visible_memberships(self.request.user, **filters), self.page_size).get_page(
+            params.get('page')
+        )
+        rows = results.grid(page.object_list, courses)
+        query = params.copy()
+        query.pop('page', None)
+        query.pop('view', None)
+
+        context.update({
+            'view': view,
+            'filters': filters,
+            'countries': [(code, country_name(code)) for code in countries],
+            'organisations': organisations,
+            'locations': locations,
+            'cohorts': cohorts.order_by('location__name', 'name'),
+            'courses': courses,
+            'rows': rows,
+            'page': page,
+            'query': query.urlencode(),
+            'summaries': results.course_summaries(rows, courses, view),
+            'pass_mark': settings.PARTNERS_PASS_MARK,
+            'online_synced_at': results.last_synced(),
+            'show_cohort': True,
+        })
+        return context

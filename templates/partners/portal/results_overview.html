@@ -1,0 +1,16 @@
+{% extends 'ui/base.html' %}
+
+{% block title %}Results overview &middot; {{ cohort.name }}{% endblock %}
+{% block subnav %}{% include 'partners/portal/_nav.html' %}{% endblock %}
+{% block eyebrow %}{{ cohort.name }}{% endblock %}
+{% block heading %}Results overview{% endblock %}
+{% block subheading %}<p class="mt-2 text-sm p-slate">Every participant across all {{ courses|length }} courses.</p>{% endblock %}
+{% block actions %}
+<a class="p-btn-ghost" href="{% url 'partners:cohort_results' location_id=location.public_id cohort_id=cohort.public_id %}">Record results</a>
+<a class="p-btn-ghost" href="{% url 'partners:cohort_detail' location_id=location.public_id cohort_id=cohort.public_id %}">Back to cohort</a>
+{% endblock %}
+
+{% block body %}
+{% include 'partners/_results_toolbar.html' %}
+{% include 'partners/_results_grid.html' %}
+{% endblock %}

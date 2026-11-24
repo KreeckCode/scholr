@@ -921,6 +921,34 @@ def staff_lms_open(request):
     return redirect(sso_url)
 
 
+# ==================== ONLINE QUIZ RESULTS ====================
+
+@login_required
+@require_POST
+def refresh_online_results(request):
+    """Programme staff, coordinators and facilitators can ask for fresh quiz results."""
+    from django.utils.http import url_has_allowed_host_and_scheme
+    from partners.models import LocationMembership
+    from partners.services import scope
+    from .tasks import queue_online_results_refresh
+
+    user = request.user
+    allowed = scope.is_programme_staff(user) or LocationMembership.objects.filter(user=user, is_active=True).exists()
+    if not settings.SCHOLR_PARTNERS_ENABLED or not allowed:
+        raise Http404
+
+    if queue_online_results_refresh():
+        messages.success(request, 'Online results are being refreshed from the LMS. Reload in a minute or two.')
+    else:
+        messages.info(request, 'A refresh was asked for in the last few minutes and is already on its way.')
+
+    target = request.POST.get('next')
+    if target and url_has_allowed_host_and_scheme(target, allowed_hosts={request.get_host()},
+                                                  require_https=request.is_secure()):
+        return redirect(target)
+    return redirect('accounts:dashboard')
+
+
 # ==================== AJAX / API ENDPOINTS ====================
 
 @login_required

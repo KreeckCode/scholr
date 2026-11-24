@@ -476,6 +476,16 @@ class MoodleClient:
         logger.info(f"Enrolled user {user_id} in {len(course_ids)} course(s) with role {role_id}")
         return True
 
+    # ==================== GRADES ====================
+
+    def get_course_grade_items(self, course_id: int) -> List[Dict]:
+        """
+        Every learner's grade items for one course, in one request.
+        Needs gradereport_user_get_grade_items on the web service and grade:viewall for the token.
+        """
+        response = self._make_request('gradereport_user_get_grade_items', {'courseid': course_id}) or {}
+        return response.get('usergrades') or []
+
     # ==================== GROUPS ====================
 
     def get_course_groups(self, course_id: int) -> List[Dict]:

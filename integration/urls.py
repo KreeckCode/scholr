@@ -47,6 +47,9 @@ urlpatterns = [
     path('staff-lms/account/', views.staff_lms_account, name='staff_lms_account'),
     path('staff-lms/access/', views.staff_lms_access, name='staff_lms_access'),
     path('staff-lms/open/', views.staff_lms_open, name='staff_lms_open'),
+
+    # ==================== ONLINE QUIZ RESULTS ====================
+    path('online-results/refresh/', views.refresh_online_results, name='refresh_online_results'),
     
     # ==================== AJAX ENDPOINTS ====================
     path('api/sync-status/', views.get_sync_status, name='get_sync_status'),

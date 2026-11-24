@@ -14,7 +14,7 @@
 </div>
 {% endblock %}
 {% block actions %}
-<a class="p-btn-ghost" href="{% url 'partners:cohort_results' location_id=location.public_id cohort_id=cohort.public_id %}">Results</a>
+<a class="p-btn-ghost" href="{% url 'partners:cohort_results_overview' location_id=location.public_id cohort_id=cohort.public_id %}">Results</a>
 {% if can_record %}<a class="p-btn-ghost" href="{% url 'partners:offline_app' %}?prepare={{ cohort.public_id }}">Prepare for offline</a>{% endif %}
 {% if is_coordinator and cohort.is_open %}<a class="p-btn-ghost" href="{% url 'partners:cohort_edit' location_id=location.public_id cohort_id=cohort.public_id %}">Edit</a>{% endif %}
 {% if is_coordinator and cohort.status == 'planned' %}

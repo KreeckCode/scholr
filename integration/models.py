@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from django.db import models
 from django.core.validators import URLValidator
 from django.utils import timezone
@@ -733,3 +735,57 @@ class MoodleCohortGroup(models.Model):
 
     def __str__(self):
         return f'{self.cohort} in {self.course.short_name} (group {self.moodle_group_id})'
+
+
+class OnlineQuizResult(models.Model):
+    """
+    A learner's quiz results in one Moodle course, pulled from the gradebook.
+
+    Scores are worked out here rather than taken from Moodle's course total, because by
+    default that total ignores quizzes not yet attempted and so flatters early progress.
+    """
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='online_quiz_results')
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='online_quiz_results')
+    quizzes_total = models.PositiveSmallIntegerField(default=0)
+    quizzes_attempted = models.PositiveSmallIntegerField(default=0)
+    points = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    max_points_attempted = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    max_points_total = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    items = models.JSONField(default=list, blank=True, help_text='Each quiz: name, score, max and whether attempted')
+    synced_at = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        db_table = 'online_quiz_results'
+        constraints = [
+            models.UniqueConstraint(fields=['user', 'course'], name='unique_online_result_per_course'),
+        ]
+
+    def __str__(self):
+        return f'{self.user} in {self.course.short_name}: {self.quizzes_attempted}/{self.quizzes_total} quizzes'
+
+    @staticmethod
+    def _percent(part, whole):
+        if not whole:
+            return None
+        return (Decimal(part) / Decimal(whole) * 100).quantize(Decimal('0.1'))
+
+    @property
+    def is_complete(self):
+        return self.quizzes_total > 0 and self.quizzes_attempted >= self.quizzes_total
+
+    @property
+    def overall_percentage(self):
+        """Unattempted quizzes count as zero. This is the score worth recording."""
+        return self._percent(self.points, self.max_points_total)
+
+    @property
+    def attempted_percentage(self):
+        """Average over the quizzes taken so far, for showing progress."""
+        return self._percent(self.points, self.max_points_attempted)
+
+    @property
+    def passed(self):
+        from django.conf import settings
+        score = self.overall_percentage
+        return self.is_complete and score is not None and score >= Decimal(settings.PARTNERS_PASS_MARK)

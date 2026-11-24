@@ -19,6 +19,7 @@ urlpatterns = [
     path('pipeline/', staff.PipelineBoardView.as_view(), name='pipeline'),
     path('network/', staff.NetworkView.as_view(), name='network'),
     path('network/export.csv', staff.NetworkExportView.as_view(), name='network_export'),
+    path('results/', staff.ResultsOverviewView.as_view(), name='results_overview'),
     path('map/', places.MapView.as_view(), name='map'),
     path('map/locations.json', places.MapDataView.as_view(), name='map_data'),
     path('map/locations/<uuid:location_id>/', places.MapPanelView.as_view(), name='map_panel'),
@@ -70,6 +71,7 @@ urlpatterns = [
     path(f'{cohort}status/', portal.CohortStatusView.as_view(), name='cohort_status'),
     path(f'{cohort}enrol/', portal.CohortEnrolView.as_view(), name='cohort_enrol'),
     path(f'{cohort}results/', portal.ResultsView.as_view(), name='cohort_results'),
+    path(f'{cohort}results/overview/', portal.CohortResultsOverviewView.as_view(), name='cohort_results_overview'),
     path(f'{cohort}members/<uuid:membership_id>/<slug:action>/', portal.MembershipActionView.as_view(),
          name='membership_action'),
 

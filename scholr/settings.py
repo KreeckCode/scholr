@@ -388,6 +388,11 @@ CELERY_BEAT_SCHEDULE = {
         'task': 'integration.tasks.sync_cohort_groups_task',
         'schedule': crontab(hour=4, minute=30),
     },
+    # Quiz results for the results pages. Staff can also ask for a refresh.
+    'integration-sync-online-results': {
+        'task': 'integration.tasks.sync_online_results_task',
+        'schedule': crontab(hour=5, minute=0),
+    },
 }
 
 

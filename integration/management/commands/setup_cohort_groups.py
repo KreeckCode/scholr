@@ -59,6 +59,11 @@ class Command(BaseCommand):
             f"Groups: {report['created']} created; {report['added']} member(s) added, "
             f"{report['removed']} removed across {report['courses']} course(s)."
         ))
+        if report['no_account']:
+            self.stdout.write(
+                f"{report['no_account']} person(s) have no LMS account yet, so were not added. Coordinators "
+                f'and facilitators get one the first time they use the LMS Portal, which adds them to their groups.'
+            )
         if report['waiting']:
             self.stdout.write(
                 f"{report['waiting']} place(s) are waiting for a Moodle enrolment to finish; "

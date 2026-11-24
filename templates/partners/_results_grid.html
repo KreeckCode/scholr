@@ -1,0 +1,75 @@
+{% load partners_tags %}
+<div class="p-card overflow-hidden">
+    <div class="overflow-x-auto">
+        <table class="p-table text-sm">
+            <thead>
+                <tr>
+                    <th scope="col" class="sticky left-0 z-10" style="background: var(--p-subtle);">Participant</th>
+                    {% if show_cohort %}<th scope="col">Cohort</th>{% endif %}
+                    {% for course in courses %}<th scope="col" class="whitespace-nowrap text-center" title="{{ course.title }}">{{ course.code }}</th>{% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in rows %}
+                <tr>
+                    <td class="sticky left-0 z-10 bg-white font-semibold p-navy whitespace-nowrap">{{ row.membership.participant.full_name }}</td>
+                    {% if show_cohort %}
+                    <td class="whitespace-nowrap">
+                        <span class="block">{{ row.membership.cohort.name }}</span>
+                        <span class="block text-xs p-muted">{{ row.membership.cohort.location.name }}</span>
+                    </td>
+                    {% endif %}
+                    {% for cell in row.cells %}
+                    <td class="text-center align-top whitespace-nowrap">
+                        {% if view == 'online' %}
+                            {% with result=cell.online %}
+                            {% if not result %}
+                                <span class="p-muted" title="No online results">&ndash;</span>
+                            {% elif not result.quizzes_total %}
+                                <span class="text-xs p-muted">No quizzes</span>
+                            {% elif result.is_complete %}
+                                <span class="p-badge {% if result.passed %}p-badge-good{% else %}p-badge-bad{% endif %}">{{ result.overall_percentage|floatformat:0 }}%</span>
+                            {% elif result.quizzes_attempted %}
+                                <span class="block text-xs font-semibold p-navy">{{ result.quizzes_attempted }} of {{ result.quizzes_total }}</span>
+                                <span class="block text-xs p-muted">averaging {{ result.attempted_percentage|floatformat:0 }}%</span>
+                            {% else %}
+                                <span class="text-xs p-muted">Not started</span>
+                            {% endif %}
+                            {% endwith %}
+                        {% else %}
+                            {% with result=cell.programme %}
+                            {% if not result %}
+                                <span class="p-muted" title="No result yet">&ndash;</span>
+                            {% else %}
+                                {% if result.exam_score is not None %}<span class="block font-semibold p-navy">{{ result.exam_score|floatformat:0 }}%</span>{% endif %}
+                                {% include 'partners/_badge.html' with value=result.status label=result.get_status_display %}
+                                {% if result.signed_off_at %}<span class="block text-xs p-muted">Signed off</span>{% endif %}
+                            {% endif %}
+                            {% endwith %}
+                        {% endif %}
+                    </td>
+                    {% endfor %}
+                </tr>
+                {% empty %}
+                <tr><td colspan="{{ courses|length|add:2 }}" class="p-empty">No participants match.</td></tr>
+                {% endfor %}
+            </tbody>
+            {% if rows %}
+            <tfoot>
+                <tr>
+                    <th scope="row" class="sticky left-0 z-10 text-xs" style="background: var(--p-subtle);">Passed{% if view == 'online' %} online{% endif %}</th>
+                    {% if show_cohort %}<td></td>{% endif %}
+                    {% for summary in summaries %}<td class="text-center text-xs font-semibold p-navy">{{ summary.passed }}</td>{% endfor %}
+                </tr>
+            </tfoot>
+            {% endif %}
+        </table>
+    </div>
+</div>
+<p class="mt-3 text-xs p-muted">
+    {% if view == 'online' %}
+    Online scores count unattempted quizzes as zero. A course is passed online once every quiz is attempted and the overall score is {{ pass_mark }}% or more. Partly finished courses show how many quizzes are done and the average so far.
+    {% else %}
+    Programme results are the scores recorded by the location and include the classroom attendance requirement.
+    {% endif %}
+</p>
