@@ -166,3 +166,5 @@ class Command(BaseCommand):
             f'Bundle {product.slug} {state} with {len(courses)} course(s). It is hidden from the catalogue; '
             f'licence-funded access works whether or not it is listed.'
         ))
+
+
