@@ -66,9 +66,9 @@
                     <li><a href="{% url 'accounts:dashboard' %}" class="snap-foot-link">Dashboard</a></li>
 
                     {% if user.role == 'student' and SCHOLR_LMS_ENABLED %}
-                    <li><a href="{% url 'shop:catalog' %}" class="snap-foot-link">Browse courses</a></li>
+                    {% if SCHOLR_PURCHASES_ENABLED %}<li><a href="{% url 'shop:catalog' %}" class="snap-foot-link">Browse courses</a></li>{% endif %}
                     <li><a href="{% url 'shop:my_courses' %}" class="snap-foot-link">My learning</a></li>
-                    <li><a href="{% url 'shop:order_list' %}" class="snap-foot-link">My orders</a></li>
+                    {% if SCHOLR_PURCHASES_ENABLED %}<li><a href="{% url 'shop:order_list' %}" class="snap-foot-link">My orders</a></li>{% endif %}
 
                     {% elif user.role in 'teacher,hod,principal,admin_clerk' and SCHOLR_ACADEMICS_ENABLED %}
                     <li><a href="{% url 'academics:learner_list' %}" class="snap-foot-link">Learners</a></li>
@@ -83,7 +83,7 @@
                     {% elif user.role == 'admin' %}
                         {% if SCHOLR_LMS_ENABLED %}
                         <li><a href="{% url 'integration:course_list' %}" class="snap-foot-link">Courses</a></li>
-                        <li><a href="{% url 'shop:catalog' %}" class="snap-foot-link">Catalogue</a></li>
+                        {% if SCHOLR_PURCHASES_ENABLED %}<li><a href="{% url 'shop:catalog' %}" class="snap-foot-link">Catalogue</a></li>{% endif %}
                         {% endif %}
                         {% if SCHOLR_ACADEMICS_ENABLED %}
                         <li><a href="{% url 'academics:analytics_dashboard' %}" class="snap-foot-link">Analytics</a></li>
@@ -91,7 +91,7 @@
                     {% endif %}
 
                     {% else %}
-                    {% if SCHOLR_LMS_ENABLED and site_profile != 'school' %}
+                    {% if SCHOLR_PURCHASES_ENABLED and site_profile != 'school' %}
                     <li><a href="{% url 'shop:catalog' %}" class="snap-foot-link">Browse courses</a></li>
                     {% endif %}
                     {% if SCHOLR_ENROLLMENT_ENABLED and site_profile == 'school' %}
@@ -99,7 +99,7 @@
                     <li><a href="{% url 'enrollment:status' %}" class="snap-foot-link">Application status</a></li>
                     {% endif %}
                     <li><a href="{% url 'accounts:login' %}" class="snap-foot-link">Log in</a></li>
-                    {% if SCHOLR_LMS_ENABLED %}
+                    {% if SCHOLR_LMS_ENABLED and SCHOLR_SELF_REGISTRATION %}
                     <li><a href="{% url 'accounts:register' %}" class="snap-foot-link">Create an account</a></li>
                     {% endif %}
                     {% endif %}

@@ -40,6 +40,8 @@ class StaffAccessError(Exception):
 
 
 def role_name(role_id):
+    if role_id and role_id == settings.MOODLE_COHORT_VIEWER_ROLE_ID:
+        return 'Cohort viewer'
     return ROLE_NAMES.get(role_id, f'Moodle role {role_id}')
 
 
@@ -157,47 +159,88 @@ class StaffLMSAccess:
 
     def grant_access(self):
         """
-        Enrol the person as teaching staff in every course that exists in Moodle.
-        Returns {'status': 'granted' | 'current', 'courses': int, 'role': str, 'manager': bool|None, 'skipped': [...]}.
+        Enrol the person as teaching staff and, for coordinators and facilitators, put them
+        in the Moodle groups of the cohorts they look after.
+        Returns {'status': 'granted' | 'current', 'courses': int, 'role': str, 'manager': bool|None,
+                 'skipped': [...], 'cohorts': int, 'pending_cohorts': int}.
         """
         mapping = MoodleUserMapping.objects.filter(cas_user=self.user).first()
         if not mapping or not mapping.moodle_user_id:
             raise StaffAccessError('Your LMS account is not ready yet. Start again from the dashboard.')
 
-        role_id = settings.MOODLE_STAFF_COURSE_ROLES.get(self.user.role)
-        if role_id is None:
+        role_id = self._course_role()
+        if not role_id:
             raise StaffAccessError('No LMS role is set up for your account type.')
 
-        course_ids = sorted(
-            Course.objects
-            .filter(moodle_course_id__isnull=False)
-            .values_list('moodle_course_id', flat=True)
-        )
+        cohorts = []
+        if self.user.role == User.PARTNER:
+            from .cohort_groups import programme_courses, staff_cohorts
+            cohorts = list(staff_cohorts(self.user))
+            if not cohorts:
+                raise StaffAccessError(
+                    'You are not looking after any online cohort yet. Your coordinator or METP staff '
+                    'can add you to one.'
+                )
+            courses = programme_courses()
+        else:
+            courses = Course.objects.filter(moodle_course_id__isnull=False)
+
+        course_ids = sorted(courses.values_list('moodle_course_id', flat=True))
         wants_manager = (
             settings.MOODLE_ASSIGN_MANAGER_TO_ADMINS and self.user.role == User.ADMIN
         )
+        cohort_ids = sorted(cohort.pk for cohort in cohorts)
 
-        fingerprint = f"{mapping.moodle_user_id}|{role_id}|{wants_manager}|{','.join(map(str, course_ids))}"
+        fingerprint = (
+            f"{mapping.moodle_user_id}|{role_id}|{wants_manager}|"
+            f"{','.join(map(str, course_ids))}|{','.join(map(str, cohort_ids))}"
+        )
         if cache.get(_access_cache_key(self.user)) == fingerprint:
             return {
                 'status': 'current', 'courses': len(course_ids),
                 'role': role_name(role_id), 'manager': wants_manager or None, 'skipped': [],
+                'cohorts': len(cohorts), 'pending_cohorts': 0,
             }
 
         skipped = self._enrol(mapping.moodle_user_id, course_ids, role_id)
+        pending = self._join_cohort_groups(mapping.moodle_user_id, cohorts) if cohorts else []
 
         manager = None
         if wants_manager:
             manager = self._assign_manager(mapping.moodle_user_id)
 
         # Partial results are not cached, so the next visit tries the gaps again
-        if not skipped and manager is not False:
+        if not skipped and not pending and manager is not False:
             cache.set(_access_cache_key(self.user), fingerprint, ACCESS_CACHE_SECONDS)
 
         return {
             'status': 'granted', 'courses': len(course_ids) - len(skipped),
             'role': role_name(role_id), 'manager': manager, 'skipped': skipped,
+            'cohorts': len(cohorts), 'pending_cohorts': len(pending),
         }
+
+    def _course_role(self):
+        """Coordinators and facilitators only ever get the Cohort viewer role."""
+        if self.user.role == User.PARTNER:
+            return settings.MOODLE_COHORT_VIEWER_ROLE_ID or None
+        return settings.MOODLE_STAFF_COURSE_ROLES.get(self.user.role)
+
+    def _join_cohort_groups(self, moodle_user_id, cohorts):
+        """
+        Add the person to their cohorts' groups in one request. Cohorts without a group yet,
+        or a refusal from Moodle, queue a full sync instead of failing the sign-in.
+        """
+        from .cohort_groups import CohortGroupSync
+        from .tasks import queue_cohort_sync
+
+        try:
+            missing = CohortGroupSync(self.service).add_member_to_groups(moodle_user_id, cohorts)
+        except MoodleAPIError as error:
+            logger.warning(f'Could not add {self.user.username} to cohort groups, queueing a sync: {error}')
+            missing = cohorts
+        if missing:
+            queue_cohort_sync([cohort.pk for cohort in missing])
+        return missing
 
     def _enrol(self, moodle_user_id, course_ids, role_id):
         """One request for every course; course by course only if that batch is refused."""

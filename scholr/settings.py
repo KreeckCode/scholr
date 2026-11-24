@@ -37,6 +37,10 @@ SCHOLR_BURSARY_ENABLED    = env_flag('SCHOLR_BURSARY_ENABLED')
 SCHOLR_BRIDGE_ENABLED     = env_flag('SCHOLR_BRIDGE_ENABLED')
 SCHOLR_SELF_REGISTRATION = env_flag('SCHOLR_SELF_REGISTRATION', 'True')
 SCHOLR_PARTNERS_ENABLED   = env_flag('SCHOLR_PARTNERS_ENABLED')
+# Public catalogue, cart and checkout. Off where access only comes through partners.
+SCHOLR_PURCHASES_ENABLED  = env_flag('SCHOLR_PURCHASES_ENABLED', 'True')
+# One Moodle group per cohort, so participants only see their own cohort.
+SCHOLR_COHORT_GROUPS_ENABLED = env_flag('SCHOLR_COHORT_GROUPS_ENABLED')
 
 # ==================== SITE PROFILE AND BRANDING ====================
 
@@ -259,6 +263,9 @@ MOODLE_STAFF_COURSE_ROLES = {
 }
 MOODLE_MANAGER_ROLE_ID = int(os.getenv('MOODLE_MANAGER_ROLE_ID', '1'))
 MOODLE_ASSIGN_MANAGER_TO_ADMINS = env_flag('MOODLE_ASSIGN_MANAGER_TO_ADMINS')
+# The custom Cohort viewer role: non-editing teacher without "access all groups" or grading.
+# 0 means not set up yet, and coordinators and facilitators are kept out of Moodle until it is.
+MOODLE_COHORT_VIEWER_ROLE_ID = int(os.getenv('MOODLE_COHORT_VIEWER_ROLE_ID', '0'))
 
 
 # ==================== PARTNER NETWORK ====================
@@ -375,6 +382,11 @@ CELERY_BEAT_SCHEDULE = {
     'partners-stalled-partnerships-digest': {
         'task': 'partners.tasks.stalled_partnerships_digest',
         'schedule': crontab(hour=7, minute=0, day_of_week='mon'),
+    },
+    # Repairs anything a missed signal left behind. Does nothing unless cohort groups are on.
+    'integration-sync-cohort-groups': {
+        'task': 'integration.tasks.sync_cohort_groups_task',
+        'schedule': crontab(hour=4, minute=30),
     },
 }
 

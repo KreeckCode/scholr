@@ -13,6 +13,8 @@ def features(request):
         'brand':                     settings.SITE_BRAND,
         'SCHOLR_SELF_REGISTRATION': settings.SCHOLR_SELF_REGISTRATION,
         'SCHOLR_PARTNERS_ENABLED':   settings.SCHOLR_PARTNERS_ENABLED,
+        # Templates only need one check: buying needs the LMS and purchases both on
+        'SCHOLR_PURCHASES_ENABLED':  settings.SCHOLR_LMS_ENABLED and settings.SCHOLR_PURCHASES_ENABLED,
     }
 
 
@@ -22,7 +24,7 @@ def cart(request):
     Replaces the old cart_counter.html, which fetched and parsed the whole
     cart page on every single page load.
     """
-    if not settings.SCHOLR_LMS_ENABLED:
+    if not (settings.SCHOLR_LMS_ENABLED and settings.SCHOLR_PURCHASES_ENABLED):
         return {'cart_count': 0}
 
     count = request.session.get('cart', {})

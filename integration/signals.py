@@ -79,12 +79,17 @@ def mark_course_for_sync_on_change(sender, instance, **kwargs):
 
 
 @receiver(post_save, sender=CourseEnrollment)
-def mark_enrollment_for_sync(sender, instance, created, **kwargs):
+def mark_enrollment_for_sync(sender, instance, created, update_fields=None, **kwargs):
     """
     Mark enrollment for sync when created or modified
     """
     # If just created, already pending
     if created:
+        return
+
+    # mark_synced and mark_failed write sync_status themselves; flipping that back
+    # to pending left every enrolment looking unsynced the moment it was synced
+    if update_fields and 'sync_status' in update_fields:
         return
     
     # If status changed, mark for sync
@@ -257,3 +262,57 @@ def handle_course_product_cleanup(sender, instance, **kwargs):
             f"Course '{course_title}' (ID: {course_id}) deletion affected "
             f"{len(product_names)} product(s): {', '.join(product_names)}"
         )
+
+# ==================== PARTNER COHORT GROUPS ====================
+# Every receiver below only queues a sync. The task itself checks the METP-only flag.
+
+def _queue(cohort_ids):
+    from .tasks import queue_cohort_sync
+    queue_cohort_sync(cohort_ids)
+
+
+def _connect_cohort_group_signals():
+    from django.db.models.signals import m2m_changed
+    from partners.models import Cohort, CohortMembership, LocationMembership
+
+    @receiver(post_save, sender=CohortMembership, dispatch_uid='cohort_groups_membership')
+    def cohort_membership_changed(sender, instance, **kwargs):
+        _queue([instance.cohort_id])
+
+    @receiver(post_save, sender=LocationMembership, dispatch_uid='cohort_groups_location_team')
+    def location_team_changed(sender, instance, **kwargs):
+        _queue(Cohort.objects.filter(
+            location_id=instance.location_id, delivery=Cohort.Delivery.BLENDED,
+        ).values_list('pk', flat=True))
+
+    @receiver(m2m_changed, sender=Cohort.facilitators.through, dispatch_uid='cohort_groups_facilitators')
+    def cohort_facilitators_changed(sender, instance, action, pk_set, reverse, **kwargs):
+        if action not in ('post_add', 'post_remove', 'post_clear'):
+            return
+        if reverse:
+            # A user's cohorts were changed from the user side
+            _queue(pk_set or instance.facilitated_cohorts.values_list('pk', flat=True))
+        else:
+            _queue([instance.pk])
+
+
+_connect_cohort_group_signals()
+
+
+@receiver(post_save, sender=CourseEnrollment, dispatch_uid='cohort_groups_enrolment_done')
+def course_enrolment_completed(sender, instance, update_fields=None, **kwargs):
+    """
+    mark_synced() is how the order flow reports a finished Moodle enrolment, and it is the
+    only save that writes moodle_enrollment_id. Progress syncs save without update_fields,
+    so they never trigger this.
+    """
+    if not update_fields or 'moodle_enrollment_id' not in update_fields:
+        return
+    if not instance.is_active or instance.sync_status != 'synced':
+        return
+    from partners.models import CohortMembership
+    _queue(
+        CohortMembership.objects.filter(
+            participant__user_id=instance.user_id, access_order__isnull=False,
+        ).values_list('cohort_id', flat=True)
+    )

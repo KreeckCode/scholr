@@ -714,3 +714,22 @@ class SyncLog(models.Model):
         if self.total_items == 0:
             return 0
         return (self.successful_items / self.total_items) * 100
+
+
+class MoodleCohortGroup(models.Model):
+    """The Moodle group that holds one partner cohort inside one course."""
+
+    cohort = models.ForeignKey('partners.Cohort', on_delete=models.CASCADE, related_name='moodle_groups')
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='cohort_groups')
+    moodle_group_id = models.IntegerField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'moodle_cohort_groups'
+        constraints = [
+            models.UniqueConstraint(fields=['cohort', 'course'], name='unique_cohort_group_per_course'),
+            models.UniqueConstraint(fields=['course', 'moodle_group_id'], name='unique_moodle_group_per_course'),
+        ]
+
+    def __str__(self):
+        return f'{self.cohort} in {self.course.short_name} (group {self.moodle_group_id})'

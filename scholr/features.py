@@ -39,3 +39,13 @@ def partners_enabled() -> bool:
 def self_registration_enabled() -> bool:
     """Public sign-up. Off for school deployments, where staff create accounts."""
     return getattr(settings, 'SCHOLR_SELF_REGISTRATION', True)
+
+
+def purchases_enabled() -> bool:
+    """Public catalogue, cart and checkout. Off where access only comes through partners."""
+    return getattr(settings, 'SCHOLR_LMS_ENABLED', True) and getattr(settings, 'SCHOLR_PURCHASES_ENABLED', True)
+
+
+def cohort_groups_enabled() -> bool:
+    """One Moodle group per partner cohort, so participants only see their own cohort."""
+    return partners_enabled() and getattr(settings, 'SCHOLR_COHORT_GROUPS_ENABLED', False)

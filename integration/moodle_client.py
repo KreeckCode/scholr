@@ -476,6 +476,46 @@ class MoodleClient:
         logger.info(f"Enrolled user {user_id} in {len(course_ids)} course(s) with role {role_id}")
         return True
 
+    # ==================== GROUPS ====================
+
+    def get_course_groups(self, course_id: int) -> List[Dict]:
+        """Every group in a course, each with id, name and idnumber."""
+        return self._make_request('core_group_get_course_groups', {'courseid': course_id}) or []
+
+    def create_groups(self, groups: List[Dict]) -> List[Dict]:
+        """Create groups from dicts of courseid, name, idnumber and description. Returns them with ids."""
+        return self._make_request('core_group_create_groups', {'groups': groups}) or []
+
+    def get_group_member_ids(self, group_ids: List[int]) -> Dict[int, set]:
+        """{group_id: {user_id, ...}} for many groups in one request."""
+        if not group_ids:
+            return {}
+        response = self._make_request('core_group_get_group_members', {'groupids': list(group_ids)}) or []
+        return {row['groupid']: set(row.get('userids') or []) for row in response}
+
+    def add_group_members(self, members: List[Dict]) -> bool:
+        """Add {groupid, userid} pairs. Users must already be enrolled in the group's course."""
+        if members:
+            self._make_request('core_group_add_group_members', {'members': members})
+        return True
+
+    def delete_group_members(self, members: List[Dict]) -> bool:
+        if members:
+            self._make_request('core_group_delete_group_members', {'members': members})
+        return True
+
+    def get_enrolled_user_ids(self, course_id: int) -> set:
+        """IDs of everyone enrolled in a course, without fetching their profiles."""
+        response = self._make_request('core_enrol_get_enrolled_users', {
+            'courseid': course_id,
+            'options': [{'name': 'userfields', 'value': 'id'}],
+        }) or []
+        return {row['id'] for row in response}
+
+    def set_separate_groups(self, course_id: int) -> bool:
+        """Separate groups, forced on every activity, so learners only see their own group."""
+        return self.update_course(course_id, {'groupmode': 1, 'groupmodeforce': 1})
+
     def assign_system_role(self, user_id: int, role_id: int) -> bool:
         """
         Give a user a role across the whole site, such as Manager.

@@ -4,6 +4,7 @@
 {% block title %}Location portal{% endblock %}
 {% block eyebrow %}Location portal{% endblock %}
 {% block heading %}{% if locations %}Choose a location{% else %}No locations yet{% endif %}{% endblock %}
+{% block actions %}{% if user.role == 'partner' and locations %}{% include 'integration/_lms_portal.html' %}{% endif %}{% endblock %}
 
 {% block body %}
 {% if locations %}

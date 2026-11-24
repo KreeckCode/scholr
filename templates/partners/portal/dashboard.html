@@ -9,6 +9,7 @@
 <p class="mt-2 text-sm p-slate">{% if location.city %}{{ location.city }}, {% endif %}{{ location.country_name }} &middot; Teaching in {{ location.language }}</p>
 {% endblock %}
 {% block actions %}
+{% if user.role == 'partner' %}{% if is_coordinator %}{% include 'integration/_lms_portal.html' with portal_button_class='p-btn-ghost' %}{% else %}{% include 'integration/_lms_portal.html' %}{% endif %}{% endif %}
 {% if is_coordinator %}<a class="p-btn" href="{% url 'partners:cohort_create' location_id=location.public_id %}">New cohort</a>{% endif %}
 {% if is_staff_viewer %}<a class="p-btn-ghost" href="{% url 'partners:location_edit' location_id=location.public_id %}">Edit location</a>{% endif %}
 {% endblock %}

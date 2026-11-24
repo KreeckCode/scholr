@@ -864,6 +864,16 @@ def staff_lms_access(request):
 
     if missed and count:
         message += f' {missed} course{"s" if missed != 1 else ""} could not be added, but you can still sign in.'
+
+    cohorts, pending = result.get('cohorts', 0), result.get('pending_cohorts', 0)
+    if cohorts:
+        ready = cohorts - pending
+        message += f' You can see {ready} cohort{"s" if ready != 1 else ""}.'
+        if pending:
+            message += (
+                f' {pending} more {"is" if pending == 1 else "are"} still being set up and will appear '
+                f'within a few minutes.'
+            )
     if result['manager'] is True:
         message += ' Site manager role confirmed.'
     elif result['manager'] is False:

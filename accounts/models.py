@@ -53,7 +53,7 @@ class User(AbstractUser):
     STAFF_ROLES = {TEACHER, PRINCIPAL, HOD, ADMIN_CLERK}
     PARTNER_NETWORK_ROLES = {PROGRAMME_STAFF, PARTNER}
     # Roles that open the LMS as teaching staff rather than as students
-    LMS_STAFF_ROLES = {ADMIN, DEAN, PROGRAMME_STAFF}
+    LMS_STAFF_ROLES = {ADMIN, DEAN, PROGRAMME_STAFF, PARTNER}
     
     # Phone validator for international format
     phone_regex = RegexValidator(
@@ -156,8 +156,18 @@ class User(AbstractUser):
         return self.role in self.LMS_ROLES
 
     def can_open_lms_as_staff(self):
-        """True for admins, deans and programme staff, who enter Moodle as teachers."""
-        return self.is_active and self.role in self.LMS_STAFF_ROLES
+        """
+        Admins, deans and programme staff enter Moodle as teachers. Partner coordinators and
+        facilitators enter as Cohort viewers, but only once cohort groups and that role are
+        set up, because without them they would see every cohort's learners.
+        """
+        if not self.is_active or self.role not in self.LMS_STAFF_ROLES:
+            return False
+        if self.role == self.PARTNER:
+            from django.conf import settings
+            from scholr.features import cohort_groups_enabled
+            return cohort_groups_enabled() and bool(settings.MOODLE_COHORT_VIEWER_ROLE_ID)
+        return True
 
     def get_students(self):
         """

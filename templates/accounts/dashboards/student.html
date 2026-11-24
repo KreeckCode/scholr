@@ -75,7 +75,7 @@
             <div class="p-card p-empty">
                 <p class="font-semibold p-navy">You are not enrolled in anything yet</p>
                 <p class="mt-1">{% if SCHOLR_PARTNERS_ENABLED %}If you study at a training location, your coordinator gives you online access.{% else %}Browse the catalogue to find a course.{% endif %}</p>
-                {% if SCHOLR_LMS_ENABLED %}<a class="p-btn-ghost mt-4" href="{% url 'shop:catalog' %}">Browse courses</a>{% endif %}
+                {% if SCHOLR_PURCHASES_ENABLED %}<a class="p-btn-ghost mt-4" href="{% url 'shop:catalog' %}">Browse courses</a>{% endif %}
             </div>
             {% endfor %}
         </div>

@@ -75,9 +75,9 @@
                     {% if user.role == 'student' %}
                         {% include 'base/nav/_nav_link.html' with url='accounts:dashboard' label='Dashboard' active_paths='dashboard' %}
                         {% if SCHOLR_LMS_ENABLED %}
-                        {% include 'base/nav/_nav_link.html' with url='shop:catalog' label='Browse Courses' active_paths='catalog' %}
+                        {% if SCHOLR_PURCHASES_ENABLED %}{% include 'base/nav/_nav_link.html' with url='shop:catalog' label='Browse Courses' active_paths='catalog' %}{% endif %}
                         {% include 'base/nav/_nav_link.html' with url='shop:my_courses' label='My Learning' active_paths='my-courses' %}
-                        {% include 'base/nav/_nav_link.html' with url='shop:order_list' label='Orders' active_paths='orders' %}
+                        {% if SCHOLR_PURCHASES_ENABLED %}{% include 'base/nav/_nav_link.html' with url='shop:order_list' label='Orders' active_paths='orders' %}{% endif %}
                         {% endif %}
 
                     {# -------- COMMERCIAL DEAN -------- #}
@@ -144,10 +144,12 @@
                                     <svg class="snap-dd-icon h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
                                     Bundles
                                 </a>
+                                {% if SCHOLR_PURCHASES_ENABLED %}
                                 <a href="{% url 'shop:catalog' %}" class="snap-dd-item flex items-center gap-2.5 px-4 py-2.5 text-sm">
                                     <svg class="snap-dd-icon h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
                                     Course Catalogue
                                 </a>
+                                {% endif %}
                             </div>
                         </div>
 
@@ -389,7 +391,7 @@
 
                     {% else %}
                     {# ===== GUEST ===== #}
-                    {% if SCHOLR_LMS_ENABLED %}
+                    {% if SCHOLR_PURCHASES_ENABLED %}
                     {% include 'base/nav/_nav_link.html' with url='shop:catalog' label='Browse Courses' active_paths='catalog' %}
                     {% endif %}
                     {% endif %}{# end is_authenticated #}
@@ -402,7 +404,7 @@
 
                 {% if user.is_authenticated %}
 
-                    {% if user.role == 'student' and SCHOLR_LMS_ENABLED %}
+                    {% if user.role == 'student' and SCHOLR_PURCHASES_ENABLED %}
                     <a href="{% url 'shop:cart_detail' %}"
                        class="snap-pill relative inline-flex h-9 w-9 items-center justify-center rounded-full">
                         <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -481,7 +483,7 @@
                     </div>
 
                 {% else %}
-                    {% if SCHOLR_LMS_ENABLED %}
+                    {% if SCHOLR_PURCHASES_ENABLED %}
                     <a href="{% url 'shop:catalog' %}"
                        class="snap-pill hidden sm:inline-flex rounded-full px-4 py-2 text-sm font-medium">
                         Browse Courses
@@ -544,9 +546,9 @@
                 {% if user.role == 'student' %}
                     <a href="{% url 'accounts:dashboard' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">Dashboard</a>
                     {% if SCHOLR_LMS_ENABLED %}
-                    <a href="{% url 'shop:catalog' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">Browse Courses</a>
+                    {% if SCHOLR_PURCHASES_ENABLED %}<a href="{% url 'shop:catalog' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">Browse Courses</a>{% endif %}
                     <a href="{% url 'shop:my_courses' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">My Learning</a>
-                    <a href="{% url 'shop:order_list' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">Orders</a>
+                    {% if SCHOLR_PURCHASES_ENABLED %}<a href="{% url 'shop:order_list' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">Orders</a>{% endif %}
                     {% endif %}
 
                 {% elif user.role == 'dean' %}
@@ -563,7 +565,7 @@
                     <a href="{% url 'accounts:student_list' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">Learners</a>
                     <a href="{% url 'integration:course_list' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">Courses</a>
                     <a href="{% url 'shop:bundle_list' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">Bundles</a>
-                    <a href="{% url 'shop:catalog' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">Catalogue</a>
+                    {% if SCHOLR_PURCHASES_ENABLED %}<a href="{% url 'shop:catalog' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">Catalogue</a>{% endif %}
                     <a href="{% url 'integration:dashboard' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">Integration</a>
                     <a href="{% url 'integration:sync_dashboard' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">Sync</a>
                     <a href="{% url 'accounts:analytics' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">Analytics</a>
@@ -641,11 +643,11 @@
                 </div>
 
                 {% else %}
-                {% if SCHOLR_LMS_ENABLED %}
+                {% if SCHOLR_PURCHASES_ENABLED %}
                 <a href="{% url 'shop:catalog' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">Browse Courses</a>
                 {% endif %}
                 <a href="{% url 'accounts:login' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">Log in</a>
-                {% if SCHOLR_LMS_ENABLED %}
+                {% if SCHOLR_LMS_ENABLED and SCHOLR_SELF_REGISTRATION %}
                 <a href="{% url 'accounts:register' %}" class="block rounded-xl px-4 py-3 text-sm font-semibold"
                    style="background: rgba(18,165,148,0.10); color: var(--snap-teal-deep);">Register free</a>
                 {% endif %}
