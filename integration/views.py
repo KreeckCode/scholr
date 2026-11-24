@@ -36,6 +36,7 @@ from django.http import Http404
 
 from .exceptions import MoodleAuthenticationError, UserNotSyncedError
 from .staff_access import StaffAccessError, StaffLMSAccess
+from scholr.features import online_results_enabled, staff_lms_portal_enabled
 
 staff_portal_logger = logging.getLogger('integration.staff_portal')
 
@@ -781,7 +782,7 @@ def lms_staff_required(view_func):
     """Admins, deans and programme staff only, answering in JSON for the progress panel."""
     @wraps(view_func)
     def wrapper(request, *args, **kwargs):
-        if not settings.SCHOLR_LMS_ENABLED:
+        if not staff_lms_portal_enabled():
             raise Http404
         if not request.user.is_authenticated:
             return JsonResponse(
@@ -885,7 +886,7 @@ def staff_lms_access(request):
 @login_required
 def staff_lms_open(request):
     """Step three: sign the person into Moodle. Also works as a plain link if a tab was blocked."""
-    if not settings.SCHOLR_LMS_ENABLED:
+    if not staff_lms_portal_enabled():
         raise Http404
 
     user = request.user
@@ -934,7 +935,7 @@ def refresh_online_results(request):
 
     user = request.user
     allowed = scope.is_programme_staff(user) or LocationMembership.objects.filter(user=user, is_active=True).exists()
-    if not settings.SCHOLR_PARTNERS_ENABLED or not allowed:
+    if not online_results_enabled() or not allowed:
         raise Http404
 
     if queue_online_results_refresh():

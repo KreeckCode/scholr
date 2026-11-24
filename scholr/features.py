@@ -49,3 +49,13 @@ def purchases_enabled() -> bool:
 def cohort_groups_enabled() -> bool:
     """One Moodle group per partner cohort, so participants only see their own cohort."""
     return partners_enabled() and getattr(settings, 'SCHOLR_COHORT_GROUPS_ENABLED', False)
+
+
+def staff_lms_portal_enabled() -> bool:
+    """LMS Portal button that signs staff into Moodle as teachers."""
+    return getattr(settings, 'SCHOLR_LMS_ENABLED', True) and getattr(settings, 'SCHOLR_STAFF_LMS_PORTAL_ENABLED', False)
+
+
+def online_results_enabled() -> bool:
+    """Online quiz results pulled from Moodle, and the results overviews."""
+    return partners_enabled() and getattr(settings, 'SCHOLR_ONLINE_RESULTS_ENABLED', False)

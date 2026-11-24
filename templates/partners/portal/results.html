@@ -6,7 +6,7 @@
 {% block eyebrow %}{{ cohort.name }}{% endblock %}
 {% block heading %}Results{% endblock %}
 {% block subheading %}{% if course %}<p class="mt-2 text-sm p-slate">A course is passed with {{ pass_mark }}% or more in the exam and at least {{ required_hours }} of {{ course.classroom_hours }} classroom hours attended.</p>{% endif %}{% endblock %}
-{% block actions %}<a class="p-btn-ghost" href="{% url 'partners:cohort_results_overview' location_id=location.public_id cohort_id=cohort.public_id %}">Overview</a><a class="p-btn-ghost" href="{% url 'partners:cohort_detail' location_id=location.public_id cohort_id=cohort.public_id %}">Back to cohort</a>{% endblock %}
+{% block actions %}{% if SCHOLR_ONLINE_RESULTS_ENABLED %}<a class="p-btn-ghost" href="{% url 'partners:cohort_results_overview' location_id=location.public_id cohort_id=cohort.public_id %}">Overview</a>{% endif %}<a class="p-btn-ghost" href="{% url 'partners:cohort_detail' location_id=location.public_id cohort_id=cohort.public_id %}">Back to cohort</a>{% endblock %}
 
 {% block body %}
 <nav class="mb-6 flex flex-wrap gap-1.5" aria-label="Courses">

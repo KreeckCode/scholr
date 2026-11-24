@@ -41,6 +41,10 @@ SCHOLR_PARTNERS_ENABLED   = env_flag('SCHOLR_PARTNERS_ENABLED')
 SCHOLR_PURCHASES_ENABLED  = env_flag('SCHOLR_PURCHASES_ENABLED', 'True')
 # One Moodle group per cohort, so participants only see their own cohort.
 SCHOLR_COHORT_GROUPS_ENABLED = env_flag('SCHOLR_COHORT_GROUPS_ENABLED')
+# LMS Portal button that signs staff into Moodle as teachers. METP only.
+SCHOLR_STAFF_LMS_PORTAL_ENABLED = env_flag('SCHOLR_STAFF_LMS_PORTAL_ENABLED')
+# Online quiz results and the results overviews. METP only.
+SCHOLR_ONLINE_RESULTS_ENABLED = env_flag('SCHOLR_ONLINE_RESULTS_ENABLED')
 
 # ==================== SITE PROFILE AND BRANDING ====================
 

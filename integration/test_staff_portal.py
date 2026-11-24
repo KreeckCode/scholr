@@ -43,7 +43,7 @@ def map_user(user, moodle_user_id, username=None):
     return mapping
 
 
-@override_settings(CACHES=LOCMEM_CACHES)
+@override_settings(CACHES=LOCMEM_CACHES, SCHOLR_STAFF_LMS_PORTAL_ENABLED=True)
 class StaffPortalTestCase(TestCase):
     def setUp(self):
         cache.clear()

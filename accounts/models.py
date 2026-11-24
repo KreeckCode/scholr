@@ -161,7 +161,8 @@ class User(AbstractUser):
         facilitators enter as Cohort viewers, but only once cohort groups and that role are
         set up, because without them they would see every cohort's learners.
         """
-        if not self.is_active or self.role not in self.LMS_STAFF_ROLES:
+        from scholr.features import staff_lms_portal_enabled
+        if not staff_lms_portal_enabled() or not self.is_active or self.role not in self.LMS_STAFF_ROLES:
             return False
         if self.role == self.PARTNER:
             from django.conf import settings

@@ -112,7 +112,8 @@ def map_to_moodle(user, moodle_user_id=None):
     return moodle_user_id
 
 
-@override_settings(SCHOLR_COHORT_GROUPS_ENABLED=True, MOODLE_COHORT_VIEWER_ROLE_ID=VIEWER_ROLE)
+@override_settings(SCHOLR_COHORT_GROUPS_ENABLED=True, MOODLE_COHORT_VIEWER_ROLE_ID=VIEWER_ROLE,
+                   SCHOLR_STAFF_LMS_PORTAL_ENABLED=True)
 class CohortGroupTestCase(PartnersTestCase):
     def setUp(self):
         super().setUp()

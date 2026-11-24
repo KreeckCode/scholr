@@ -44,6 +44,7 @@ from partners.models import (
 )
 from partners.services import access, accounts, licences, results, roster, scope, sync
 from partners.utils import enqueue
+from scholr.features import online_results_enabled
 
 logger = logging.getLogger(__name__)
 
@@ -650,7 +651,7 @@ class ResultsView(CohortMixin, ServiceErrorMixin, TemplateView):
         if form is not None:
             memberships = [row[0] for row in form.rows]
             hours = roster.attended_hours_by_membership(memberships, course)
-            online = results.online_results(memberships, [course])
+            online = results.online_results(memberships, [course]) if online_results_enabled() else {}
             for membership, result, score_name, version_name in form.rows:
                 rows.append({
                     'membership': membership,
@@ -667,7 +668,7 @@ class ResultsView(CohortMixin, ServiceErrorMixin, TemplateView):
             'rows': rows,
             'required_hours': roster.required_hours(course) if course else None,
             'pass_mark': settings.PARTNERS_PASS_MARK,
-            'is_online_course': bool(course and course.online_course_id),
+            'is_online_course': bool(course and course.online_course_id) and online_results_enabled(),
             'online_synced_at': results.last_synced(),
             'editable': self.can_record and licences.allows_recording(self.location.licence, self.cohort),
             'unsigned_count': CourseResult.objects.filter(
@@ -846,6 +847,11 @@ class CohortResultsOverviewView(CohortMixin, TemplateView):
     """Every participant across all twelve courses, as programme results or online quiz results."""
 
     template_name = 'partners/portal/results_overview.html'
+
+    def dispatch(self, request, *args, **kwargs):
+        if not online_results_enabled():
+            raise Http404
+        return super().dispatch(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

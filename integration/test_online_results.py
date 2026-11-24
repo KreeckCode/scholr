@@ -57,6 +57,7 @@ class SummariseTests(PartnersTestCase):
         self.assertFalse(OnlineQuizResult(**summarise([])).is_complete)
 
 
+@override_settings(SCHOLR_ONLINE_RESULTS_ENABLED=True)
 class ResultsTestCase(PartnersTestCase):
     def setUp(self):
         super().setUp()
@@ -122,7 +123,7 @@ class SyncTests(ResultsTestCase):
     def test_task_does_nothing_when_partners_are_off(self):
         from integration.tasks import sync_online_results_task
         with override_settings(SCHOLR_PARTNERS_ENABLED=False):
-            self.assertEqual(sync_online_results_task.apply().get(), {'skipped': 'partners are off'})
+            self.assertEqual(sync_online_results_task.apply().get(), {'skipped': 'online results are off'})
         self.moodle.get_course_grade_items.assert_not_called()
 
 

@@ -15,6 +15,7 @@ def features(request):
         'SCHOLR_PARTNERS_ENABLED':   settings.SCHOLR_PARTNERS_ENABLED,
         # Templates only need one check: buying needs the LMS and purchases both on
         'SCHOLR_PURCHASES_ENABLED':  settings.SCHOLR_LMS_ENABLED and settings.SCHOLR_PURCHASES_ENABLED,
+        'SCHOLR_ONLINE_RESULTS_ENABLED': settings.SCHOLR_PARTNERS_ENABLED and settings.SCHOLR_ONLINE_RESULTS_ENABLED,
     }
 
 

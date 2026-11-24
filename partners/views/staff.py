@@ -566,6 +566,12 @@ class ResultsOverviewView(ProgrammeStaffRequiredMixin, TemplateView):
     template_name = 'partners/staff/results_overview.html'
     page_size = 50
 
+    def dispatch(self, request, *args, **kwargs):
+        from scholr.features import online_results_enabled
+        if not online_results_enabled():
+            raise Http404
+        return super().dispatch(request, *args, **kwargs)
+
     def get_context_data(self, **kwargs):
         from django.core.paginator import Paginator
 

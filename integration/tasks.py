@@ -60,9 +60,9 @@ ONLINE_RESULTS_REFRESH_SECONDS = 5 * 60
 @shared_task(bind=True, max_retries=3)
 def sync_online_results_task(self):
     """Pull quiz results for every METP course. Runs nightly and when someone asks for a refresh."""
-    from scholr.features import partners_enabled
-    if not partners_enabled():
-        return {'skipped': 'partners are off'}
+    from scholr.features import online_results_enabled
+    if not online_results_enabled():
+        return {'skipped': 'online results are off'}
 
     from .online_results import OnlineResultSync
     try:
