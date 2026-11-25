@@ -21,7 +21,7 @@
     <p class="text-xs p-muted">{% if location.city %}{{ location.city }}, {% endif %}{% if location.region %}{{ location.region }}, {% endif %}{{ location.country_name }} &middot; {{ location.language }}{% if location.organisation.partnership %} &middot; {{ location.organisation.partnership.get_stage_display }}{% endif %}</p>
 
     {% if not location.position_is_confirmed %}
-    <div class="p-alert p-alert-warn mb-0">The position is estimated from the town name.{% if not NETWORK_READ_ONLY %} <a class="font-semibold underline" href="{% url 'partners:location_place_edit' location_id=location.public_id %}">Confirm it</a> before anyone travels.{% endif %}</div>
+    <div class="p-alert p-alert-warn mb-0">The position is estimated from the town name.{% if NETWORK_CAN_ENTER_PORTAL %} <a class="font-semibold underline" href="{% url 'partners:location_place_edit' location_id=location.public_id %}">Confirm it</a> before anyone travels.{% endif %}</div>
     {% endif %}
 
     {% if links %}
@@ -43,7 +43,7 @@
         {% if location.travel_notes %}<div><dt>Travel notes</dt><dd class="p-prose font-normal">{{ location.travel_notes }}</dd></div>{% endif %}
     </dl>
     {% else %}
-    <p class="text-sm p-muted">No directions yet.{% if not NETWORK_READ_ONLY %} <a class="p-link" href="{% url 'partners:location_place_edit' location_id=location.public_id %}">Add them</a>.{% endif %}</p>
+    <p class="text-sm p-muted">No directions yet.{% if NETWORK_CAN_ENTER_PORTAL %} <a class="p-link" href="{% url 'partners:location_place_edit' location_id=location.public_id %}">Add them</a>.{% endif %}</p>
     {% endif %}
 
     <section>
@@ -113,7 +113,7 @@
     {% endif %}
 </div>
 
-{% if not NETWORK_READ_ONLY %}
+{% if NETWORK_CAN_ENTER_PORTAL %}
 <div class="p-card-foot justify-start">
     <a class="p-btn-ghost p-btn-sm" href="{% url 'partners:location_place' location_id=location.public_id %}">Location page</a>
     <a class="p-btn-ghost p-btn-sm" href="{% url 'partners:location_dashboard' location_id=location.public_id %}">Cohorts</a>

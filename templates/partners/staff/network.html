@@ -6,7 +6,7 @@
 {% block eyebrow %}Partner network{% endblock %}
 {% block heading %}Who is training where{% endblock %}
 {% block subheading %}<p class="mt-2 text-sm p-slate">Participants by country, region and location. Sensitive locations are counted, but their names are withheld from the export.</p>{% endblock %}
-{% block actions %}{% if not NETWORK_READ_ONLY %}<a class="p-btn-ghost" href="{% url 'partners:network_export' %}">Download CSV</a>{% endif %}{% endblock %}
+{% block actions %}{% if NETWORK_CAN_EXPORT %}<a class="p-btn-ghost" href="{% url 'partners:network_export' %}">Download CSV</a>{% endif %}{% endblock %}
 
 {% block body %}
 <div class="mb-8 grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
@@ -66,7 +66,7 @@
             <tbody>
                 {% for row in rows %}
                 <tr>
-                    <td>{% if NETWORK_READ_ONLY %}<span class="font-semibold p-navy">{{ row.location.name }}</span>{% else %}<a class="p-link" href="{% url 'partners:location_dashboard' location_id=row.location.public_id %}">{{ row.location.name }}</a>{% endif %}<span class="block text-xs p-muted">{{ row.region }}, {{ row.country_name }}</span></td>
+                    <td>{% if not NETWORK_CAN_ENTER_PORTAL %}<span class="font-semibold p-navy">{{ row.location.name }}</span>{% else %}<a class="p-link" href="{% url 'partners:location_dashboard' location_id=row.location.public_id %}">{{ row.location.name }}</a>{% endif %}<span class="block text-xs p-muted">{{ row.region }}, {{ row.country_name }}</span></td>
                     <td>{{ row.location.organisation.name }}</td>
                     <td>{% include 'partners/_badge.html' with value=row.location.status label=row.location.get_status_display %}</td>
                     <td class="p-num">{{ row.enrolled }}</td>

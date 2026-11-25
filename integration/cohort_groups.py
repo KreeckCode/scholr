@@ -38,10 +38,18 @@ def online_cohorts():
 
 
 def staff_cohorts(user):
-    """Online cohorts a coordinator or facilitator looks after, using the portal's own rules."""
+    """
+    Online cohorts someone looks after: by the portal's rules for coordinators and facilitators,
+    by network reach for hub administrators and ambassadors.
+    """
+    from accounts.models import User
     from partners.services import scope
 
-    return online_cohorts().filter(pk__in=scope.cohorts_for(user).values('pk'))
+    if scope.network_role(user) in User.NETWORK_SCOPED_ROLES:
+        cohorts = scope.cohorts_in_reach(user)
+    else:
+        cohorts = scope.cohorts_for(user)
+    return online_cohorts().filter(pk__in=cohorts.values('pk'))
 
 
 def participant_cohorts(user):
@@ -86,7 +94,24 @@ def desired_user_ids(cohort):
                 is_active=True, pk__in=active_at_location.values('user_id'),
             ).values_list('pk', flat=True)
         )
+        wanted |= set(reach_staff_ids(cohort))
     return wanted
+
+
+def reach_staff_ids(cohort):
+    """Hub administrators and ambassadors whose reach includes this cohort's partner."""
+    from django.db.models import Q
+    from accounts.models import User
+    from partners.models import TrainingLocation
+
+    organisation_id, country = TrainingLocation.objects.filter(pk=cohort.location_id).values_list(
+        'organisation_id', 'organisation__country',
+    ).get()
+    return User.objects.filter(
+        Q(role__in=User.NETWORK_SCOPED_ROLES, network_assignments__organisation_id=organisation_id)
+        | Q(role=User.HUB_ADMIN, network_assignments__country=country),
+        is_active=True,
+    ).distinct().values_list('pk', flat=True)
 
 
 class CohortGroupSync:

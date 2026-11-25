@@ -19,6 +19,7 @@ def features(request):
         'SCHOLR_EMAIL_SIGN_IN_ENABLED': settings.SCHOLR_EMAIL_SIGN_IN_ENABLED,
         # Leaders see the network but change nothing; templates hide every edit control for them
         'NETWORK_READ_ONLY': getattr(getattr(request, 'user', None), 'role', None) == 'leader',
+        **_network_permissions(getattr(request, 'user', None)),
     }
 
 
@@ -33,3 +34,22 @@ def cart(request):
 
     count = request.session.get('cart', {})
     return {'cart_count': len(count) if isinstance(count, dict) else 0}
+
+
+def _network_permissions(user):
+    """What the partner network pages may offer this person, for showing and hiding controls."""
+    if not (settings.SCHOLR_PARTNERS_ENABLED and user is not None and getattr(user, 'is_authenticated', False)):
+        return {}
+    from partners.services import scope
+    staff = scope.is_programme_staff(user)
+    role = scope.network_role(user)
+    return {
+        'NETWORK_CAN_EDIT': scope.can_edit_network(user),
+        'NETWORK_CAN_LOG': scope.can_log_network(user),
+        'NETWORK_CAN_ADD_PARTNER': scope.can_add_partner(user),
+        'NETWORK_CAN_MANAGE_LICENCES': scope.can_manage_licences(user),
+        'NETWORK_CAN_ENTER_PORTAL': scope.can_enter_portal(user),
+        'NETWORK_CAN_EXPORT': staff,
+        'NETWORK_SEES_MAP': staff or role == 'leader',
+        'NETWORK_SEES_RESULTS': staff or role in ('leader', 'hub_admin'),
+    }

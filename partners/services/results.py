@@ -58,7 +58,7 @@ def visible_memberships(user, country='', organisation='', location='', cohort='
     """Participants whose results this user may see, narrowed by the filters given."""
     memberships = (
         CohortMembership.objects
-        .filter(cohort__in=scope.cohorts_for(user))
+        .filter(cohort__in=scope.result_cohorts(user))
         .exclude(status=CohortMembership.Status.WITHDRAWN)
         .select_related('participant', 'cohort__location__organisation')
     )

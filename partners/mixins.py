@@ -15,8 +15,12 @@ from partners.services import scope
 
 SAFE_METHODS = ('GET', 'HEAD', 'OPTIONS')
 
-# Read-only staff pages name these roles; pages that change anything leave them out
+# Each staff page names the network roles it admits; admins and programme staff always pass
 LEADER_READS = frozenset({'leader'})
+NETWORK_READS = frozenset({'leader', 'hub_admin', 'ambassador'})
+RESULTS_READS = frozenset({'leader', 'hub_admin'})
+HUB_EDITS = frozenset({'hub_admin'})
+FIELD_NOTES = frozenset({'hub_admin', 'ambassador'})
 
 
 class ProgrammeStaffRequiredMixin(LoginRequiredMixin):

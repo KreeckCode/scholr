@@ -434,8 +434,9 @@ def plan_trip(public_ids, user, nearest_first=False, today=None):
     Stops for a trip, in the order chosen. Sensitive locations and locations without a position
     are left out and reported, because a trip sheet would print their exact details.
     """
-    if not scope.is_programme_staff(user):
-        raise PermissionDenied('Programme staff only.')
+    # Leaders may plan a trip too: it prints what they can already see, and changes nothing
+    if not (scope.is_programme_staff(user) or scope.network_role(user) == 'leader'):
+        raise PermissionDenied('Programme staff and leaders only.')
     today = today or timezone.localdate()
     seen, ids = set(), []
     for value in public_ids:

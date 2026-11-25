@@ -230,6 +230,9 @@ def resolve_dashboard(user):
     if user.role == User.LEADER:
         return 'accounts:admin_dashboard'
 
+    if user.role in (User.HUB_ADMIN, User.AMBASSADOR):
+        return 'partners:pipeline' if partners_enabled() else 'accounts:profile'
+
     if user.role == User.STUDENT:
         return 'accounts:student_dashboard'
 

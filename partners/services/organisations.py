@@ -9,14 +9,21 @@ from partners.models import Licence, PartnerContact, PartnerOrganisation, Traini
 from . import pipeline, scope
 
 
-def _require_staff(actor):
-    if not scope.is_programme_staff(actor):
+def _require_editor(actor, organisation):
+    """Programme staff anywhere; hub administrators only for partners in their reach."""
+    if not scope.can_change_organisation(actor, organisation):
+        raise PermissionDenied
+
+
+def _require_creator(actor, organisation):
+    """Hub administrators add partners in their countries; ambassadors add partners they then look after."""
+    if not (scope.can_place_partner_in(actor, organisation.country) or scope.network_role(actor) == 'ambassador'):
         raise PermissionDenied
 
 
 @transaction.atomic
 def create_organisation(organisation, actor):
-    _require_staff(actor)
+    _require_creator(actor, organisation)
     organisation.created_by = actor
     organisation.save()
     pipeline.ensure_partnership(organisation, actor)
@@ -26,7 +33,7 @@ def create_organisation(organisation, actor):
 @transaction.atomic
 def save_contact(contact, actor):
     """Save a contact; making one primary demotes the previous primary in the same transaction."""
-    _require_staff(actor)
+    _require_editor(actor, contact.organisation)
     if contact.is_primary:
         PartnerContact.objects.filter(
             organisation=contact.organisation, is_primary=True,
@@ -37,7 +44,7 @@ def save_contact(contact, actor):
 
 @transaction.atomic
 def set_archived(organisation, actor, archived):
-    _require_staff(actor)
+    _require_editor(actor, organisation)
     if archived and organisation.licences.filter(status=Licence.Status.ACTIVE).exists():
         raise LicenceStateError('Terminate or let the active licence expire before archiving this partner.')
     organisation.is_archived = archived
@@ -48,7 +55,7 @@ def set_archived(organisation, actor, archived):
 @transaction.atomic
 def save_location(location, actor):
     """Create or update a training location under its organisation's licence."""
-    _require_staff(actor)
+    _require_editor(actor, location.organisation)
     if location.licence.organisation_id != location.organisation_id:
         raise RosterError('The licence must belong to the same partner as the location.')
     limit = location.licence.max_locations

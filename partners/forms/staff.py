@@ -1,4 +1,5 @@
 from django import forms
+from django.db.models import Q
 
 from accounts.models import User
 from partners.models import (
@@ -29,9 +30,15 @@ class PartnershipForm(StyledFormMixin, forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['owner'].queryset = User.objects.filter(
-            role__in=[User.PROGRAMME_STAFF, User.ADMIN], is_active=True,
-        ).order_by('first_name', 'last_name')
+        owners = Q(role__in=[User.PROGRAMME_STAFF, User.ADMIN])
+        if self.instance.pk:
+            # Hub administrators and ambassadors who cover this partner can own its next step
+            from partners.services.reach import coverage_for
+            coverage = coverage_for(self.instance.organisation)
+            owners |= Q(pk__in=[person.pk for person in coverage['by_country'] + coverage['assigned']])
+        self.fields['owner'].queryset = User.objects.filter(owners, is_active=True).order_by(
+            'first_name', 'last_name',
+        )
         self.fields['owner'].label_from_instance = lambda user: user.get_full_name()
 
 

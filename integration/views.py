@@ -934,7 +934,11 @@ def refresh_online_results(request):
     from .tasks import queue_online_results_refresh
 
     user = request.user
-    allowed = scope.is_programme_staff(user) or LocationMembership.objects.filter(user=user, is_active=True).exists()
+    allowed = (
+        scope.is_programme_staff(user)
+        or scope.network_role(user) == user.HUB_ADMIN
+        or LocationMembership.objects.filter(user=user, is_active=True).exists()
+    )
     if not online_results_enabled() or not allowed:
         raise Http404
 

@@ -157,7 +157,16 @@ class FailClosedSweepTests(NetworkTestCase):
     }
     # Pages built only from location memberships, which the new roles do not have
     EMPTY_FOR_THEM = {'portal_home'}
-    # Phase 3: leaders may read these, and only these. Every change is still refused.
+    # Hub administrators work as programme staff inside their reach, except for these
+    HUB_ADMIN_REFUSED = {
+        'licence_action', 'licence_delete', 'network_export', 'organisation_coverage',
+        'map', 'map_data', 'map_panel', 'map_trip',
+        'staff_list', 'staff_create', 'staff_detail', 'staff_role', 'staff_countries', 'staff_partners',
+        'staff_activation_link',
+    }
+    # Ambassadors' partner here is outside the sweep's Kenyan partner, so its own pages are not found
+    AMBASSADOR_CAN = {'pipeline', 'organisation_list', 'licence_list', 'network', 'organisation_create'}
+    # Leaders may read these, and only these. Every change is still refused.
     LEADER_CAN_READ = {
         'pipeline', 'organisation_list', 'organisation_detail', 'licence_list', 'licence_detail',
         'licence_agreement', 'network', 'results_overview', 'map', 'map_data', 'map_panel', 'map_trip',
@@ -196,14 +205,24 @@ class FailClosedSweepTests(NetworkTestCase):
                 self.client.force_login(user)
                 for method in ('get', 'post'):
                     response = getattr(self.client, method)(url)
-                    if not 200 <= response.status_code < 300:
+                    # A redirect can mean a change went through, so anything short of a refusal counts
+                    if response.status_code >= 400:
                         continue
                     if pattern.name in self.EMPTY_FOR_THEM and self.shows_nothing(response):
                         continue
-                    if user.role == User.LEADER and method == 'get' and pattern.name in self.LEADER_CAN_READ:
+                    if self.allowed(user.role, method, pattern.name):
                         continue
                     leaks.append(f'{user.role} {method.upper()} {pattern.name} -> {response.status_code}')
         self.assertEqual(leaks, [])
+
+    def allowed(self, role, method, name):
+        if role == User.LEADER:
+            return method == 'get' and name in self.LEADER_CAN_READ
+        if role == User.HUB_ADMIN:
+            return name not in self.HUB_ADMIN_REFUSED
+        if role == User.AMBASSADOR:
+            return name in self.AMBASSADOR_CAN
+        return False
 
     def shows_nothing(self, response):
         html = response.content.decode()

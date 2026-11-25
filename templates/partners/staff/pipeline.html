@@ -10,7 +10,7 @@
 {% endblock %}
 {% block actions %}
 {% include 'integration/_lms_portal.html' with portal_button_class='p-btn-ghost' %}
-{% if not NETWORK_READ_ONLY %}<a href="{% url 'partners:organisation_create' %}" class="p-btn">Add partner</a>{% endif %}
+{% if NETWORK_CAN_ADD_PARTNER %}<a href="{% url 'partners:organisation_create' %}" class="p-btn">Add partner</a>{% endif %}
 {% endblock %}
 
 {% block body %}

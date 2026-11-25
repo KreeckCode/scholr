@@ -320,6 +320,30 @@ def course_enrolment_completed(sender, instance, update_fields=None, **kwargs):
 
 # ==================== ROLE CHANGES ====================
 
+def _connect_reach_signals():
+    """A changed country or partner assignment changes which cohort groups that person belongs in."""
+    from django.db.models.signals import post_delete
+
+    def affected_cohorts(assignment):
+        from partners.models import Cohort
+        if assignment.organisation_id:
+            cohorts = Cohort.objects.filter(location__organisation_id=assignment.organisation_id)
+        else:
+            cohorts = Cohort.objects.filter(location__organisation__country=assignment.country)
+        return list(cohorts.values_list('pk', flat=True))
+
+    @receiver(post_save, sender='partners.StaffAssignment', dispatch_uid='cohort_groups_reach_added')
+    def reach_added(sender, instance, **kwargs):
+        _queue(affected_cohorts(instance))
+
+    @receiver(post_delete, sender='partners.StaffAssignment', dispatch_uid='cohort_groups_reach_removed')
+    def reach_removed(sender, instance, **kwargs):
+        _queue(affected_cohorts(instance))
+
+
+_connect_reach_signals()
+
+
 def _connect_role_change_signals():
     from accounts.roles import role_changed
 

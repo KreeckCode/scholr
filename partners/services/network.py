@@ -65,13 +65,15 @@ def _attendance_rates():
     }
 
 
-def location_rows():
+def location_rows(locations=None):
     """One row per location with every measure, for the network table and the CSV export."""
     memberships = _membership_counts()
     cohorts = _cohort_counts()
     sessions = _session_counts()
     attendance = _attendance_rates()
-    locations = TrainingLocation.objects.select_related('organisation', 'licence').order_by(
+    locations = (TrainingLocation.objects.all() if locations is None else locations).select_related(
+        'organisation', 'licence',
+    ).order_by(
         'country', 'region', 'name',
     )
     rows = []
@@ -95,7 +97,7 @@ def location_rows():
     return rows
 
 
-def summarise(rows):
+def summarise(rows, organisations=None):
     """Totals by country and by country and region, from location rows."""
     measures = ('enrolled', 'completed', 'withdrawn', 'online', 'cohorts_running', 'sessions_held')
     countries, regions = {}, {}
@@ -115,7 +117,8 @@ def summarise(rows):
     totals = {measure: sum(row[measure] for row in rows) for measure in measures}
     totals['locations'] = len(rows)
     totals['countries'] = len(countries)
-    totals['partners'] = PartnerOrganisation.objects.filter(is_archived=False).count()
+    organisations = PartnerOrganisation.objects.all() if organisations is None else organisations
+    totals['partners'] = organisations.filter(is_archived=False).count()
     by_country = sorted(countries.values(), key=lambda item: (-item['enrolled'], item['country_name']))
     by_region = sorted(regions.values(), key=lambda item: (item['country_name'], -item['enrolled']))
     return {'totals': totals, 'by_country': by_country, 'by_region': by_region}

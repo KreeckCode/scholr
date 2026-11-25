@@ -32,6 +32,8 @@ def locations_for(user):
     """Locations the user may open in the portal."""
     if is_programme_staff(user):
         return TrainingLocation.objects.all()
+    if is_portal_hub_admin(user):
+        return locations_in_reach(user)
     if not (user and user.is_authenticated and user.is_active):
         return TrainingLocation.objects.none()
     return TrainingLocation.objects.filter(
@@ -56,6 +58,8 @@ def cohorts_for(user):
     """
     if is_programme_staff(user):
         return Cohort.objects.all()
+    if is_portal_hub_admin(user):
+        return cohorts_in_reach(user)
     if not (user and user.is_authenticated and user.is_active):
         return Cohort.objects.none()
     coordinator_locations = _active_memberships(user, COORDINATOR).values('location_id')
@@ -70,6 +74,9 @@ def role_at(user, location):
     """'staff', 'coordinator', 'facilitator' or None. Coordinator wins over facilitator."""
     if is_programme_staff(user):
         return STAFF
+    # Hub administrators act as programme staff at the locations of partners in their reach
+    if is_portal_hub_admin(user):
+        return STAFF if locations_in_reach(user).filter(pk=location.pk).exists() else None
     if not (user and user.is_authenticated and user.is_active):
         return None
     roles = set(
@@ -197,3 +204,40 @@ def can_place_partner_in(user, country):
     if role in PROGRAMME_STAFF_ROLES:
         return True
     return role == User.HUB_ADMIN and country in assigned_countries(user)
+
+
+def is_portal_hub_admin(user):
+    """Hub administrators enter the location portal as staff, inside their reach only."""
+    return network_role(user) == User.HUB_ADMIN
+
+
+def result_cohorts(user):
+    """Cohorts whose results someone may see: network reach for network staff, the portal rules otherwise."""
+    if network_role(user) in (User.LEADER, User.HUB_ADMIN):
+        return cohorts_in_reach(user)
+    return cohorts_for(user)
+
+
+# ==================== WHAT EACH NETWORK ROLE MAY DO ====================
+
+def can_edit_network(user):
+    """Change partners, contacts, licences (short of activating them) and locations."""
+    return is_programme_staff(user) or network_role(user) == User.HUB_ADMIN
+
+
+def can_log_network(user):
+    """Add history notes and set the next step on a partnership."""
+    return can_edit_network(user) or network_role(user) == User.AMBASSADOR
+
+
+def can_add_partner(user):
+    return can_edit_network(user) or network_role(user) == User.AMBASSADOR
+
+
+def can_manage_licences(user):
+    """Activate, suspend, terminate and delete licences: contracts stay with programme staff."""
+    return is_programme_staff(user)
+
+
+def can_enter_portal(user):
+    return is_programme_staff(user) or is_portal_hub_admin(user)

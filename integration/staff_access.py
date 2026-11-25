@@ -173,7 +173,7 @@ class StaffLMSAccess:
             raise StaffAccessError('No LMS role is set up for your account type.')
 
         cohorts = []
-        if self.user.role == User.PARTNER:
+        if self.user.role in User.COHORT_VIEWER_ROLES:
             from .cohort_groups import programme_courses, staff_cohorts
             cohorts = list(staff_cohorts(self.user))
             if not cohorts:
@@ -220,8 +220,8 @@ class StaffLMSAccess:
         }
 
     def _course_role(self):
-        """Coordinators and facilitators only ever get the Cohort viewer role."""
-        if self.user.role == User.PARTNER:
+        """Coordinators, facilitators, hub administrators and ambassadors only ever get the Cohort viewer role."""
+        if self.user.role in User.COHORT_VIEWER_ROLES:
             return settings.MOODLE_COHORT_VIEWER_ROLE_ID or None
         return settings.MOODLE_STAFF_COURSE_ROLES.get(self.user.role)
 

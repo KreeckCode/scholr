@@ -25,15 +25,17 @@ from partners.forms import (
     PartnershipMoveForm,
     PartnershipNoteForm,
 )
-from partners.mixins import LEADER_READS, NetworkStaffMixin, ServiceErrorMixin
+from partners.mixins import (
+    FIELD_NOTES, HUB_EDITS, NETWORK_READS, RESULTS_READS, NetworkStaffMixin, ServiceErrorMixin,
+)
 from partners.models import (
     FORWARD_STAGES,
     Licence,
     LocationMembership,
     PartnerContact,
     PartnerOrganisation,
-    Partnership,
     Stage,
+    StaffAssignment,
     TrainingLocation,
     country_name,
 )
@@ -49,17 +51,27 @@ def licence_url(licence):
     return reverse('partners:licence_detail', kwargs={'licence_id': licence.public_id})
 
 
+def limit_countries(form, user):
+    """Hub administrators only see the countries they cover in a partner's country list."""
+    if scope.network_role(user) == User.HUB_ADMIN:
+        covered = set(scope.assigned_countries(user))
+        form.fields['country'].choices = [
+            (code, name) for code, name in form.fields['country'].choices if code in covered
+        ]
+    return form
+
+
 # ==================== PIPELINE ====================
 
 class PipelineBoardView(NetworkStaffMixin, TemplateView):
-    network_roles = LEADER_READS
+    network_roles = NETWORK_READS
     template_name = 'partners/staff/pipeline.html'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         today = timezone.localdate()
         queryset = (
-            Partnership.objects.filter(organisation__is_archived=False)
+            scope.partnerships_in_reach(self.request.user).filter(organisation__is_archived=False)
             .select_related('organisation', 'owner')
             .order_by('next_action_due', '-stage_changed_at')
         )
@@ -87,7 +99,7 @@ class PipelineBoardView(NetworkStaffMixin, TemplateView):
             'filter_owner': owner or '',
             'filter_country': country,
             'countries': (
-                PartnerOrganisation.objects.filter(is_archived=False)
+                scope.organisations_in_reach(self.request.user).filter(is_archived=False)
                 .order_by('country').values_list('country', flat=True).distinct()
             ),
             'overdue_count': sum(1 for column in by_stage.values() for item in column if item.overdue),
@@ -98,14 +110,14 @@ class PipelineBoardView(NetworkStaffMixin, TemplateView):
 # ==================== ORGANISATIONS ====================
 
 class OrganisationListView(NetworkStaffMixin, ListView):
-    network_roles = LEADER_READS
+    network_roles = NETWORK_READS
     template_name = 'partners/staff/organisation_list.html'
     context_object_name = 'organisations'
     paginate_by = 25
 
     def get_queryset(self):
         queryset = (
-            PartnerOrganisation.objects.select_related('partnership')
+            scope.organisations_in_reach(self.request.user).select_related('partnership')
             .annotate(location_count=Count('locations', distinct=True))
             .order_by('name')
         )
@@ -124,11 +136,24 @@ class OrganisationListView(NetworkStaffMixin, ListView):
 
 
 class OrganisationCreateView(NetworkStaffMixin, CreateView):
+    network_roles = FIELD_NOTES
     template_name = 'partners/staff/organisation_form.html'
     form_class = OrganisationForm
 
+    def get_form(self, form_class=None):
+        return limit_countries(super().get_form(form_class), self.request.user)
+
     def form_valid(self, form):
+        if not scope.can_place_partner_in(self.request.user, form.cleaned_data['country']) \
+                and scope.network_role(self.request.user) != User.AMBASSADOR:
+            form.add_error('country', 'You can only add partners in the countries you cover.')
+            return self.form_invalid(form)
         self.object = organisations.create_organisation(form.save(commit=False), self.request.user)
+        if scope.network_role(self.request.user) == User.AMBASSADOR:
+            # An ambassador who brings in a partner looks after it
+            StaffAssignment.objects.get_or_create(
+                user=self.request.user, organisation=self.object, defaults={'added_by': self.request.user},
+            )
         messages.success(self.request, f'{self.object.name} added to the pipeline.')
         return redirect('partners:organisation_detail', org_id=self.object.public_id)
 
@@ -136,18 +161,21 @@ class OrganisationCreateView(NetworkStaffMixin, CreateView):
 class OrganisationObjectMixin(NetworkStaffMixin):
     def get_organisation(self):
         if not hasattr(self, '_organisation'):
-            self._organisation = get_object_or_404(PartnerOrganisation, public_id=self.kwargs['org_id'])
+            # Outside someone's reach a partner does not exist for them
+            self._organisation = get_object_or_404(
+                scope.organisations_in_reach(self.request.user), public_id=self.kwargs['org_id'],
+            )
         return self._organisation
 
 
 class OrganisationDetailView(OrganisationObjectMixin, DetailView):
-    network_roles = LEADER_READS
+    network_roles = NETWORK_READS
     template_name = 'partners/staff/organisation_detail.html'
     context_object_name = 'organisation'
 
     def get_object(self, queryset=None):
         return get_object_or_404(
-            PartnerOrganisation.objects.prefetch_related(
+            scope.organisations_in_reach(self.request.user).prefetch_related(
                 'contacts',
                 Prefetch('licences', queryset=Licence.objects.order_by('-starts_on')),
                 Prefetch('locations', queryset=TrainingLocation.objects.select_related('licence')),
@@ -189,6 +217,7 @@ class OrganisationDetailView(OrganisationObjectMixin, DetailView):
 
 
 class OrganisationUpdateView(OrganisationObjectMixin, UpdateView):
+    network_roles = HUB_EDITS
     template_name = 'partners/staff/organisation_form.html'
     form_class = OrganisationForm
     context_object_name = 'organisation'
@@ -196,13 +225,20 @@ class OrganisationUpdateView(OrganisationObjectMixin, UpdateView):
     def get_object(self, queryset=None):
         return self.get_organisation()
 
+    def get_form(self, form_class=None):
+        return limit_countries(super().get_form(form_class), self.request.user)
+
     def form_valid(self, form):
+        if not scope.can_place_partner_in(self.request.user, form.cleaned_data['country']):
+            form.add_error('country', 'You can only move a partner to a country you cover.')
+            return self.form_invalid(form)
         form.save()
         messages.success(self.request, 'Partner details saved.')
         return redirect('partners:organisation_detail', org_id=self.object.public_id)
 
 
 class OrganisationArchiveView(OrganisationObjectMixin, ServiceErrorMixin, View):
+    network_roles = HUB_EDITS
     http_method_names = ['post']
 
     def post(self, request, org_id):
@@ -217,6 +253,7 @@ class OrganisationArchiveView(OrganisationObjectMixin, ServiceErrorMixin, View):
 
 
 class PartnershipMoveView(OrganisationObjectMixin, ServiceErrorMixin, View):
+    network_roles = HUB_EDITS
     http_method_names = ['post']
 
     def post(self, request, org_id):
@@ -235,6 +272,7 @@ class PartnershipMoveView(OrganisationObjectMixin, ServiceErrorMixin, View):
 
 
 class PartnershipNoteView(OrganisationObjectMixin, ServiceErrorMixin, View):
+    network_roles = FIELD_NOTES
     http_method_names = ['post']
 
     def post(self, request, org_id):
@@ -253,6 +291,7 @@ class PartnershipNoteView(OrganisationObjectMixin, ServiceErrorMixin, View):
 
 
 class PartnershipUpdateView(OrganisationObjectMixin, View):
+    network_roles = FIELD_NOTES
     http_method_names = ['post']
 
     def post(self, request, org_id):
@@ -272,6 +311,7 @@ class PartnershipUpdateView(OrganisationObjectMixin, View):
 # ==================== CONTACTS ====================
 
 class ContactCreateView(OrganisationObjectMixin, CreateView):
+    network_roles = HUB_EDITS
     template_name = 'partners/staff/contact_form.html'
     form_class = ContactForm
 
@@ -289,6 +329,7 @@ class ContactCreateView(OrganisationObjectMixin, CreateView):
 
 
 class ContactUpdateView(OrganisationObjectMixin, UpdateView):
+    network_roles = HUB_EDITS
     template_name = 'partners/staff/contact_form.html'
     form_class = ContactForm
     context_object_name = 'contact'
@@ -308,6 +349,7 @@ class ContactUpdateView(OrganisationObjectMixin, UpdateView):
 
 
 class ContactDeleteView(OrganisationObjectMixin, View):
+    network_roles = HUB_EDITS
     http_method_names = ['post']
 
     def post(self, request, org_id, pk):
@@ -320,13 +362,13 @@ class ContactDeleteView(OrganisationObjectMixin, View):
 # ==================== LICENCES ====================
 
 class LicenceListView(NetworkStaffMixin, ListView):
-    network_roles = LEADER_READS
+    network_roles = NETWORK_READS
     template_name = 'partners/staff/licence_list.html'
     context_object_name = 'licences'
     paginate_by = 30
 
     def get_queryset(self):
-        queryset = Licence.objects.select_related('organisation').order_by('ends_on')
+        queryset = scope.licences_in_reach(self.request.user).select_related('organisation').order_by('ends_on')
         status = self.request.GET.get('status')
         if status in Licence.Status.values:
             queryset = queryset.filter(status=status)
@@ -349,6 +391,7 @@ class LicenceListView(NetworkStaffMixin, ListView):
 
 
 class LicenceCreateView(OrganisationObjectMixin, CreateView):
+    network_roles = HUB_EDITS
     template_name = 'partners/staff/licence_form.html'
     form_class = LicenceForm
 
@@ -373,13 +416,14 @@ class LicenceObjectMixin(NetworkStaffMixin):
     def get_licence(self):
         if not hasattr(self, '_licence'):
             self._licence = get_object_or_404(
-                Licence.objects.select_related('organisation'), public_id=self.kwargs['licence_id'],
+                scope.licences_in_reach(self.request.user).select_related('organisation'),
+                public_id=self.kwargs['licence_id'],
             )
         return self._licence
 
 
 class LicenceDetailView(LicenceObjectMixin, DetailView):
-    network_roles = LEADER_READS
+    network_roles = NETWORK_READS
     template_name = 'partners/staff/licence_detail.html'
     context_object_name = 'licence'
 
@@ -397,6 +441,7 @@ class LicenceDetailView(LicenceObjectMixin, DetailView):
 
 
 class LicenceUpdateView(LicenceObjectMixin, UpdateView):
+    network_roles = HUB_EDITS
     template_name = 'partners/staff/licence_form.html'
     form_class = LicenceForm
     context_object_name = 'licence'
@@ -459,7 +504,7 @@ class LicenceActionView(LicenceObjectMixin, ServiceErrorMixin, View):
 
 class LicenceAgreementView(LicenceObjectMixin, View):
     """Streams the signed agreement from private storage to programme staff and leaders."""
-    network_roles = LEADER_READS
+    network_roles = NETWORK_READS
 
     def get(self, request, licence_id):
         licence = self.get_licence()
@@ -478,6 +523,7 @@ class LicenceAgreementView(LicenceObjectMixin, View):
 # ==================== LOCATIONS ====================
 
 class LocationCreateView(OrganisationObjectMixin, ServiceErrorMixin, CreateView):
+    network_roles = HUB_EDITS
     template_name = 'partners/staff/location_form.html'
     form_class = LocationForm
 
@@ -504,13 +550,15 @@ class LocationCreateView(OrganisationObjectMixin, ServiceErrorMixin, CreateView)
 
 
 class LocationUpdateView(NetworkStaffMixin, UpdateView):
+    network_roles = HUB_EDITS
     template_name = 'partners/staff/location_form.html'
     form_class = LocationForm
     context_object_name = 'location'
 
     def get_object(self, queryset=None):
         return get_object_or_404(
-            TrainingLocation.objects.select_related('organisation'), public_id=self.kwargs['location_id'],
+            scope.locations_in_reach(self.request.user).select_related('organisation'),
+            public_id=self.kwargs['location_id'],
         )
 
     def get_form_kwargs(self):
@@ -536,13 +584,13 @@ class LocationUpdateView(NetworkStaffMixin, UpdateView):
 # ==================== NETWORK ====================
 
 class NetworkView(NetworkStaffMixin, TemplateView):
-    network_roles = LEADER_READS
+    network_roles = NETWORK_READS
     template_name = 'partners/staff/network.html'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        rows = network.location_rows()
-        context.update(network.summarise(rows))
+        rows = network.location_rows(scope.locations_in_reach(self.request.user))
+        context.update(network.summarise(rows, scope.organisations_in_reach(self.request.user)))
         context['rows'] = rows
         return context
 
@@ -577,7 +625,7 @@ class NetworkExportView(NetworkStaffMixin, View):
 
 class ResultsOverviewView(NetworkStaffMixin, TemplateView):
     """Results across the network, filtered down to a country, partner, location or cohort."""
-    network_roles = LEADER_READS
+    network_roles = RESULTS_READS
 
     template_name = 'partners/staff/results_overview.html'
     page_size = 50
@@ -596,7 +644,7 @@ class ResultsOverviewView(NetworkStaffMixin, TemplateView):
         view = params.get('view') if params.get('view') in results.VIEWS else results.PROGRAMME
         filters = {key: params.get(key, '') for key in ('country', 'organisation', 'location', 'cohort')}
 
-        cohorts = scope.cohorts_for(self.request.user).select_related('location__organisation')
+        cohorts = scope.result_cohorts(self.request.user).select_related('location__organisation')
         organisations = PartnerOrganisation.objects.filter(locations__cohorts__in=cohorts).distinct().order_by('name')
         countries = sorted(set(organisations.values_list('country', flat=True)))
         if filters['country']:
