@@ -5,6 +5,7 @@
     <a href="{% url 'partners:licence_list' %}" class="p-tab {% if '/partners/licences/' in path %}p-tab-on{% endif %}" {% if '/partners/licences/' in path %}aria-current="page"{% endif %}>Licences</a>
     <a href="{% url 'partners:network' %}" class="p-tab {% if '/partners/network/' in path %}p-tab-on{% endif %}" {% if '/partners/network/' in path %}aria-current="page"{% endif %}>Network</a>
     {% if SCHOLR_ONLINE_RESULTS_ENABLED %}<a href="{% url 'partners:results_overview' %}" class="p-tab {% if '/partners/results/' in path %}p-tab-on{% endif %}" {% if '/partners/results/' in path %}aria-current="page"{% endif %}>Results</a>{% endif %}
+    {% if user.role == 'admin' %}<a href="{% url 'partners:staff_list' %}" class="p-tab {% if '/partners/staff/' in path %}p-tab-on{% endif %}" {% if '/partners/staff/' in path %}aria-current="page"{% endif %}>Staff</a>{% endif %}
     <a href="{% url 'partners:map' %}" class="p-tab {% if '/partners/map/' in path %}p-tab-on{% endif %}" {% if '/partners/map/' in path %}aria-current="page"{% endif %}>Map</a>
 </nav>
 {% endwith %}

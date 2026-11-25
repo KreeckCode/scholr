@@ -51,6 +51,19 @@ class NetworkStaffMixin(LoginRequiredMixin):
         return super().dispatch(request, *args, **kwargs)
 
 
+class SystemAdminRequiredMixin(LoginRequiredMixin):
+    """Staff accounts, roles and reach are managed by system administrators only."""
+
+    def dispatch(self, request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return self.handle_no_permission()
+        user = request.user
+        from accounts.models import User
+        if not (user.is_active and user.role == User.ADMIN):
+            raise PermissionDenied('System administrators only.')
+        return super().dispatch(request, *args, **kwargs)
+
+
 class LocationMixin(LoginRequiredMixin):
     """
     Resolves self.location from the URL and self.portal_role for the current user.

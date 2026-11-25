@@ -1205,7 +1205,8 @@ class RoleChange(models.Model):
     """Who changed whose role, from what, to what, and when."""
 
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='role_changes')
-    from_role = models.CharField(max_length=20, choices=User.ROLE_CHOICES)
+    # Blank when the account was created in this role rather than moved into it
+    from_role = models.CharField(max_length=20, choices=User.ROLE_CHOICES, blank=True)
     to_role = models.CharField(max_length=20, choices=User.ROLE_CHOICES)
     changed_by = models.ForeignKey(
         User, on_delete=models.SET_NULL, null=True, blank=True, related_name='role_changes_made',
@@ -1219,4 +1220,4 @@ class RoleChange(models.Model):
         indexes = [models.Index(fields=['user', '-changed_at'])]
 
     def __str__(self):
-        return f'{self.user}: {self.from_role} to {self.to_role}'
+        return f'{self.user}: {self.from_role or "new account"} to {self.to_role}'

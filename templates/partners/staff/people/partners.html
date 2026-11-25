@@ -1,0 +1,58 @@
+{% extends 'ui/base.html' %}
+
+{% block title %}Partners for {{ member.get_full_name }}{% endblock %}
+{% block subnav %}{% include 'partners/staff/_nav.html' %}{% endblock %}
+{% block eyebrow %}{{ member.get_full_name|default:member.username }} &middot; {{ member.get_role_display }}{% endblock %}
+{% block heading %}Choose partners{% endblock %}
+{% block subheading %}<p class="mt-2 text-sm p-slate">Filter the list, tick the partners they cover, and save. Only the partners shown are changed; anything filtered out stays as it is.</p>{% endblock %}
+{% block actions %}<a class="p-btn-ghost" href="{% url 'partners:staff_detail' pk=member.pk %}">Back</a>{% endblock %}
+
+{% block body %}
+<form method="get" class="mb-4 flex flex-wrap items-end gap-3">
+    <label class="block text-sm">
+        <span class="p-label-sm">Country</span>
+        <select name="country" class="mt-1 block" onchange="this.form.submit()">
+            <option value="">Every country</option>
+            {% for code, name in country_choices %}<option value="{{ code }}" {% if country == code %}selected{% endif %}>{{ name }}</option>{% endfor %}
+        </select>
+    </label>
+    <label class="block text-sm">
+        <span class="p-label-sm">Region</span>
+        <input type="search" name="region" value="{{ region }}" class="mt-1 block">
+    </label>
+    <label class="block text-sm">
+        <span class="p-label-sm">Partner name</span>
+        <input type="search" name="q" value="{{ query }}" class="mt-1 block">
+    </label>
+    <button type="submit" class="p-btn-ghost">Filter</button>
+</form>
+
+<form method="post" class="p-card overflow-hidden" x-data>
+    {% csrf_token %}
+    <input type="hidden" name="country" value="{{ country }}">
+    <input type="hidden" name="region" value="{{ region }}">
+    <input type="hidden" name="q" value="{{ query }}">
+    <div class="p-card-head flex flex-wrap items-center justify-between gap-3">
+        <p class="text-sm p-slate">{{ partners|length }} partner{{ partners|pluralize }} shown{% if truncated %} (first 500; narrow the filter to see more){% endif %}</p>
+        <div class="flex gap-2">
+            <button type="button" class="p-btn-ghost p-btn-sm" @click="$root.querySelectorAll('input[name=partners]').forEach(box => box.checked = true)">Tick all shown</button>
+            <button type="button" class="p-btn-ghost p-btn-sm" @click="$root.querySelectorAll('input[name=partners]').forEach(box => box.checked = false)">Untick all shown</button>
+        </div>
+    </div>
+    <ul class="divide-y">
+        {% for partner in partners %}
+        <li class="flex items-center gap-3 px-5 py-3">
+            <input type="hidden" name="shown" value="{{ partner.public_id }}">
+            <input type="checkbox" id="p-{{ partner.public_id }}" name="partners" value="{{ partner.public_id }}" {% if partner.pk in assigned %}checked{% endif %}>
+            <label for="p-{{ partner.public_id }}" class="min-w-0 flex-1 text-sm">
+                <span class="font-semibold p-navy">{{ partner.name }}</span>
+                <span class="block text-xs p-muted">{{ partner.get_country_display }}{% if partner.region %} &middot; {{ partner.region }}{% endif %}{% if partner.country in hub_countries %} &middot; already covered through {{ partner.get_country_display }}{% endif %}</span>
+            </label>
+        </li>
+        {% empty %}
+        <li class="p-empty">No partners match.</li>
+        {% endfor %}
+    </ul>
+    {% if partners %}<div class="p-card-foot"><button type="submit" class="p-btn">Save partners</button></div>{% endif %}
+</form>
+{% endblock %}

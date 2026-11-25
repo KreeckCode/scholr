@@ -1,6 +1,6 @@
 from django.urls import path
 
-from .views import api, offline, places, portal, public, staff
+from .views import api, offline, people, places, portal, public, staff
 
 app_name = 'partners'
 
@@ -20,6 +20,17 @@ urlpatterns = [
     path('network/', staff.NetworkView.as_view(), name='network'),
     path('network/export.csv', staff.NetworkExportView.as_view(), name='network_export'),
     path('results/', staff.ResultsOverviewView.as_view(), name='results_overview'),
+
+    # ==================== STAFF MANAGEMENT (system administrators) ====================
+    path('staff/', people.StaffListView.as_view(), name='staff_list'),
+    path('staff/new/', people.StaffCreateView.as_view(), name='staff_create'),
+    path('staff/<int:pk>/', people.StaffDetailView.as_view(), name='staff_detail'),
+    path('staff/<int:pk>/role/', people.StaffRoleView.as_view(), name='staff_role'),
+    path('staff/<int:pk>/countries/', people.StaffCountriesView.as_view(), name='staff_countries'),
+    path('staff/<int:pk>/partners/', people.StaffPartnersView.as_view(), name='staff_partners'),
+    path('staff/<int:pk>/link/', people.StaffActivationLinkView.as_view(), name='staff_activation_link'),
+    path('organisations/<uuid:org_id>/coverage/', people.OrganisationCoverageView.as_view(),
+         name='organisation_coverage'),
     path('map/', places.MapView.as_view(), name='map'),
     path('map/locations.json', places.MapDataView.as_view(), name='map_data'),
     path('map/locations/<uuid:location_id>/', places.MapPanelView.as_view(), name='map_panel'),

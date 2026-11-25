@@ -7,6 +7,7 @@ from .portal import (
     SessionForm,
 )
 from .places import LocationEventForm, LocationPlaceForm
+from .people import RoleChangeForm, StaffMemberForm
 from .public import EnquiryForm
 from .staff import (
     ContactForm,
@@ -20,6 +21,8 @@ from .staff import (
 )
 
 __all__ = [
+    'RoleChangeForm',
+    'StaffMemberForm',
     'CohortForm',
     'ContactForm',
     'EnquiryForm',

@@ -1,0 +1,53 @@
+{% extends 'ui/base.html' %}
+
+{% block title %}Staff{% endblock %}
+{% block subnav %}{% include 'partners/staff/_nav.html' %}{% endblock %}
+{% block eyebrow %}Partner network{% endblock %}
+{% block heading %}Staff{% endblock %}
+{% block subheading %}<p class="mt-2 text-sm p-slate">Everyone who works on the network, what they can do and which partners they cover.</p>{% endblock %}
+{% block actions %}<a class="p-btn" href="{% url 'partners:staff_create' %}">Add staff member</a>{% endblock %}
+
+{% block body %}
+<form method="get" class="mb-4 flex flex-wrap items-end gap-3">
+    <label class="block text-sm">
+        <span class="p-label-sm">Role</span>
+        <select name="role" class="mt-1 block" onchange="this.form.submit()">
+            <option value="">Every role</option>
+            {% for value, label in roles %}<option value="{{ value }}" {% if role == value %}selected{% endif %}>{{ label }}</option>{% endfor %}
+        </select>
+    </label>
+    <label class="block text-sm">
+        <span class="p-label-sm">Name or email</span>
+        <input type="search" name="q" value="{{ query }}" class="mt-1 block">
+    </label>
+    <button type="submit" class="p-btn-ghost">Search</button>
+</form>
+
+<div class="p-card overflow-hidden">
+    <div class="overflow-x-auto">
+        <table class="p-table">
+            <thead><tr><th scope="col">Name</th><th scope="col">Role</th><th scope="col">Covers</th><th scope="col">Signed in</th></tr></thead>
+            <tbody>
+                {% for member in members %}
+                <tr>
+                    <td>
+                        <a class="font-semibold p-navy p-link" href="{% url 'partners:staff_detail' pk=member.pk %}">{{ member.get_full_name|default:member.username }}</a>
+                        <span class="block text-xs p-muted">{{ member.email|default:member.phone_number|default:'' }}</span>
+                    </td>
+                    <td class="whitespace-nowrap">{{ member.get_role_display }}{% if not member.is_active %} <span class="text-xs p-muted">(inactive)</span>{% endif %}</td>
+                    <td class="text-sm">{{ member.reach_summary|default:'&ndash;' }}</td>
+                    <td class="whitespace-nowrap text-sm">
+                        {% if member.awaiting_activation %}<span class="p-badge p-badge-warn">Not activated</span>
+                        {% elif member.last_login %}{{ member.last_login|timesince }} ago
+                        {% else %}<span class="p-muted">Never</span>{% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="4" class="p-empty">No staff match.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% include 'ui/_pagination.html' %}
+{% endblock %}

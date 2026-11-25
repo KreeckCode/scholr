@@ -187,6 +187,45 @@
             </ul>
         </section>
         {% endif %}
+
+        <section class="p-card">
+            <div class="p-card-head"><h2 class="p-card-title">Covered by</h2></div>
+            <ul class="divide-y text-sm">
+                {% for person in coverage.by_country %}
+                <li class="px-5 py-3">
+                    {% if user.role == 'admin' %}<a class="p-link font-semibold" href="{% url 'partners:staff_detail' pk=person.pk %}">{{ person.get_full_name|default:person.username }}</a>{% else %}<span class="font-semibold p-navy">{{ person.get_full_name|default:person.username }}</span>{% endif %}
+                    <span class="block text-xs p-muted">Hub Administrator for {{ organisation.country_name }}</span>
+                </li>
+                {% endfor %}
+                {% for person in coverage.assigned %}
+                <li class="flex items-center justify-between gap-3 px-5 py-3">
+                    <span>
+                        {% if user.role == 'admin' %}<a class="p-link font-semibold" href="{% url 'partners:staff_detail' pk=person.pk %}">{{ person.get_full_name|default:person.username }}</a>{% else %}<span class="font-semibold p-navy">{{ person.get_full_name|default:person.username }}</span>{% endif %}
+                        <span class="block text-xs p-muted">{{ person.get_role_display }}, assigned to this partner</span>
+                    </span>
+                    {% if user.role == 'admin' %}
+                    <form method="post" action="{% url 'partners:organisation_coverage' org_id=organisation.public_id %}">
+                        {% csrf_token %}<input type="hidden" name="user" value="{{ person.pk }}"><input type="hidden" name="action" value="remove">
+                        <button type="submit" class="p-btn-ghost p-btn-sm">Remove</button>
+                    </form>
+                    {% endif %}
+                </li>
+                {% endfor %}
+                {% if not coverage.by_country and not coverage.assigned %}
+                <li class="px-5 py-3 p-muted">No hub administrator or ambassador covers this partner yet.</li>
+                {% endif %}
+            </ul>
+            {% if user.role == 'admin' and coverage_candidates %}
+            <form method="post" action="{% url 'partners:organisation_coverage' org_id=organisation.public_id %}" class="p-card-foot flex flex-wrap items-center gap-2">
+                {% csrf_token %}<input type="hidden" name="action" value="add">
+                <select name="user" class="min-w-0 flex-1" aria-label="Staff member to add" required>
+                    <option value="">Add an ambassador or hub administrator</option>
+                    {% for person in coverage_candidates %}<option value="{{ person.pk }}">{{ person.get_full_name|default:person.username }} ({{ person.get_role_display }})</option>{% endfor %}
+                </select>
+                <button type="submit" class="p-btn-ghost p-btn-sm">Add</button>
+            </form>
+            {% endif %}
+        </section>
     </aside>
 </div>
 {% endblock %}

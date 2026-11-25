@@ -13,6 +13,7 @@ from django.utils import timezone
 from django.views import View
 from django.views.generic import CreateView, DetailView, ListView, TemplateView, UpdateView
 
+from accounts.models import User
 from partners.exceptions import PartnersError
 from partners.forms import (
     ContactForm,
@@ -36,7 +37,7 @@ from partners.models import (
     TrainingLocation,
     country_name,
 )
-from partners.services import licences, network, organisations, pipeline, results, scope
+from partners.services import licences, network, organisations, pipeline, reach, results, scope
 from partners.utils import write_csv
 
 
@@ -166,7 +167,14 @@ class OrganisationDetailView(OrganisationObjectMixin, DetailView):
             'coordinators': LocationMembership.objects.filter(
                 location__organisation=organisation, role=LocationMembership.Role.COORDINATOR,
             ).select_related('user', 'location'),
+            'coverage': reach.coverage_for(organisation),
         })
+        if self.request.user.role == User.ADMIN:
+            covering = {person.pk for person in context['coverage']['assigned']}
+            context['coverage_candidates'] = (
+                User.objects.filter(role__in=User.NETWORK_SCOPED_ROLES, is_active=True)
+                .exclude(pk__in=covering).order_by('first_name', 'last_name')
+            )
         return context
 
     @staticmethod

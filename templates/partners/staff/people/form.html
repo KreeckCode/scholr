@@ -1,0 +1,33 @@
+{% extends 'ui/base.html' %}
+{% load partners_tags %}
+
+{% block title %}Add staff member{% endblock %}
+{% block subnav %}{% include 'partners/staff/_nav.html' %}{% endblock %}
+{% block eyebrow %}Staff{% endblock %}
+{% block heading %}Add a staff member{% endblock %}
+{% block subheading %}<p class="mt-2 text-sm p-slate">They get a one-time link to set their own password. You choose which countries or partners they cover on the next page.</p>{% endblock %}
+
+{% block body %}
+<form method="post" class="p-card max-w-3xl p-6 sm:p-8" novalidate>
+    {% csrf_token %}
+    {% include 'ui/_form_errors.html' %}
+    <div class="grid gap-5 sm:grid-cols-2">
+        {% field form.first_name %}
+        {% field form.last_name %}
+        {% field form.role wide=True %}
+        {% field form.email %}
+        {% field form.phone %}
+    </div>
+    <dl class="mt-6 space-y-2 rounded-xl p-4 text-sm" style="background: var(--p-subtle);">
+        <div><dt class="inline font-semibold p-navy">Hub Administrator:</dt> <dd class="inline p-slate">manages the partners in the countries you assign.</dd></div>
+        <div><dt class="inline font-semibold p-navy">Ambassador:</dt> <dd class="inline p-slate">works with the partners you assign, and no others.</dd></div>
+        <div><dt class="inline font-semibold p-navy">Leader (view only):</dt> <dd class="inline p-slate">sees the whole network and changes nothing.</dd></div>
+        <div><dt class="inline font-semibold p-navy">Programme Staff:</dt> <dd class="inline p-slate">manages every partner.</dd></div>
+        <div><dt class="inline font-semibold p-navy">System Administrator:</dt> <dd class="inline p-slate">everything, including staff and roles.</dd></div>
+    </dl>
+    <div class="mt-6 flex justify-end gap-2">
+        <a class="p-btn-ghost" href="{% url 'partners:staff_list' %}">Cancel</a>
+        <button type="submit" class="p-btn">Add staff member</button>
+    </div>
+</form>
+{% endblock %}
