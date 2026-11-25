@@ -227,6 +227,9 @@ def resolve_dashboard(user):
     if user.role == User.PARTNER:
         return 'partners:portal_home' if partners_enabled() else 'accounts:profile'
 
+    if user.role == User.LEADER:
+        return 'accounts:admin_dashboard'
+
     if user.role == User.STUDENT:
         return 'accounts:student_dashboard'
 
@@ -293,8 +296,8 @@ def dean_dashboard_view(request):
 
 @login_required
 def admin_dashboard_view(request):
-    """System-wide counts, recent sign-ups and failed sign-in attempts."""
-    if request.user.role != User.ADMIN:
+    """System-wide counts, recent sign-ups and failed sign-in attempts. Leaders see it read-only."""
+    if request.user.role not in (User.ADMIN, User.LEADER):
         raise PermissionDenied
 
     student_counts = User.objects.filter(role=User.STUDENT).aggregate(
@@ -322,7 +325,11 @@ def admin_dashboard_view(request):
     context = {
         'stats': stats,
         'recent_users': User.objects.select_related('profile').order_by('-created_at')[:8],
-        'recent_failed_logins': LoginAttempt.objects.filter(success=False).order_by('-timestamp')[:10],
+        # Security monitoring is for administrators, not the view-only leadership dashboard
+        'recent_failed_logins': (
+            LoginAttempt.objects.filter(success=False).order_by('-timestamp')[:10]
+            if request.user.role == User.ADMIN else []
+        ),
         'countries': list(countries),
     }
     if partners_enabled():
@@ -632,7 +639,7 @@ def student_detail_view(request, user_id):
 
 @login_required
 def analytics_view(request):
-    if request.user.role != User.ADMIN:
+    if request.user.role not in (User.ADMIN, User.LEADER):
         raise PermissionDenied
 
     student_counts = User.objects.filter(role=User.STUDENT).aggregate(

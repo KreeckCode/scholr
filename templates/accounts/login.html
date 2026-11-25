@@ -8,7 +8,7 @@
     <div class="mb-6 text-center">
         <p class="p-eyebrow">{{ brand.name }}</p>
         <h1 class="p-display mt-1 text-2xl font-semibold p-navy sm:text-3xl">Sign in</h1>
-        <p class="mt-2 text-sm p-slate">Use your username or phone number, with the country code.</p>
+        <p class="mt-2 text-sm p-slate">{% if SCHOLR_EMAIL_SIGN_IN_ENABLED %}Use your username, email address or phone number.{% else %}Use your username or phone number, with the country code.{% endif %}</p>
     </div>
 
     <form method="post" class="p-card p-6 sm:p-8" novalidate>

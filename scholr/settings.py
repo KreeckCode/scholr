@@ -45,6 +45,8 @@ SCHOLR_COHORT_GROUPS_ENABLED = env_flag('SCHOLR_COHORT_GROUPS_ENABLED')
 SCHOLR_STAFF_LMS_PORTAL_ENABLED = env_flag('SCHOLR_STAFF_LMS_PORTAL_ENABLED')
 # Online quiz results and the results overviews. METP only.
 SCHOLR_ONLINE_RESULTS_ENABLED = env_flag('SCHOLR_ONLINE_RESULTS_ENABLED')
+# Sign in with email or phone as well as username. METP only.
+SCHOLR_EMAIL_SIGN_IN_ENABLED = env_flag('SCHOLR_EMAIL_SIGN_IN_ENABLED')
 
 # ==================== SITE PROFILE AND BRANDING ====================
 
@@ -147,6 +149,13 @@ else:
 # ==================== AUTHENTICATION ====================
 
 AUTH_USER_MODEL = 'accounts.User'
+
+# Ours first. Django's own stays listed because existing sessions name it, and removing
+# it would sign everyone out on the next deploy.
+AUTHENTICATION_BACKENDS = [
+    'accounts.backends.IdentifierBackend',
+    'django.contrib.auth.backends.ModelBackend',
+]
 
 LOGIN_URL = 'accounts:login'
 LOGIN_REDIRECT_URL = 'accounts:dashboard'

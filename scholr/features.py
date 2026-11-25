@@ -59,3 +59,8 @@ def staff_lms_portal_enabled() -> bool:
 def online_results_enabled() -> bool:
     """Online quiz results pulled from Moodle, and the results overviews."""
     return partners_enabled() and getattr(settings, 'SCHOLR_ONLINE_RESULTS_ENABLED', False)
+
+
+def email_sign_in_enabled() -> bool:
+    """Sign in with email or phone as well as username."""
+    return getattr(settings, 'SCHOLR_EMAIL_SIGN_IN_ENABLED', False)

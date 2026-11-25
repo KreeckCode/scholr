@@ -25,7 +25,7 @@ from partners.forms import (
     PartnershipMoveForm,
     PartnershipNoteForm,
 )
-from partners.mixins import ProgrammeStaffRequiredMixin, ServiceErrorMixin
+from partners.mixins import LEADER_READS, NetworkStaffMixin, ServiceErrorMixin
 from partners.models import (
     FORWARD_STAGES,
     Licence,
@@ -51,7 +51,8 @@ def licence_url(licence):
 
 # ==================== PIPELINE ====================
 
-class PipelineBoardView(ProgrammeStaffRequiredMixin, TemplateView):
+class PipelineBoardView(NetworkStaffMixin, TemplateView):
+    network_roles = LEADER_READS
     template_name = 'partners/staff/pipeline.html'
 
     def get_context_data(self, **kwargs):
@@ -96,7 +97,8 @@ class PipelineBoardView(ProgrammeStaffRequiredMixin, TemplateView):
 
 # ==================== ORGANISATIONS ====================
 
-class OrganisationListView(ProgrammeStaffRequiredMixin, ListView):
+class OrganisationListView(NetworkStaffMixin, ListView):
+    network_roles = LEADER_READS
     template_name = 'partners/staff/organisation_list.html'
     context_object_name = 'organisations'
     paginate_by = 25
@@ -121,7 +123,7 @@ class OrganisationListView(ProgrammeStaffRequiredMixin, ListView):
         return context
 
 
-class OrganisationCreateView(ProgrammeStaffRequiredMixin, CreateView):
+class OrganisationCreateView(NetworkStaffMixin, CreateView):
     template_name = 'partners/staff/organisation_form.html'
     form_class = OrganisationForm
 
@@ -131,7 +133,7 @@ class OrganisationCreateView(ProgrammeStaffRequiredMixin, CreateView):
         return redirect('partners:organisation_detail', org_id=self.object.public_id)
 
 
-class OrganisationObjectMixin(ProgrammeStaffRequiredMixin):
+class OrganisationObjectMixin(NetworkStaffMixin):
     def get_organisation(self):
         if not hasattr(self, '_organisation'):
             self._organisation = get_object_or_404(PartnerOrganisation, public_id=self.kwargs['org_id'])
@@ -139,6 +141,7 @@ class OrganisationObjectMixin(ProgrammeStaffRequiredMixin):
 
 
 class OrganisationDetailView(OrganisationObjectMixin, DetailView):
+    network_roles = LEADER_READS
     template_name = 'partners/staff/organisation_detail.html'
     context_object_name = 'organisation'
 
@@ -316,7 +319,8 @@ class ContactDeleteView(OrganisationObjectMixin, View):
 
 # ==================== LICENCES ====================
 
-class LicenceListView(ProgrammeStaffRequiredMixin, ListView):
+class LicenceListView(NetworkStaffMixin, ListView):
+    network_roles = LEADER_READS
     template_name = 'partners/staff/licence_list.html'
     context_object_name = 'licences'
     paginate_by = 30
@@ -365,7 +369,7 @@ class LicenceCreateView(OrganisationObjectMixin, CreateView):
         return redirect('partners:licence_detail', licence_id=self.object.public_id)
 
 
-class LicenceObjectMixin(ProgrammeStaffRequiredMixin):
+class LicenceObjectMixin(NetworkStaffMixin):
     def get_licence(self):
         if not hasattr(self, '_licence'):
             self._licence = get_object_or_404(
@@ -375,6 +379,7 @@ class LicenceObjectMixin(ProgrammeStaffRequiredMixin):
 
 
 class LicenceDetailView(LicenceObjectMixin, DetailView):
+    network_roles = LEADER_READS
     template_name = 'partners/staff/licence_detail.html'
     context_object_name = 'licence'
 
@@ -453,7 +458,8 @@ class LicenceActionView(LicenceObjectMixin, ServiceErrorMixin, View):
 
 
 class LicenceAgreementView(LicenceObjectMixin, View):
-    """Streams the signed agreement from private storage to programme staff only."""
+    """Streams the signed agreement from private storage to programme staff and leaders."""
+    network_roles = LEADER_READS
 
     def get(self, request, licence_id):
         licence = self.get_licence()
@@ -497,7 +503,7 @@ class LocationCreateView(OrganisationObjectMixin, ServiceErrorMixin, CreateView)
         return redirect('partners:team', location_id=location.public_id)
 
 
-class LocationUpdateView(ProgrammeStaffRequiredMixin, UpdateView):
+class LocationUpdateView(NetworkStaffMixin, UpdateView):
     template_name = 'partners/staff/location_form.html'
     form_class = LocationForm
     context_object_name = 'location'
@@ -529,7 +535,8 @@ class LocationUpdateView(ProgrammeStaffRequiredMixin, UpdateView):
 
 # ==================== NETWORK ====================
 
-class NetworkView(ProgrammeStaffRequiredMixin, TemplateView):
+class NetworkView(NetworkStaffMixin, TemplateView):
+    network_roles = LEADER_READS
     template_name = 'partners/staff/network.html'
 
     def get_context_data(self, **kwargs):
@@ -540,7 +547,7 @@ class NetworkView(ProgrammeStaffRequiredMixin, TemplateView):
         return context
 
 
-class NetworkExportView(ProgrammeStaffRequiredMixin, View):
+class NetworkExportView(NetworkStaffMixin, View):
     """CSV of every location's counts. Names of sensitive locations are withheld."""
 
     def get(self, request):
@@ -568,8 +575,9 @@ class NetworkExportView(ProgrammeStaffRequiredMixin, View):
         return write_csv(response, header, rows)
 
 
-class ResultsOverviewView(ProgrammeStaffRequiredMixin, TemplateView):
+class ResultsOverviewView(NetworkStaffMixin, TemplateView):
     """Results across the network, filtered down to a country, partner, location or cohort."""
+    network_roles = LEADER_READS
 
     template_name = 'partners/staff/results_overview.html'
     page_size = 50

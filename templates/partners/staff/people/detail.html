@@ -5,7 +5,7 @@
 {% block subnav %}{% include 'partners/staff/_nav.html' %}{% endblock %}
 {% block eyebrow %}Staff{% endblock %}
 {% block heading %}{{ member.get_full_name|default:member.username }}{% endblock %}
-{% block subheading %}<p class="mt-2 text-sm p-slate">{{ member.get_role_display }}{% if member.email %} &middot; {{ member.email }}{% endif %}{% if member.phone_number %} &middot; {{ member.phone_number }}{% endif %}{% if not member.is_active %} &middot; inactive{% endif %}</p>{% endblock %}
+{% block subheading %}<p class="mt-2 text-sm p-slate">{{ member.get_role_display }} &middot; signs in as <span class="font-mono font-semibold p-navy">{{ member.username }}</span>{% if member.email %} &middot; {{ member.email }}{% endif %}{% if member.phone_number %} &middot; {{ member.phone_number }}{% endif %}{% if not member.is_active %} &middot; inactive{% endif %}</p>{% endblock %}
 {% block actions %}<a class="p-btn-ghost" href="{% url 'partners:staff_list' %}">All staff</a>{% endblock %}
 
 {% block body %}

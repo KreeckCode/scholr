@@ -15,6 +15,9 @@ from partners.services import scope
 
 SAFE_METHODS = ('GET', 'HEAD', 'OPTIONS')
 
+# Read-only staff pages name these roles; pages that change anything leave them out
+LEADER_READS = frozenset({'leader'})
+
 
 class ProgrammeStaffRequiredMixin(LoginRequiredMixin):
     def dispatch(self, request, *args, **kwargs):

@@ -381,6 +381,17 @@
                         {% include 'base/nav/_nav_link.html' with url='partners:map' label='Map' active_paths='/partners/map/' %}
                         {% endif %}
 
+                    {% elif user.role == 'leader' %}
+                        {% include 'base/nav/_nav_link.html' with url='accounts:admin_dashboard' label='Dashboard' active_paths='/dashboard/admin/' %}
+                        {% if SCHOLR_PARTNERS_ENABLED %}
+                        {% include 'base/nav/_nav_link.html' with url='partners:pipeline' label='Pipeline' active_paths='/partners/pipeline/' %}
+                        {% include 'base/nav/_nav_link.html' with url='partners:organisation_list' label='Partners' active_paths='/partners/organisations/' %}
+                        {% include 'base/nav/_nav_link.html' with url='partners:licence_list' label='Licences' active_paths='/partners/licences/' %}
+                        {% include 'base/nav/_nav_link.html' with url='partners:network' label='Network' active_paths='/partners/network/' %}
+                        {% include 'base/nav/_nav_link.html' with url='partners:map' label='Map' active_paths='/partners/map/' %}
+                        {% endif %}
+                        {% include 'base/nav/_nav_link.html' with url='accounts:analytics' label='Analytics' active_paths='/dashboard/analytics/' %}
+
                     {% elif user.role == 'partner' %}
                         {% if SCHOLR_PARTNERS_ENABLED %}
                         {% include 'base/nav/_nav_link.html' with url='partners:portal_home' label='My location' active_paths='/partners/portal/' %}
@@ -624,6 +635,17 @@
                     <a href="{% url 'partners:network' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">Network</a>
                     <a href="{% url 'partners:map' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">Map</a>
                     {% endif %}
+
+                {% elif user.role == 'leader' %}
+                    <a href="{% url 'accounts:admin_dashboard' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">Dashboard</a>
+                    {% if SCHOLR_PARTNERS_ENABLED %}
+                    <a href="{% url 'partners:pipeline' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">Pipeline</a>
+                    <a href="{% url 'partners:organisation_list' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">Partners</a>
+                    <a href="{% url 'partners:licence_list' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">Licences</a>
+                    <a href="{% url 'partners:network' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">Network</a>
+                    <a href="{% url 'partners:map' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">Map</a>
+                    {% endif %}
+                    <a href="{% url 'accounts:analytics' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">Analytics</a>
 
                 {% elif user.role == 'partner' %}
                     {% if SCHOLR_PARTNERS_ENABLED %}

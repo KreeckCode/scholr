@@ -233,22 +233,16 @@ class CustomAuthenticationForm(AuthenticationForm):
         label='Keep me signed in'
     )
     
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        from scholr.features import email_sign_in_enabled
+        if email_sign_in_enabled():
+            self.fields['username'].label = 'Username, email or phone number'
+            self.fields['username'].widget.attrs['placeholder'] = 'Username, email or phone number'
+
     def clean_username(self):
-        """
-        Allow login with phone number or username
-        Try to find user by phone if username doesn't match
-        """
-        username = self.cleaned_data.get('username')
-        
-        # If it looks like a phone number (starts with +), try that
-        if username.startswith('+'):
-            try:
-                user = User.objects.get(phone_number=username)
-                return user.username
-            except User.DoesNotExist:
-                pass
-        
-        return username
+        # accounts.backends.IdentifierBackend works out which account this names
+        return (self.cleaned_data.get('username') or '').strip()
 
 
 class UserProfileForm(forms.ModelForm):

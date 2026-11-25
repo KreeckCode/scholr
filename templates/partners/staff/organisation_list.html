@@ -5,7 +5,7 @@
 {% block subnav %}{% include 'partners/staff/_nav.html' %}{% endblock %}
 {% block eyebrow %}Partner network{% endblock %}
 {% block heading %}Partners{% endblock %}
-{% block actions %}<a href="{% url 'partners:organisation_create' %}" class="p-btn">Add partner</a>{% endblock %}
+{% block actions %}{% if not NETWORK_READ_ONLY %}<a href="{% url 'partners:organisation_create' %}" class="p-btn">Add partner</a>{% endif %}{% endblock %}
 
 {% block body %}
 <form method="get" class="p-toolbar p-toolbar-center">

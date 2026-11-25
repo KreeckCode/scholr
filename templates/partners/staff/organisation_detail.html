@@ -14,12 +14,14 @@
 </div>
 {% endblock %}
 {% block actions %}
+{% if not NETWORK_READ_ONLY %}
 <a href="{% url 'partners:organisation_edit' org_id=organisation.public_id %}" class="p-btn-ghost">Edit</a>
 <form method="post" action="{% url 'partners:organisation_archive' org_id=organisation.public_id %}">
     {% csrf_token %}
     <input type="hidden" name="archive" value="{% if organisation.is_archived %}0{% else %}1{% endif %}">
     <button type="submit" class="p-btn-ghost">{% if organisation.is_archived %}Restore{% else %}Archive{% endif %}</button>
 </form>
+{% endif %}
 {% endblock %}
 
 {% block body %}
@@ -42,6 +44,7 @@
 
 <div class="grid gap-6 lg:grid-cols-3">
     <div class="space-y-6 lg:col-span-2">
+        {% if not NETWORK_READ_ONLY %}
         <section class="p-card">
             <div class="p-card-head"><h2 class="p-card-title">Move this partnership</h2></div>
             <div class="p-5">
@@ -59,9 +62,19 @@
                 </form>
             </div>
         </section>
+        {% endif %}
 
         <section class="p-card">
             <div class="p-card-head"><h2 class="p-card-title">Next step</h2></div>
+            {% if NETWORK_READ_ONLY %}
+            <dl class="grid gap-4 p-5 text-sm sm:grid-cols-2">
+                <div class="sm:col-span-2"><dt class="p-label-sm">Next step</dt><dd class="mt-1 p-navy">{{ partnership.next_action|default:'None set' }}</dd></div>
+                <div><dt class="p-label-sm">Due</dt><dd class="mt-1 p-navy">{{ partnership.next_action_due|date:'d M Y'|default:'No date' }}</dd></div>
+                <div><dt class="p-label-sm">Owner</dt><dd class="mt-1 p-navy">{{ partnership.owner.get_full_name|default:'Nobody yet' }}</dd></div>
+                <div><dt class="p-label-sm">Stage</dt><dd class="mt-1 p-navy">{{ partnership.get_stage_display }}</dd></div>
+                <div><dt class="p-label-sm">Expected participants</dt><dd class="mt-1 p-navy">{{ partnership.expected_participants|default:'Not known' }}</dd></div>
+            </dl>
+            {% else %}
             <form method="post" action="{% url 'partners:partnership_update' org_id=organisation.public_id %}" class="grid gap-4 p-5 sm:grid-cols-2">
                 {% csrf_token %}
                 {% field partnership_form.next_action wide=True %}
@@ -71,16 +84,19 @@
                 {% field partnership_form.expected_participants %}
                 <div class="sm:col-span-2"><button type="submit" class="p-btn-ghost">Save next step</button></div>
             </form>
+            {% endif %}
         </section>
 
         <section class="p-card">
             <div class="p-card-head"><h2 class="p-card-title">History</h2></div>
+            {% if not NETWORK_READ_ONLY %}
             <form method="post" action="{% url 'partners:partnership_note' org_id=organisation.public_id %}" class="grid gap-4 border-b p-5 sm:grid-cols-4" style="border-color: var(--p-line);">
                 {% csrf_token %}
                 {% field note_form.kind %}
                 <div class="sm:col-span-3">{% field note_form.body %}</div>
                 <div class="sm:col-span-4"><button type="submit" class="p-btn-ghost">Add to history</button></div>
             </form>
+            {% endif %}
             <ul class="p-list">
                 {% for event in events %}
                 <li class="px-5 py-4">
@@ -103,7 +119,7 @@
         <section class="p-card">
             <div class="p-card-head">
                 <h2 class="p-card-title">Contacts</h2>
-                <a class="p-btn-ghost p-btn-sm" href="{% url 'partners:contact_create' org_id=organisation.public_id %}">Add</a>
+                {% if not NETWORK_READ_ONLY %}<a class="p-btn-ghost p-btn-sm" href="{% url 'partners:contact_create' org_id=organisation.public_id %}">Add</a>{% endif %}
             </div>
             <ul class="p-list">
                 {% for contact in organisation.contacts.all %}
@@ -114,6 +130,7 @@
                         {% if contact.email %}<a class="mt-1 block truncate text-xs p-link" href="mailto:{{ contact.email }}">{{ contact.email }}</a>{% endif %}
                         {% if contact.phone %}<a class="block text-xs p-link" href="tel:{{ contact.phone }}">{{ contact.phone }}</a>{% endif %}
                     </div>
+                    {% if not NETWORK_READ_ONLY %}
                     <div class="mt-3 flex gap-2">
                         <a class="p-btn-ghost p-btn-sm" href="{% url 'partners:contact_edit' org_id=organisation.public_id pk=contact.pk %}">Edit</a>
                         <form method="post" action="{% url 'partners:contact_delete' org_id=organisation.public_id pk=contact.pk %}" onsubmit="return confirm('Remove this contact?');">
@@ -121,6 +138,7 @@
                             <button type="submit" class="p-btn-danger p-btn-sm">Remove</button>
                         </form>
                     </div>
+                    {% endif %}
                 </li>
                 {% empty %}
                 <li class="px-5 py-4 text-sm p-muted">No contacts yet.</li>
@@ -131,7 +149,7 @@
         <section class="p-card">
             <div class="p-card-head">
                 <h2 class="p-card-title">Licences</h2>
-                <a class="p-btn-ghost p-btn-sm" href="{% url 'partners:licence_create' org_id=organisation.public_id %}">Draft licence</a>
+                {% if not NETWORK_READ_ONLY %}<a class="p-btn-ghost p-btn-sm" href="{% url 'partners:licence_create' org_id=organisation.public_id %}">Draft licence</a>{% endif %}
             </div>
             <ul class="p-list">
                 {% for licence in organisation.licences.all %}
@@ -151,21 +169,23 @@
         <section class="p-card">
             <div class="p-card-head">
                 <h2 class="p-card-title">Training locations</h2>
-                {% if organisation.licences.all %}<a class="p-btn-ghost p-btn-sm" href="{% url 'partners:location_create' org_id=organisation.public_id %}">Add</a>{% endif %}
+                {% if organisation.licences.all and not NETWORK_READ_ONLY %}<a class="p-btn-ghost p-btn-sm" href="{% url 'partners:location_create' org_id=organisation.public_id %}">Add</a>{% endif %}
             </div>
             <ul class="p-list">
                 {% for location in organisation.locations.all %}
                 <li class="px-5 py-3.5 text-sm">
                     <div class="flex items-center justify-between gap-3">
-                        <a class="p-link" href="{% url 'partners:location_dashboard' location_id=location.public_id %}">{{ location.name }}</a>
+                        {% if NETWORK_READ_ONLY %}<span class="font-semibold p-navy">{{ location.name }}</span>{% else %}<a class="p-link" href="{% url 'partners:location_dashboard' location_id=location.public_id %}">{{ location.name }}</a>{% endif %}
                         {% include 'partners/_badge.html' with value=location.status label=location.get_status_display %}
                     </div>
                     <div class="mt-1 flex items-center justify-between gap-3">
-                        <p class="text-xs p-muted">{{ location.city|default:location.country_name }} &middot; {{ location.licence.number }}{% if not location.has_position %} &middot; <a class="p-link" href="{% url 'partners:location_place_edit' location_id=location.public_id %}">not on the map</a>{% endif %}</p>
+                        <p class="text-xs p-muted">{{ location.city|default:location.country_name }} &middot; {{ location.licence.number }}{% if not location.has_position %} &middot; {% if NETWORK_READ_ONLY %}not on the map{% else %}<a class="p-link" href="{% url 'partners:location_place_edit' location_id=location.public_id %}">not on the map</a>{% endif %}{% endif %}</p>
+                        {% if not NETWORK_READ_ONLY %}
                         <span class="flex gap-2">
                             <a class="p-btn-ghost p-btn-sm" href="{% url 'partners:location_place' location_id=location.public_id %}">Directions</a>
                             <a class="p-btn-ghost p-btn-sm" href="{% url 'partners:location_edit' location_id=location.public_id %}">Edit</a>
                         </span>
+                        {% endif %}
                     </div>
                 </li>
                 {% empty %}

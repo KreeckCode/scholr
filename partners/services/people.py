@@ -6,6 +6,7 @@ coordinators do. Someone who already has an account is never given a second one:
 role is changed instead, so their history stays in one place.
 """
 from django.db import transaction
+from django.utils import timezone
 
 from accounts.models import RoleChange, User
 from partners.exceptions import PartnersError
@@ -39,5 +40,10 @@ def add_staff_member(actor, first_name, last_name, role, email='', phone=''):
                             'list and change their role instead.')
 
     user = accounts.create_account(first_name, last_name, role, email=email, phone=phone)
+    # Verification gates students' enrolment; staff added by an administrator are vouched for already
+    user.is_verified = True
+    user.verified_by = actor
+    user.verified_at = timezone.now()
+    user.save(update_fields=['is_verified', 'verified_by', 'verified_at'])
     RoleChange.objects.create(user=user, from_role='', to_role=role, changed_by=actor, note='Account created')
     return user

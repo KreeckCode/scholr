@@ -146,7 +146,8 @@ class GuardTests(NetworkTestCase):
 class FailClosedSweepTests(NetworkTestCase):
     """
     Until a phase opens a page to them, the new roles must get nothing from the partners
-    app. This walks every partners URL, so a page added later is covered automatically.
+    app; leaders may only read the pages in LEADER_CAN_READ, and never send a change.
+    This walks every partners URL, so a page added later is covered automatically.
     """
 
     OPEN_TO_EVERYONE = {
@@ -156,6 +157,11 @@ class FailClosedSweepTests(NetworkTestCase):
     }
     # Pages built only from location memberships, which the new roles do not have
     EMPTY_FOR_THEM = {'portal_home'}
+    # Phase 3: leaders may read these, and only these. Every change is still refused.
+    LEADER_CAN_READ = {
+        'pipeline', 'organisation_list', 'organisation_detail', 'licence_list', 'licence_detail',
+        'licence_agreement', 'network', 'results_overview', 'map', 'map_data', 'map_panel', 'map_trip',
+    }
 
     def kwargs_for(self, pattern):
         location = make_location(organisation=self.kenya)
@@ -193,6 +199,8 @@ class FailClosedSweepTests(NetworkTestCase):
                     if not 200 <= response.status_code < 300:
                         continue
                     if pattern.name in self.EMPTY_FOR_THEM and self.shows_nothing(response):
+                        continue
+                    if user.role == User.LEADER and method == 'get' and pattern.name in self.LEADER_CAN_READ:
                         continue
                     leaks.append(f'{user.role} {method.upper()} {pattern.name} -> {response.status_code}')
         self.assertEqual(leaks, [])

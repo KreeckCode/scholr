@@ -17,7 +17,7 @@ from django.views.generic import CreateView, TemplateView, UpdateView
 
 from partners.exceptions import PartnersError
 from partners.forms import LocationEventForm, LocationPlaceForm
-from partners.mixins import LocationMixin, ProgrammeStaffRequiredMixin
+from partners.mixins import LEADER_READS, LocationMixin, NetworkStaffMixin
 from partners.models import LocationAccessLog, LocationEvent, TrainingLocation
 from partners.services import places, scope
 from partners.utils import client_ip
@@ -39,7 +39,8 @@ def map_config(**extra):
 
 # ==================== STAFF MAP ====================
 
-class MapView(ProgrammeStaffRequiredMixin, TemplateView):
+class MapView(NetworkStaffMixin, TemplateView):
+    network_roles = LEADER_READS
     template_name = 'partners/staff/map.html'
 
     def get_context_data(self, **kwargs):
@@ -61,15 +62,18 @@ class MapView(ProgrammeStaffRequiredMixin, TemplateView):
         return context
 
 
-class MapDataView(ProgrammeStaffRequiredMixin, View):
+class MapDataView(NetworkStaffMixin, View):
+    network_roles = LEADER_READS
+
     def get(self, request):
         response = JsonResponse(places.map_data())
         response['Cache-Control'] = 'private, no-store'
         return response
 
 
-class MapPanelView(ProgrammeStaffRequiredMixin, TemplateView):
+class MapPanelView(NetworkStaffMixin, TemplateView):
     """The details shown beside the map for one dot. Sensitive locations get only a pointer to their page."""
+    network_roles = LEADER_READS
 
     template_name = 'partners/staff/_map_panel.html'
 
@@ -93,8 +97,9 @@ class MapPanelView(ProgrammeStaffRequiredMixin, TemplateView):
         return response
 
 
-class TripSheetView(ProgrammeStaffRequiredMixin, View):
+class TripSheetView(NetworkStaffMixin, View):
     """A printable trip with every stop's contacts, directions and events, for travel without signal."""
+    network_roles = LEADER_READS
 
     def get(self, request):
         from weasyprint import HTML
