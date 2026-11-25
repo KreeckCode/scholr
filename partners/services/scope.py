@@ -112,3 +112,88 @@ def can_invite(user, location, role):
     if actor_role == STAFF:
         return True
     return actor_role == COORDINATOR and role == FACILITATOR
+
+
+# ==================== NETWORK REACH ====================
+# The staff side of the partner network. Admins and programme staff see every partner;
+# leaders see every partner but change nothing; hub administrators see the partners in
+# their countries; ambassadors see the partners assigned to them. Everyone else sees none.
+# Staff views must start every query from one of the *_in_reach functions below.
+
+GLOBAL_REACH_ROLES = frozenset({User.ADMIN, User.PROGRAMME_STAFF, User.LEADER})
+NETWORK_STAFF_ROLES = GLOBAL_REACH_ROLES | frozenset(User.NETWORK_SCOPED_ROLES)
+
+
+def network_role(user):
+    """The person's network staff role, or None for everyone else."""
+    if user and user.is_authenticated and user.is_active and user.role in NETWORK_STAFF_ROLES:
+        return user.role
+    return None
+
+
+def has_global_reach(user):
+    return network_role(user) in GLOBAL_REACH_ROLES
+
+
+def is_network_read_only(user):
+    return network_role(user) in User.NETWORK_READ_ONLY_ROLES
+
+
+def assigned_countries(user):
+    """Countries a hub administrator covers. Empty for every other role."""
+    if network_role(user) != User.HUB_ADMIN:
+        return []
+    return list(user.network_assignments.exclude(country='').values_list('country', flat=True))
+
+
+def organisations_in_reach(user):
+    from partners.models import PartnerOrganisation
+
+    role = network_role(user)
+    if role is None:
+        return PartnerOrganisation.objects.none()
+    if role in GLOBAL_REACH_ROLES:
+        return PartnerOrganisation.objects.all()
+
+    assigned = user.network_assignments.filter(organisation__isnull=False).values('organisation_id')
+    reach = Q(pk__in=assigned)
+    if role == User.HUB_ADMIN:
+        reach |= Q(country__in=assigned_countries(user))
+    return PartnerOrganisation.objects.filter(reach)
+
+
+def partnerships_in_reach(user):
+    from partners.models import Partnership
+    return Partnership.objects.filter(organisation__in=organisations_in_reach(user))
+
+
+def licences_in_reach(user):
+    from partners.models import Licence
+    return Licence.objects.filter(organisation__in=organisations_in_reach(user))
+
+
+def locations_in_reach(user):
+    """A location belongs to whoever holds its partner, wherever the location itself is."""
+    return TrainingLocation.objects.filter(organisation__in=organisations_in_reach(user))
+
+
+def cohorts_in_reach(user):
+    return Cohort.objects.filter(location__organisation__in=organisations_in_reach(user))
+
+
+def can_change_organisation(user, organisation):
+    """Admins and programme staff anywhere; hub administrators inside their reach."""
+    role = network_role(user)
+    if role in PROGRAMME_STAFF_ROLES:
+        return True
+    if role == User.HUB_ADMIN:
+        return organisations_in_reach(user).filter(pk=organisation.pk).exists()
+    return False
+
+
+def can_place_partner_in(user, country):
+    """Whether this person may create a partner in, or move one to, a country."""
+    role = network_role(user)
+    if role in PROGRAMME_STAFF_ROLES:
+        return True
+    return role == User.HUB_ADMIN and country in assigned_countries(user)

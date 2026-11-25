@@ -6,10 +6,12 @@ from .location import LocationMembership, TrainingLocation
 from .organisation import PartnerContact, PartnerOrganisation
 from .pipeline import FORWARD_STAGES, Partnership, PartnershipEvent, Stage
 from .programme import ProgrammeCourse
+from .reach import StaffAssignment
 from .records import CourseResult, SessionAttendance
 from .sync import SyncOperation
 
 __all__ = [
+    'StaffAssignment',
     'Cohort',
     'CohortMembership',
     'CohortSession',

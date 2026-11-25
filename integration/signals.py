@@ -316,3 +316,19 @@ def course_enrolment_completed(sender, instance, update_fields=None, **kwargs):
             participant__user_id=instance.user_id, access_order__isnull=False,
         ).values_list('cohort_id', flat=True)
     )
+
+
+# ==================== ROLE CHANGES ====================
+
+def _connect_role_change_signals():
+    from accounts.roles import role_changed
+
+    @receiver(role_changed, dispatch_uid='integration_forget_staff_lms_access')
+    def forget_cached_lms_access(sender, user, **kwargs):
+        """A new role means a new Moodle role, so the next LMS Portal visit must not be served from cache."""
+        from django.core.cache import cache
+        from .staff_access import _access_cache_key
+        cache.delete(_access_cache_key(user))
+
+
+_connect_role_change_signals()

@@ -13,6 +13,8 @@ from django.shortcuts import get_object_or_404, redirect
 
 from partners.services import scope
 
+SAFE_METHODS = ('GET', 'HEAD', 'OPTIONS')
+
 
 class ProgrammeStaffRequiredMixin(LoginRequiredMixin):
     def dispatch(self, request, *args, **kwargs):
@@ -20,6 +22,32 @@ class ProgrammeStaffRequiredMixin(LoginRequiredMixin):
             return self.handle_no_permission()
         if not scope.is_programme_staff(request.user):
             raise PermissionDenied('Programme staff only.')
+        return super().dispatch(request, *args, **kwargs)
+
+
+class NetworkStaffMixin(LoginRequiredMixin):
+    """
+    Guard for partner-network staff pages that fails closed.
+
+    Admins and programme staff always pass. Hub administrators, ambassadors and leaders
+    only pass on views that name them in network_roles, and a view should only do that
+    once every query in it starts from a scope *_in_reach function. A view nobody updated
+    therefore refuses them, rather than showing partners outside their reach.
+
+    Leaders are view-only: any request that could change something is refused here, so a
+    write endpoint added later cannot forget them.
+    """
+
+    network_roles = frozenset()
+
+    def dispatch(self, request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return self.handle_no_permission()
+        user = request.user
+        if not (scope.is_programme_staff(user) or scope.network_role(user) in self.network_roles):
+            raise PermissionDenied('Partner network staff only.')
+        if scope.is_network_read_only(user) and request.method not in SAFE_METHODS:
+            raise PermissionDenied('You have view-only access.')
         return super().dispatch(request, *args, **kwargs)
 
 

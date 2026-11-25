@@ -30,6 +30,9 @@ class User(AbstractUser):
     # Partner network roles - partners app context
     PROGRAMME_STAFF = 'programme_staff'
     PARTNER = 'partner'
+    HUB_ADMIN = 'hub_admin'
+    AMBASSADOR = 'ambassador'
+    LEADER = 'leader'
 
     ROLE_CHOICES = [
         # LMS roles
@@ -46,12 +49,20 @@ class User(AbstractUser):
         # Partner network roles
         (PROGRAMME_STAFF, 'Programme Staff'),
         (PARTNER, 'Partner Staff'),
+        (HUB_ADMIN, 'Hub Administrator'),
+        (AMBASSADOR, 'Ambassador'),
+        (LEADER, 'Leader (view only)'),
     ]
     # Role groupings - I'm using these to avoid scattering role checks everywhere
     LMS_ROLES = {STUDENT, DEAN, ADMIN}
     SCHOOL_ROLES = {TEACHER, PRINCIPAL, HOD, ADMIN_CLERK, PARENT, LEARNER}
     STAFF_ROLES = {TEACHER, PRINCIPAL, HOD, ADMIN_CLERK}
-    PARTNER_NETWORK_ROLES = {PROGRAMME_STAFF, PARTNER}
+    PARTNER_NETWORK_ROLES = {PROGRAMME_STAFF, PARTNER, HUB_ADMIN, AMBASSADOR, LEADER}
+    # Network staff reach partners through assignments (hub admins, ambassadors) or see all
+    NETWORK_SCOPED_ROLES = {HUB_ADMIN, AMBASSADOR}
+    NETWORK_READ_ONLY_ROLES = {LEADER}
+    # Roles a system administrator can move people between without touching their studies
+    ASSIGNABLE_STAFF_ROLES = {ADMIN, DEAN, PROGRAMME_STAFF, HUB_ADMIN, AMBASSADOR, LEADER}
     # Roles that open the LMS as teaching staff rather than as students
     LMS_STAFF_ROLES = {ADMIN, DEAN, PROGRAMME_STAFF, PARTNER}
     
@@ -1188,3 +1199,24 @@ class DiscountCode(models.Model):
             return (subtotal * self.discount_value / 100).quantize(Decimal('0.01'))
         else:
             return min(self.discount_value, subtotal)
+
+
+class RoleChange(models.Model):
+    """Who changed whose role, from what, to what, and when."""
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='role_changes')
+    from_role = models.CharField(max_length=20, choices=User.ROLE_CHOICES)
+    to_role = models.CharField(max_length=20, choices=User.ROLE_CHOICES)
+    changed_by = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, blank=True, related_name='role_changes_made',
+    )
+    changed_at = models.DateTimeField(auto_now_add=True)
+    note = models.CharField(max_length=255, blank=True)
+
+    class Meta:
+        db_table = 'role_changes'
+        ordering = ['-changed_at']
+        indexes = [models.Index(fields=['user', '-changed_at'])]
+
+    def __str__(self):
+        return f'{self.user}: {self.from_role} to {self.to_role}'

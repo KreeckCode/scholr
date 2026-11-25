@@ -7,3 +7,6 @@ class PartnersConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
     name = 'partners'
     verbose_name = 'Partner network'
+
+    def ready(self):
+        import partners.signals  # noqa: F401
