@@ -1,25 +1,26 @@
+{% load i18n %}
 <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
-    <nav class="flex flex-wrap gap-1.5" aria-label="Which results">
-        <a href="?{% if query %}{{ query }}&amp;{% endif %}view=programme" class="p-chip {% if view == 'programme' %}p-chip-on{% endif %}" {% if view == 'programme' %}aria-current="page"{% endif %}>Programme results</a>
-        <a href="?{% if query %}{{ query }}&amp;{% endif %}view=online" class="p-chip {% if view == 'online' %}p-chip-on{% endif %}" {% if view == 'online' %}aria-current="page"{% endif %}>Online quiz results</a>
+    <nav class="flex flex-wrap gap-1.5" aria-label="{% translate 'Which results' %}">
+        <a href="?{% if query %}{{ query }}&amp;{% endif %}view=programme" class="p-chip {% if view == 'programme' %}p-chip-on{% endif %}" {% if view == 'programme' %}aria-current="page"{% endif %}>{% translate "Programme results" %}</a>
+        <a href="?{% if query %}{{ query }}&amp;{% endif %}view=online" class="p-chip {% if view == 'online' %}p-chip-on{% endif %}" {% if view == 'online' %}aria-current="page"{% endif %}>{% translate "Online quiz results" %}</a>
     </nav>
     <div class="flex flex-wrap items-center gap-3">
     {% if export_url %}
     <details class="relative">
-        <summary class="p-btn-ghost p-btn-sm cursor-pointer list-none">Export to spreadsheet</summary>
+        <summary class="p-btn-ghost p-btn-sm cursor-pointer list-none">{% translate "Export to spreadsheet" %}</summary>
         <div class="absolute right-0 z-20 mt-2 w-64 rounded-xl border p-1.5 shadow-lg" style="background: var(--p-card, #fff); border-color: var(--p-line);">
             <a class="block rounded-lg px-3 py-2 text-sm hover:bg-slate-50" href="{{ export_url }}&amp;view={{ view }}&amp;split=none">
-                <span class="font-semibold p-navy">{% if export_splits %}Everything shown, one sheet{% else %}This cohort{% endif %}</span>
-                <span class="block text-xs p-muted">{% if view == 'online' %}Online quiz results{% else %}Programme results{% endif %}, with a summary</span>
+                <span class="font-semibold p-navy">{% if export_splits %}{% translate "Everything shown, one sheet" %}{% else %}{% translate "This cohort" %}{% endif %}</span>
+                <span class="block text-xs p-muted">{% if view == 'online' %}{% translate "Online quiz results" %}{% else %}{% translate "Programme results" %}{% endif %}{% translate ", with a summary" %}</span>
             </a>
             {% if export_splits %}
             <a class="block rounded-lg px-3 py-2 text-sm hover:bg-slate-50" href="{{ export_url }}&amp;view={{ view }}&amp;split=partner">
-                <span class="font-semibold p-navy">A sheet per partner</span>
-                <span class="block text-xs p-muted">Each partner's participants on their own sheet</span>
+                <span class="font-semibold p-navy">{% translate "A sheet per partner" %}</span>
+                <span class="block text-xs p-muted">{% translate "Each partner's participants on their own sheet" %}</span>
             </a>
             <a class="block rounded-lg px-3 py-2 text-sm hover:bg-slate-50" href="{{ export_url }}&amp;view={{ view }}&amp;split=cohort">
-                <span class="font-semibold p-navy">A sheet per cohort</span>
-                <span class="block text-xs p-muted">Each cohort on its own sheet</span>
+                <span class="font-semibold p-navy">{% translate "A sheet per cohort" %}</span>
+                <span class="block text-xs p-muted">{% translate "Each cohort on its own sheet" %}</span>
             </a>
             {% endif %}
         </div>
@@ -29,8 +30,8 @@
     <form method="post" action="{% url 'integration:refresh_online_results' %}" class="flex items-center gap-3">
         {% csrf_token %}
         <input type="hidden" name="next" value="{{ request.get_full_path }}">
-        <span class="text-xs p-muted">{% if online_synced_at %}Updated {{ online_synced_at|timesince }} ago{% else %}Not fetched from the LMS yet{% endif %}</span>
-        <button type="submit" class="p-btn-ghost p-btn-sm">Refresh from LMS</button>
+        <span class="text-xs p-muted">{% if online_synced_at %}{% blocktranslate trimmed with online_synced_at=online_synced_at|timesince %}Updated {{ online_synced_at }} ago{% endblocktranslate %}{% else %}{% translate "Not fetched from the LMS yet" %}{% endif %}</span>
+        <button type="submit" class="p-btn-ghost p-btn-sm">{% translate "Refresh from LMS" %}</button>
     </form>
     {% endif %}
     </div>

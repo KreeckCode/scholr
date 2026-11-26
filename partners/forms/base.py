@@ -1,5 +1,7 @@
 from django import forms
 
+from scholr.i18n import translate_form
+
 INPUT_CLASSES = (
     'block w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-900 '
     'shadow-sm transition focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/30 '
@@ -28,6 +30,7 @@ class StyledFormMixin:
                 widget.attrs.setdefault('class', INPUT_CLASSES)
             if isinstance(widget, forms.Textarea):
                 widget.attrs.setdefault('rows', 4)
+        translate_form(self)
 
 
 class DateInput(forms.DateInput):

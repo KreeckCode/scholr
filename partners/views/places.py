@@ -6,6 +6,7 @@ import uuid
 
 from django.conf import settings
 from django.contrib import messages
+from django.utils.translation import gettext
 from django.core.exceptions import PermissionDenied
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect
@@ -193,7 +194,7 @@ class LocationPlaceUpdateView(PlaceEditorMixin, UpdateView):
         except PartnersError as exc:
             form.add_error(None, exc.message)
             return self.form_invalid(form)
-        messages.success(self.request, 'Position and directions saved.')
+        messages.success(self.request, gettext('Position and directions saved.'))
         return redirect(place_url(location))
 
 
@@ -218,7 +219,7 @@ class EventFormMixin(PlaceEditorMixin):
         except PartnersError as exc:
             form.add_error(None, exc.message)
             return self.form_invalid(form)
-        messages.success(self.request, f'{event.title} saved.')
+        messages.success(self.request, gettext('%(title)s saved.') % {'title': event.title})
         return redirect(place_url(self.location))
 
 
@@ -247,7 +248,7 @@ class EventCancelView(PlaceEditorMixin, View):
         except PartnersError as exc:
             messages.error(request, exc.message)
         else:
-            messages.success(request, f'{event.title} cancelled.')
+            messages.success(request, gettext('%(title)s cancelled.') % {'title': event.title})
         return redirect(place_url(self.location))
 
 

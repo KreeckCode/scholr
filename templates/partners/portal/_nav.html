@@ -2,7 +2,7 @@
 {% with path=request.path %}
 {% if is_staff_viewer %}
 <div class="p-alert p-alert-info flex flex-wrap items-center justify-between gap-3">
-    <span>You are viewing {{ location.name }} as programme staff. Cohorts and participants are read-only for you; you can update its position, directions and events.</span>
+    <span>{% blocktranslate trimmed with name=location.name %}You are viewing {{ name }} as programme staff. Cohorts and participants are read-only for you; you can update its position, directions and events.{% endblocktranslate %}</span>
     <a class="p-btn-ghost p-btn-sm" href="{% url 'partners:network' %}">{% translate "Back to the network" %}</a>
 </div>
 {% endif %}

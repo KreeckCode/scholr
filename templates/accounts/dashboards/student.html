@@ -1,35 +1,36 @@
 {% extends 'ui/base.html' %}
+{% load i18n %}
 
 {% block title %}My learning{% endblock %}
 {% block eyebrow %}{{ profile.church_name|default:brand.name }}{% if profile.region %} &middot; {{ profile.region }}{% endif %}{% endblock %}
 {% block heading %}Welcome back, {{ user.first_name|default:user.username }}{% endblock %}
 
 {% block actions %}
-{% if user.is_verified and SCHOLR_LMS_ENABLED %}<a class="p-btn" href="{% url 'integration:access_lms' %}">Open my courses</a>{% endif %}
-{% if SCHOLR_LMS_ENABLED %}<a class="p-btn-ghost" href="{% url 'shop:my_courses' %}">My enrolments</a>{% endif %}
+{% if user.is_verified and SCHOLR_LMS_ENABLED %}<a class="p-btn" href="{% url 'integration:access_lms' %}">{% translate "Open my courses" %}</a>{% endif %}
+{% if SCHOLR_LMS_ENABLED %}<a class="p-btn-ghost" href="{% url 'shop:my_courses' %}">{% translate "My enrolments" %}</a>{% endif %}
 {% endblock %}
 
 {% block body %}
 {% if not user.is_verified %}
 <div class="p-alert p-alert-warn">
-    <p class="p-alert-title">Your account is waiting for verification</p>
-    <p class="mt-1">Your dean or training centre will confirm your details. Your courses open as soon as you are verified.</p>
+    <p class="p-alert-title">{% translate "Your account is waiting for verification" %}</p>
+    <p class="mt-1">{% translate "Your dean or training centre will confirm your details. Your courses open as soon as you are verified." %}</p>
 </div>
 {% endif %}
 
 {% if not profile_complete %}
 <a class="p-alert p-alert-warn" href="{% url 'accounts:profile_complete' %}">
     <span>
-        <span class="p-alert-title block">Finish your profile</span>
-        <span class="mt-1 block">Your country, region, church and education level are still needed.</span>
+        <span class="p-alert-title block">{% translate "Finish your profile" %}</span>
+        <span class="mt-1 block">{% translate "Your country, region, church and education level are still needed." %}</span>
     </span>
-    <span class="p-btn-ghost p-btn-sm shrink-0">Complete profile</span>
+    <span class="p-btn-ghost p-btn-sm shrink-0">{% translate "Complete profile" %}</span>
 </a>
 {% endif %}
 
 <div class="grid gap-6 lg:grid-cols-3">
     <section class="min-w-0 lg:col-span-2">
-        <h2 class="p-section-title p-section-title-lg mb-4">Your programmes</h2>
+        <h2 class="p-section-title p-section-title-lg mb-4">{% translate "Your programmes" %}</h2>
         <div class="space-y-4">
             {% for enrolment in enrolled_courses %}
             {% with product=enrolment.product %}
@@ -38,11 +39,11 @@
                     <div class="min-w-0">
                         <h3 class="p-card-title truncate">{{ product.name }}</h3>
                         <p class="text-xs p-muted">
-                            Enrolled {{ enrolment.created_at|date:'d M Y' }}
-                            {% if enrolment.expires_at %} &middot; access until {{ enrolment.expires_at|date:'d M Y' }}{% endif %}
+                            {% blocktranslate trimmed with created_at=enrolment.created_at|date:'d M Y' %}Enrolled {{ created_at }}{% endblocktranslate %}
+                            {% if enrolment.expires_at %} {% blocktranslate trimmed with expires_at=enrolment.expires_at|date:'d M Y' %}&middot; access until {{ expires_at }}{% endblocktranslate %}{% endif %}
                         </p>
                     </div>
-                    {% if enrolment.is_expired %}<span class="p-badge p-badge-muted">Access ended</span>{% else %}<span class="p-badge p-badge-good">Active</span>{% endif %}
+                    {% if enrolment.is_expired %}<span class="p-badge p-badge-muted">{% translate "Access ended" %}</span>{% else %}<span class="p-badge p-badge-good">{% translate "Active" %}</span>{% endif %}
                 </div>
 
                 {% with courses=product.bundle_items.all %}
@@ -73,9 +74,9 @@
             {% endwith %}
             {% empty %}
             <div class="p-card p-empty">
-                <p class="font-semibold p-navy">You are not enrolled in anything yet</p>
-                <p class="mt-1">{% if SCHOLR_PARTNERS_ENABLED %}If you study at a training location, your coordinator gives you online access.{% else %}Browse the catalogue to find a course.{% endif %}</p>
-                {% if SCHOLR_PURCHASES_ENABLED %}<a class="p-btn-ghost mt-4" href="{% url 'shop:catalog' %}">Browse courses</a>{% endif %}
+                <p class="font-semibold p-navy">{% translate "You are not enrolled in anything yet" %}</p>
+                <p class="mt-1">{% if SCHOLR_PARTNERS_ENABLED %}{% translate "If you study at a training location, your coordinator gives you online access." %}{% else %}{% translate "Browse the catalogue to find a course." %}{% endif %}</p>
+                {% if SCHOLR_PURCHASES_ENABLED %}<a class="p-btn-ghost mt-4" href="{% url 'shop:catalog' %}">{% translate "Browse courses" %}</a>{% endif %}
             </div>
             {% endfor %}
         </div>
@@ -83,15 +84,15 @@
 
     <aside class="min-w-0 space-y-4">
         <section class="p-card">
-            <div class="p-card-head"><h2 class="p-card-title">Your profile</h2>{% include 'accounts/_status.html' with person=user %}</div>
+            <div class="p-card-head"><h2 class="p-card-title">{% translate "Your profile" %}</h2>{% include 'accounts/_status.html' with person=user %}</div>
             <dl class="p-meta space-y-4 p-5">
-                <div><dt>Church</dt><dd>{{ profile.church_name|default:'Not provided' }}</dd></div>
-                <div><dt>Location</dt><dd>{% if profile.region %}{{ profile.region }}, {% endif %}{{ profile.country|default:'Not provided' }}</dd></div>
-                <div><dt>Phone number</dt><dd>{{ user.phone_number|default:'Not provided' }}</dd></div>
+                <div><dt>{% translate "Church" %}</dt><dd>{{ profile.church_name|default:'Not provided' }}</dd></div>
+                <div><dt>{% translate "Location" %}</dt><dd>{% if profile.region %}{{ profile.region }}, {% endif %}{{ profile.country|default:'Not provided' }}</dd></div>
+                <div><dt>{% translate "Phone number" %}</dt><dd>{{ user.phone_number|default:'Not provided' }}</dd></div>
             </dl>
             <div class="p-card-foot justify-start">
-                <a class="p-btn-ghost p-btn-sm" href="{% url 'accounts:profile' %}">View profile</a>
-                <a class="p-btn-ghost p-btn-sm" href="{% url 'accounts:profile_edit' %}">Edit</a>
+                <a class="p-btn-ghost p-btn-sm" href="{% url 'accounts:profile' %}">{% translate "View profile" %}</a>
+                <a class="p-btn-ghost p-btn-sm" href="{% url 'accounts:profile_edit' %}">{% translate "Edit" %}</a>
             </div>
         </section>
     </aside>

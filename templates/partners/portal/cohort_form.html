@@ -1,11 +1,12 @@
 {% extends 'ui/base.html' %}
+{% load i18n %}
 {% load partners_tags %}
 
 {% block title %}{% if cohort %}Edit {{ cohort.name }}{% else %}New cohort{% endif %}{% endblock %}
 {% block subnav %}{% include 'partners/portal/_nav.html' %}{% endblock %}
 {% block eyebrow %}{{ location.name }}{% endblock %}
 {% block heading %}{% if cohort %}Edit {{ cohort.name }}{% else %}New cohort{% endif %}{% endblock %}
-{% block subheading %}{% if not cohort %}<p class="mt-2 max-w-2xl text-sm p-slate">A cohort is one class moving through the twelve courses together. Choose blended delivery if participants will also study online in Moodle.</p>{% endif %}{% endblock %}
+{% block subheading %}{% if not cohort %}<p class="mt-2 max-w-2xl text-sm p-slate">{% translate "A cohort is one class moving through the twelve courses together. Choose blended delivery if participants will also study online in Moodle." %}</p>{% endif %}{% endblock %}
 
 {% block body %}
 <form method="post" class="p-card max-w-3xl p-6 sm:p-8" novalidate>
@@ -21,8 +22,8 @@
         {% field form.facilitators wide=True %}
     </div>
     <div class="p-form-actions">
-        <button type="submit" class="p-btn">Save</button>
-        <a class="p-btn-ghost" href="{% if cohort %}{% url 'partners:cohort_detail' location_id=location.public_id cohort_id=cohort.public_id %}{% else %}{% url 'partners:location_dashboard' location_id=location.public_id %}{% endif %}">Cancel</a>
+        <button type="submit" class="p-btn">{% translate "Save" %}</button>
+        <a class="p-btn-ghost" href="{% if cohort %}{% url 'partners:cohort_detail' location_id=location.public_id cohort_id=cohort.public_id %}{% else %}{% url 'partners:location_dashboard' location_id=location.public_id %}{% endif %}">{% translate "Cancel" %}</a>
     </div>
 </form>
 {% endblock %}

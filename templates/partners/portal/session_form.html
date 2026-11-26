@@ -1,4 +1,5 @@
 {% extends 'ui/base.html' %}
+{% load i18n %}
 {% load partners_tags %}
 
 {% block title %}{% if session_obj %}Edit session{% else %}Add session{% endif %}{% endblock %}
@@ -20,16 +21,16 @@
             {% field form.notes wide=True %}
         </div>
         <div class="p-form-actions">
-            <button type="submit" class="p-btn">Save</button>
-            <a class="p-btn-ghost" href="{% url 'partners:cohort_detail' location_id=location.public_id cohort_id=cohort.public_id %}">Cancel</a>
+            <button type="submit" class="p-btn">{% translate "Save" %}</button>
+            <a class="p-btn-ghost" href="{% url 'partners:cohort_detail' location_id=location.public_id cohort_id=cohort.public_id %}">{% translate "Cancel" %}</a>
         </div>
     </form>
 
     {% if session_obj %}
     <form method="post" action="{% url 'partners:session_delete' location_id=location.public_id cohort_id=cohort.public_id session_id=session_obj.public_id %}" class="p-card flex flex-col gap-3 p-5 sm:flex-row sm:items-center sm:justify-between" style="border-color: #F6D3CF;" onsubmit="return confirm('Delete this session?');">
         {% csrf_token %}
-        <p class="text-xs p-muted sm:order-1">A session with a register cannot be deleted; set its status to Cancelled instead.</p>
-        <button type="submit" class="p-btn-danger shrink-0 self-start sm:order-2 sm:self-auto">Delete session</button>
+        <p class="text-xs p-muted sm:order-1">{% translate "A session with a register cannot be deleted; set its status to Cancelled instead." %}</p>
+        <button type="submit" class="p-btn-danger shrink-0 self-start sm:order-2 sm:self-auto">{% translate "Delete session" %}</button>
     </form>
     {% endif %}
 </div>

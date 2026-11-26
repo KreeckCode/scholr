@@ -1,5 +1,7 @@
 from django import forms
 from django.utils.translation import gettext_lazy as _
+
+from scholr.i18n import TranslatedFormMixin
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.core.exceptions import ValidationError
 from .models import User, UserProfile
@@ -247,7 +249,7 @@ class CustomAuthenticationForm(AuthenticationForm):
         return (self.cleaned_data.get('username') or '').strip()
 
 
-class UserProfileForm(forms.ModelForm):
+class UserProfileForm(TranslatedFormMixin, forms.ModelForm):
     """
     Complete profile form for updating all demographic information
     Used after initial registration or by admins
@@ -313,7 +315,7 @@ class ProfileCompletionForm(UserProfileForm):
             self.fields[name].required = True
 
 
-class UserUpdateForm(forms.ModelForm):
+class UserUpdateForm(TranslatedFormMixin, forms.ModelForm):
     """
     Form for updating basic user information
     Separate from profile to handle User model fields

@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Scholr (METP)\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-26 05:36+0200\n"
+"POT-Creation-Date: 2026-11-26 07:05+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: Swahili\n"
@@ -15,25 +15,157 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: accounts/forms.py:213 accounts/forms.py:216
+#: accounts/forms.py:215 accounts/forms.py:218
 msgid "Username or phone number"
 msgstr "Jina la mtumiaji au namba ya simu"
 
-#: accounts/forms.py:223 accounts/forms.py:226
+#: accounts/forms.py:225 accounts/forms.py:228
 msgid "Password"
 msgstr "Nenosiri"
 
-#: accounts/forms.py:235
+#: accounts/forms.py:237 templates/partners/portal/cohort_detail.html:39
 msgid "Keep me signed in"
 msgstr "Baki ukiwa umeingia"
 
-#: accounts/forms.py:242 accounts/forms.py:243
+#: accounts/forms.py:244 accounts/forms.py:245
 msgid "Username, email or phone number"
 msgstr "Jina la mtumiaji, barua pepe au namba ya simu"
 
 #: accounts/models.py:95
 msgid "email address"
 msgstr "anwani ya barua pepe"
+
+#: partners/views/places.py:197
+msgid "Position and directions saved."
+msgstr "Mahali na maelekezo vimehifadhiwa."
+
+#: partners/views/places.py:222
+#, python-format
+msgid "%(title)s saved."
+msgstr "%(title)s imehifadhiwa."
+
+#: partners/views/places.py:251
+#, python-format
+msgid "%(title)s cancelled."
+msgstr "%(title)s imefutwa."
+
+#: partners/views/portal.py:195
+#, python-format
+msgid "%(full_name)s added."
+msgstr "%(full_name)s ameongezwa."
+
+#: partners/views/portal.py:259
+msgid "Participant saved."
+msgstr "Mshiriki amehifadhiwa."
+
+#: partners/views/portal.py:300
+msgid "The preview has expired. Upload the file again."
+msgstr "Muhtasari umeisha muda. Pakia faili tena."
+
+#: partners/views/portal.py:322
+#, python-format
+msgid "Import stopped after %(created)s participant(s): %(message)s"
+msgstr "Uingizaji ulisimama baada ya washiriki %(created)s: %(message)s"
+
+#: partners/views/portal.py:324
+#, python-format
+msgid "%(created)s participant(s) imported, %(skipped)s skipped."
+msgstr "Washiriki %(created)s wameingizwa, %(skipped)s wamerukwa."
+
+#: partners/views/portal.py:347
+#, python-format
+msgid "%(name)s created. Add participants and sessions next."
+msgstr "%(name)s limeundwa. Ongeza washiriki na vipindi baadaye."
+
+#: partners/views/portal.py:409
+msgid "Cohort saved."
+msgstr "Kundi limehifadhiwa."
+
+#: partners/views/portal.py:423
+msgid "Cohort status updated."
+msgstr "Hali ya kundi imesasishwa."
+
+#: partners/views/portal.py:442
+#, python-format
+msgid "%(added)s participant(s) added to %(name)s."
+msgstr "Washiriki %(added)s wameongezwa kwenye %(name)s."
+
+#: partners/views/portal.py:470
+#, python-format
+msgid "%(name)s withdrawn from the cohort."
+msgstr "%(name)s ameondolewa kwenye kundi."
+
+#: partners/views/portal.py:475
+#, python-format
+msgid "Online access for %(name)s is being set up in Moodle."
+msgstr "Ufikiaji wa mtandaoni wa %(name)s unaandaliwa kwenye Moodle."
+
+#: partners/views/portal.py:478
+#, python-format
+msgid "Online access withdrawn for %(name)s."
+msgstr "Ufikiaji wa mtandaoni umeondolewa kwa %(name)s."
+
+#: partners/views/portal.py:502
+msgid "Session added."
+msgstr "Kipindi kimeongezwa."
+
+#: partners/views/portal.py:536
+msgid "Session saved."
+msgstr "Kipindi kimehifadhiwa."
+
+#: partners/views/portal.py:549
+msgid "Session deleted."
+msgstr "Kipindi kimefutwa."
+
+#: partners/views/portal.py:588
+msgid "Mark at least one participant before saving."
+msgstr "Weka alama kwa angalau mshiriki mmoja kabla ya kuhifadhi."
+
+#: partners/views/portal.py:594
+#, python-format
+msgid "Register saved for %(len)s participant(s)."
+msgstr "Mahudhurio yamehifadhiwa kwa washiriki %(len)s."
+
+#: partners/views/portal.py:692
+msgid "Some scores are not valid percentages. Check the highlighted rows."
+msgstr "Baadhi ya alama si asilimia sahihi. Kagua safu zilizowekwa alama."
+
+#: partners/views/portal.py:706
+#, python-format
+msgid ""
+"Someone else changed these results while you were editing, so yours were not"
+" saved: %(names)s. Check them and save again."
+msgstr ""
+"Mtu mwingine amebadilisha matokeo haya ulipokuwa ukihariri, kwa hiyo yako "
+"hayakuhifadhiwa: %(names)s. Yakague na uhifadhi tena."
+
+#: partners/views/portal.py:709
+#, python-format
+msgid "%(saved)s result(s) saved for %(code)s."
+msgstr "Matokeo %(saved)s yamehifadhiwa kwa %(code)s."
+
+#: partners/views/portal.py:725
+#, python-format
+msgid "%(count)s result(s) signed off for %(code)s."
+msgstr "Matokeo %(count)s yamethibitishwa kwa %(code)s."
+
+#: partners/views/portal.py:789
+#, python-format
+msgid "%(get_full_name)s added as %(get_role_display)s."
+msgstr "%(get_full_name)s ameongezwa kama %(get_role_display)s."
+
+#: partners/views/portal.py:810
+#, python-format
+msgid "%(get_full_name)s removed from this location."
+msgstr "%(get_full_name)s ameondolewa kwenye kituo hiki."
+
+#: partners/views/portal.py:813
+msgid "This person has already set a password."
+msgstr "Mtu huyu tayari ameweka nenosiri."
+
+#: partners/views/portal.py:843
+msgid "Conflict resolved."
+msgstr "Mgongano umetatuliwa."
 
 #: scholr/brands.py:97
 msgid ""
@@ -54,7 +186,6 @@ msgid "Updates"
 msgstr "Habari mpya"
 
 #: scholr/brands.py:104
-#| msgid "Overview"
 msgid "Course overview"
 msgstr "Muhtasari wa kozi"
 
@@ -69,6 +200,1089 @@ msgid ""
 msgstr ""
 "Sehemu ya idara ya GlobalEd ya Mission Global na Pentecostal Assemblies of "
 "Canada."
+
+#: scholr/i18n_catalogue.py:5
+msgid "12 months (one course a month)"
+msgstr "Miezi 12 (kozi moja kwa mwezi)"
+
+#: scholr/i18n_catalogue.py:6
+msgid "3 months (one course a week)"
+msgstr "Miezi 3 (kozi moja kwa wiki)"
+
+#: scholr/i18n_catalogue.py:7
+msgid "6 months (two courses a month)"
+msgstr "Miezi 6 (kozi mbili kwa mwezi)"
+
+#: scholr/i18n_catalogue.py:8
+msgid "Absent"
+msgstr "Hayupo"
+
+#: scholr/i18n_catalogue.py:9
+msgid ""
+"Accommodation nearby, road conditions, the best time of year, anything a "
+"visitor should know."
+msgstr ""
+"Malazi ya karibu, hali ya barabara, wakati bora wa mwaka, chochote mgeni "
+"anapaswa kujua."
+
+#: scholr/i18n_catalogue.py:10 templates/accounts/dashboards/student.html:46
+#: templates/partners/portal/team.html:30
+msgid "Active"
+msgstr "Inafanya kazi"
+
+#: scholr/i18n_catalogue.py:11
+msgid "Added by staff"
+msgstr "Imeongezwa na wafanyakazi"
+
+#: scholr/i18n_catalogue.py:12 templates/partners/portal/place.html:53
+msgid "Address"
+msgstr "Anwani"
+
+#: scholr/i18n_catalogue.py:13
+msgid "Admin training (METP 100a)"
+msgstr "Mafunzo ya wasimamizi (METP 100a)"
+
+#: scholr/i18n_catalogue.py:14
+msgid "Administrative Clerk"
+msgstr "Karani wa utawala"
+
+#: scholr/i18n_catalogue.py:15
+msgid "Agreement file"
+msgstr "Faili la makubaliano"
+
+#: scholr/i18n_catalogue.py:16
+msgid "Ambassador"
+msgstr "Balozi"
+
+#: scholr/i18n_catalogue.py:17
+msgid "Applied"
+msgstr "Ameomba"
+
+#: scholr/i18n_catalogue.py:18
+msgid "Approximate size of congregation"
+msgstr "Ukubwa wa takriban wa kusanyiko"
+
+#: scholr/i18n_catalogue.py:19
+msgid "Arrival contact name"
+msgstr "Jina la mtu wa kupokea"
+
+#: scholr/i18n_catalogue.py:20
+msgid "Arrival contact phone"
+msgstr "Simu ya mtu wa kupokea"
+
+#: scholr/i18n_catalogue.py:21
+msgid "Attendance"
+msgstr "Mahudhurio"
+
+#: scholr/i18n_catalogue.py:22
+msgid "Attendees"
+msgstr "Wahudhuriaji"
+
+#: scholr/i18n_catalogue.py:23
+msgid "Bible college or seminary"
+msgstr "Chuo cha Biblia au seminari"
+
+#: scholr/i18n_catalogue.py:24
+msgid "Bio"
+msgstr "Wasifu"
+
+#: scholr/i18n_catalogue.py:25
+msgid "Brief biography or ministry background"
+msgstr "Wasifu mfupi au historia ya huduma"
+
+#: scholr/i18n_catalogue.py:26
+msgid "CSV file"
+msgstr "Faili la CSV"
+
+#: scholr/i18n_catalogue.py:27
+msgid "Call"
+msgstr "Piga simu"
+
+#: scholr/i18n_catalogue.py:28
+msgid "Cancelled"
+msgstr "Imefutwa"
+
+#: scholr/i18n_catalogue.py:29
+msgid "Certificate/Diploma"
+msgstr "Cheti/Stashahada"
+
+#: scholr/i18n_catalogue.py:30 templates/accounts/_profile_details.html:24
+#: templates/accounts/dashboards/student.html:89
+#: templates/partners/portal/participant_import.html:22
+#: templates/partners/portal/participant_list.html:27
+msgid "Church"
+msgstr "Kanisa"
+
+#: scholr/i18n_catalogue.py:31
+msgid "Church affiliation"
+msgstr "Uhusiano wa kanisa"
+
+#: scholr/i18n_catalogue.py:32
+msgid "Church name"
+msgstr "Jina la kanisa"
+
+#: scholr/i18n_catalogue.py:33
+msgid "Church or organisation"
+msgstr "Kanisa au shirika"
+
+#: scholr/i18n_catalogue.py:34 templates/accounts/_profile_details.html:26
+msgid "Church size"
+msgstr "Ukubwa wa kanisa"
+
+#: scholr/i18n_catalogue.py:35
+msgid "City"
+msgstr "Mji"
+
+#: scholr/i18n_catalogue.py:36
+msgid "City or town"
+msgstr "Mji au kijiji"
+
+#: scholr/i18n_catalogue.py:37
+msgid "Classroom and online"
+msgstr "Darasani na mtandaoni"
+
+#: scholr/i18n_catalogue.py:38
+msgid "Classroom only"
+msgstr "Darasani pekee"
+
+#: scholr/i18n_catalogue.py:39
+msgid "Closed"
+msgstr "Imefungwa"
+
+#: scholr/i18n_catalogue.py:40 templates/partners/_results_grid.html:9
+#: templates/partners/portal/dashboard.html:48
+msgid "Cohort"
+msgstr "Kundi"
+
+#: scholr/i18n_catalogue.py:41
+msgid ""
+"Columns: first_name, last_name, phone, email, church_name, position_title. "
+"Up to 500 rows."
+msgstr ""
+"Safu: first_name, last_name, phone, email, church_name, position_title. Hadi"
+" safu 500."
+
+#: scholr/i18n_catalogue.py:42
+msgid "Comma-separated list of languages (e.g., English, Swahili, French)"
+msgstr ""
+"Orodha ya lugha zilizotenganishwa kwa koma (mf. Kiingereza, Kiswahili, "
+"Kifaransa)"
+
+#: scholr/i18n_catalogue.py:43 templates/partners/portal/dashboard.html:48
+#: templates/shop/my_courses.html:109
+msgid "Completed"
+msgstr "Imekamilika"
+
+#: scholr/i18n_catalogue.py:44
+msgid "Confirmed"
+msgstr "Imethibitishwa"
+
+#: scholr/i18n_catalogue.py:45
+msgid "Conflict"
+msgstr "Mgongano"
+
+#: scholr/i18n_catalogue.py:46
+msgid "Coordinator (METP 100a)"
+msgstr "Mratibu (METP 100a)"
+
+#: scholr/i18n_catalogue.py:47 templates/accounts/_profile_details.html:15
+#: templates/partners/portal/participant_detail.html:22
+msgid "Country"
+msgstr "Nchi"
+
+#: scholr/i18n_catalogue.py:48
+msgid "Country where pastor ministers"
+msgstr "Nchi ambayo mchungaji anahudumu"
+
+#: scholr/i18n_catalogue.py:49
+#: templates/partners/portal/participant_detail.html:44
+#: templates/shop/my_courses.html:236
+msgid "Course"
+msgstr "Kozi"
+
+#: scholr/i18n_catalogue.py:50
+msgid "Course result"
+msgstr "Tokeo la kozi"
+
+#: scholr/i18n_catalogue.py:51
+msgid "Current ministry position (e.g., Senior Pastor, Youth Pastor)"
+msgstr "Nafasi ya sasa ya huduma (mf. Mchungaji Mkuu, Mchungaji wa Vijana)"
+
+#: scholr/i18n_catalogue.py:52
+msgid "Date"
+msgstr "Tarehe"
+
+#: scholr/i18n_catalogue.py:53
+msgid "Date of birth"
+msgstr "Tarehe ya kuzaliwa"
+
+#: scholr/i18n_catalogue.py:54
+msgid "Dean (Facilitator)"
+msgstr "Mkuu (mwezeshaji)"
+
+#: scholr/i18n_catalogue.py:55 templates/partners/portal/dashboard.html:48
+msgid "Delivery"
+msgstr "Njia ya kufundisha"
+
+#: scholr/i18n_catalogue.py:56
+msgid "Denomination"
+msgstr "Dhehebu"
+
+#: scholr/i18n_catalogue.py:57
+msgid "Denomination or network affiliation"
+msgstr "Dhehebu au mtandao unaohusiana nao"
+
+#: scholr/i18n_catalogue.py:58
+msgid "Details"
+msgstr "Maelezo"
+
+#: scholr/i18n_catalogue.py:59
+msgid "Document"
+msgstr "Hati"
+
+#: scholr/i18n_catalogue.py:60
+msgid "Draft"
+msgstr "Rasimu"
+
+#: scholr/i18n_catalogue.py:61 templates/accounts/_profile_details.html:35
+msgid "Education level"
+msgstr "Kiwango cha elimu"
+
+#: scholr/i18n_catalogue.py:62 templates/accounts/_profile_details.html:7
+#: templates/partners/portal/participant_detail.html:20
+msgid "Email"
+msgstr "Barua pepe"
+
+#: scholr/i18n_catalogue.py:63
+msgid "Email address"
+msgstr "Anwani ya barua pepe"
+
+#: scholr/i18n_catalogue.py:64
+msgid "Email is optional - many pastors don't have regular access"
+msgstr ""
+"Barua pepe si lazima - wachungaji wengi hawana ufikiaji wa mara kwa mara"
+
+#: scholr/i18n_catalogue.py:65
+msgid "Ends on"
+msgstr "Inaisha tarehe"
+
+#: scholr/i18n_catalogue.py:66
+msgid "Enquiry"
+msgstr "Ulizo"
+
+#: scholr/i18n_catalogue.py:67 templates/partners/portal/dashboard.html:48
+#: templates/shop/my_courses.html:101
+msgid "Enrolled"
+msgstr "Amesajiliwa"
+
+#: scholr/i18n_catalogue.py:68
+msgid "Estimated from the town name"
+msgstr "Imekadiriwa kutokana na jina la mji"
+
+#: scholr/i18n_catalogue.py:69
+msgid "Event"
+msgstr "Tukio"
+
+#: scholr/i18n_catalogue.py:70
+msgid "Excused"
+msgstr "Ana ruhusa"
+
+#: scholr/i18n_catalogue.py:71
+msgid "Expected participants"
+msgstr "Washiriki wanaotarajiwa"
+
+#: scholr/i18n_catalogue.py:72
+msgid "Expired"
+msgstr "Imeisha muda"
+
+#: scholr/i18n_catalogue.py:73
+msgid "Facilitator"
+msgstr "Mwezeshaji"
+
+#: scholr/i18n_catalogue.py:74
+msgid "Facilitator (METP 100b)"
+msgstr "Mwezeshaji (METP 100b)"
+
+#: scholr/i18n_catalogue.py:75
+msgid "Facilitator training (METP 100b)"
+msgstr "Mafunzo ya wawezeshaji (METP 100b)"
+
+#: scholr/i18n_catalogue.py:76
+msgid "Facilitators"
+msgstr "Wawezeshaji"
+
+#: scholr/i18n_catalogue.py:77
+msgid "Failed"
+msgstr "Hajafaulu"
+
+#: scholr/i18n_catalogue.py:78
+msgid "Fee amount"
+msgstr "Kiasi cha ada"
+
+#: scholr/i18n_catalogue.py:79
+msgid "Fee currency"
+msgstr "Sarafu ya ada"
+
+#: scholr/i18n_catalogue.py:80
+msgid "Fee status"
+msgstr "Hali ya ada"
+
+#: scholr/i18n_catalogue.py:81
+msgid "First name"
+msgstr "Jina la kwanza"
+
+#: scholr/i18n_catalogue.py:82
+msgid "For sending the set-password link by WhatsApp or SMS."
+msgstr "Kwa kutuma kiungo cha kuweka nenosiri kwa WhatsApp au SMS."
+
+#: scholr/i18n_catalogue.py:83
+msgid "Graduation"
+msgstr "Mahafali"
+
+#: scholr/i18n_catalogue.py:84
+msgid "Head of Department"
+msgstr "Mkuu wa idara"
+
+#: scholr/i18n_catalogue.py:85
+msgid "Held"
+msgstr "Kimefanyika"
+
+#: scholr/i18n_catalogue.py:86
+msgid ""
+"Hide names from exports and offline packs, for partners in places where "
+"Christian leaders face danger."
+msgstr ""
+"Ficha majina kwenye faili za kupakua na pakiti za nje ya mtandao, kwa "
+"washirika mahali ambapo viongozi wa Kikristo wako hatarini."
+
+#: scholr/i18n_catalogue.py:87
+msgid "Hide participant names from exports and use initials in offline packs."
+msgstr ""
+"Ficha majina ya washiriki kwenye faili za kupakua na tumia herufi za mwanzo "
+"kwenye pakiti za nje ya mtandao."
+
+#: scholr/i18n_catalogue.py:88
+msgid "Highest level of formal education completed"
+msgstr "Kiwango cha juu zaidi cha elimu rasmi kilichokamilishwa"
+
+#: scholr/i18n_catalogue.py:89
+msgid "Hours"
+msgstr "Saa"
+
+#: scholr/i18n_catalogue.py:90
+msgid "How many people would you like to train?"
+msgstr "Ungependa kufundisha watu wangapi?"
+
+#: scholr/i18n_catalogue.py:91 templates/partners/portal/place.html:51
+msgid "How to get there"
+msgstr "Jinsi ya kufika"
+
+#: scholr/i18n_catalogue.py:92
+msgid ""
+"How to get there in plain words: landmarks, which road, which bus, who to "
+"ask for."
+msgstr ""
+"Jinsi ya kufika kwa maneno rahisi: alama za njiani, barabara ipi, basi lipi,"
+" nani wa kuuliza."
+
+#: scholr/i18n_catalogue.py:93
+msgid "Hub Administrator"
+msgstr "Msimamizi wa kanda"
+
+#: scholr/i18n_catalogue.py:94 templates/shop/my_courses.html:105
+msgid "In progress"
+msgstr "Inaendelea"
+
+#: scholr/i18n_catalogue.py:95
+msgid "Incomplete (attendance)"
+msgstr "Haijakamilika (mahudhurio)"
+
+#: scholr/i18n_catalogue.py:96
+msgid "International format, for example +27821234567."
+msgstr "Muundo wa kimataifa, kwa mfano +27821234567."
+
+#: scholr/i18n_catalogue.py:97
+msgid "Intro call"
+msgstr "Simu ya utambulisho"
+
+#: scholr/i18n_catalogue.py:98
+msgid "Invoiced"
+msgstr "Ankara imetumwa"
+
+#: scholr/i18n_catalogue.py:99
+msgid "Is primary"
+msgstr "Mkuu"
+
+#: scholr/i18n_catalogue.py:100
+msgid "Is sensitive"
+msgstr "Nyeti"
+
+#: scholr/i18n_catalogue.py:101
+msgid "Kept in the role history, for example \"Now covering East Africa\"."
+msgstr ""
+"Huhifadhiwa kwenye historia ya majukumu, kwa mfano \"Sasa anashughulikia "
+"Afrika Mashariki\"."
+
+#: scholr/i18n_catalogue.py:102
+msgid "Kind"
+msgstr "Aina"
+
+#: scholr/i18n_catalogue.py:103 templates/base/_language_switcher.html:8
+msgid "Language"
+msgstr "Lugha"
+
+#: scholr/i18n_catalogue.py:104
+msgid "Languages spoken"
+msgstr "Lugha zinazozungumzwa"
+
+#: scholr/i18n_catalogue.py:105
+msgid "Large (201-500 members)"
+msgstr "Kubwa (wanachama 201-500)"
+
+#: scholr/i18n_catalogue.py:106
+msgid "Last day (if more than one)"
+msgstr "Siku ya mwisho (ikiwa ni zaidi ya moja)"
+
+#: scholr/i18n_catalogue.py:107
+msgid "Last name"
+msgstr "Jina la ukoo"
+
+#: scholr/i18n_catalogue.py:108
+msgid "Late"
+msgstr "Amechelewa"
+
+#: scholr/i18n_catalogue.py:109
+msgid "Latitude"
+msgstr "Latitudo"
+
+#: scholr/i18n_catalogue.py:110
+msgid "Launched"
+msgstr "Imezinduliwa"
+
+#: scholr/i18n_catalogue.py:111
+msgid "Leader (view only)"
+msgstr "Kiongozi (kuangalia tu)"
+
+#: scholr/i18n_catalogue.py:112
+msgid "Learner"
+msgstr "Mwanafunzi"
+
+#: scholr/i18n_catalogue.py:113
+msgid "Leave blank for no limit."
+msgstr "Acha wazi ili kusiwe na kikomo."
+
+#: scholr/i18n_catalogue.py:114
+msgid "Leave this empty"
+msgstr "Acha hiki kikiwa wazi"
+
+#: scholr/i18n_catalogue.py:115 templates/partners/portal/dashboard.html:40
+msgid "Licence"
+msgstr "Leseni"
+
+#: scholr/i18n_catalogue.py:116
+msgid "Location details"
+msgstr "Maelezo ya kituo"
+
+#: scholr/i18n_catalogue.py:117
+msgid "Longitude"
+msgstr "Longitudo"
+
+#: scholr/i18n_catalogue.py:118
+msgid "Lost"
+msgstr "Imepotea"
+
+#: scholr/i18n_catalogue.py:119
+msgid "METP 100a for coordinators, METP 100b for facilitators."
+msgstr "METP 100a kwa waratibu, METP 100b kwa wawezeshaji."
+
+#: scholr/i18n_catalogue.py:120
+msgid "METP staff member responsible for the next step."
+msgstr "Mfanyakazi wa METP anayehusika na hatua inayofuata."
+
+#: scholr/i18n_catalogue.py:121
+msgid "METP staff travelling to this event."
+msgstr "Wafanyakazi wa METP wanaosafiri kwenda tukio hili."
+
+#: scholr/i18n_catalogue.py:122
+msgid "Max locations"
+msgstr "Idadi ya juu ya vituo"
+
+#: scholr/i18n_catalogue.py:123
+msgid "Medium (51-200 members)"
+msgstr "Wastani (wanachama 51-200)"
+
+#: scholr/i18n_catalogue.py:124
+msgid "Mega Church (500+ members)"
+msgstr "Kanisa kubwa sana (wanachama 500+)"
+
+#: scholr/i18n_catalogue.py:125
+msgid "Ministry organisation"
+msgstr "Shirika la huduma"
+
+#: scholr/i18n_catalogue.py:126
+msgid "Move to"
+msgstr "Hamishia"
+
+#: scholr/i18n_catalogue.py:127
+#: templates/partners/portal/cohort_detail.html:53
+#: templates/partners/portal/participant_import.html:22
+#: templates/partners/portal/participant_list.html:26
+#: templates/partners/portal/team.html:17
+msgid "Name"
+msgstr "Jina"
+
+#: scholr/i18n_catalogue.py:128
+msgid "Name of church or ministry"
+msgstr "Jina la kanisa au huduma"
+
+#: scholr/i18n_catalogue.py:129 templates/partners/portal/place.html:54
+msgid "Nearest airport"
+msgstr "Uwanja wa ndege ulio karibu"
+
+#: scholr/i18n_catalogue.py:130
+msgid "New participant"
+msgstr "Mshiriki mpya"
+
+#: scholr/i18n_catalogue.py:131
+msgid "New role"
+msgstr "Jukumu jipya"
+
+#: scholr/i18n_catalogue.py:132
+msgid "Next action"
+msgstr "Hatua inayofuata"
+
+#: scholr/i18n_catalogue.py:133
+msgid "Next action due"
+msgstr "Tarehe ya hatua inayofuata"
+
+#: scholr/i18n_catalogue.py:134
+msgid "No Formal Education"
+msgstr "Hakuna elimu rasmi"
+
+#: scholr/i18n_catalogue.py:135
+msgid "Not invoiced"
+msgstr "Haijatozwa ankara"
+
+#: scholr/i18n_catalogue.py:136
+msgid "Note"
+msgstr "Dokezo"
+
+#: scholr/i18n_catalogue.py:137
+msgid "Notes"
+msgstr "Madokezo"
+
+#: scholr/i18n_catalogue.py:138
+msgid "Only if it is not at the training location itself."
+msgstr "Ikiwa tu si kwenye kituo cha mafunzo chenyewe."
+
+#: scholr/i18n_catalogue.py:139
+msgid "Optional profile photo"
+msgstr "Picha ya wasifu (si lazima)"
+
+#: scholr/i18n_catalogue.py:140
+msgid "Or paste coordinates or a map link"
+msgstr "Au bandika viwianishi au kiungo cha ramani"
+
+#: scholr/i18n_catalogue.py:141
+msgid "Other"
+msgstr "Nyingine"
+
+#: scholr/i18n_catalogue.py:142
+msgid "Owner"
+msgstr "Mhusika"
+
+#: scholr/i18n_catalogue.py:143
+msgid "Pace"
+msgstr "Kasi"
+
+#: scholr/i18n_catalogue.py:144
+msgid "Paid"
+msgstr "Imelipwa"
+
+#: scholr/i18n_catalogue.py:145
+msgid "Parent / Guardian"
+msgstr "Mzazi / mlezi"
+
+#: scholr/i18n_catalogue.py:146
+msgid "Partner Staff"
+msgstr "Wafanyakazi wa mshirika"
+
+#: scholr/i18n_catalogue.py:147
+msgid "Partnership strategy"
+msgstr "Mkakati wa ushirika"
+
+#: scholr/i18n_catalogue.py:148 templates/partners/_results_grid.html:61
+#: templates/partners/portal/cohort_detail.html:55
+msgid "Passed"
+msgstr "Amefaulu"
+
+#: scholr/i18n_catalogue.py:149
+msgid "Pasted coordinates or link"
+msgstr "Viwianishi au kiungo kilichobandikwa"
+
+#: scholr/i18n_catalogue.py:150
+msgid "Paused"
+msgstr "Imesitishwa"
+
+#: scholr/i18n_catalogue.py:151
+#: templates/partners/portal/participant_detail.html:19
+#: templates/partners/portal/participant_import.html:22
+#: templates/partners/portal/participant_list.html:28
+msgid "Phone"
+msgstr "Simu"
+
+#: scholr/i18n_catalogue.py:152 templates/accounts/_profile_details.html:6
+#: templates/accounts/dashboards/student.html:91
+msgid "Phone number"
+msgstr "Namba ya simu"
+
+#: scholr/i18n_catalogue.py:153
+msgid "Phone or laptop position"
+msgstr "Mahali pa simu au kompyuta"
+
+#: scholr/i18n_catalogue.py:154
+msgid "Placed on the map"
+msgstr "Imewekwa kwenye ramani"
+
+#: scholr/i18n_catalogue.py:155
+msgid ""
+"Plain coordinates, or a full Google Maps, Apple Maps or OpenStreetMap "
+"address."
+msgstr ""
+"Viwianishi vya kawaida, au anwani kamili ya Google Maps, Apple Maps au "
+"OpenStreetMap."
+
+#: scholr/i18n_catalogue.py:156
+msgid "Planned"
+msgstr "Imepangwa"
+
+#: scholr/i18n_catalogue.py:157
+msgid "Planned end date"
+msgstr "Tarehe ya mwisho iliyopangwa"
+
+#: scholr/i18n_catalogue.py:158
+msgid "Position source"
+msgstr "Chanzo cha mahali"
+
+#: scholr/i18n_catalogue.py:159
+msgid "Position title"
+msgstr "Cheo"
+
+#: scholr/i18n_catalogue.py:160
+msgid "Postgraduate Degree"
+msgstr "Shahada ya uzamili"
+
+#: scholr/i18n_catalogue.py:161
+msgid "Preparing"
+msgstr "Inaandaliwa"
+
+#: scholr/i18n_catalogue.py:162
+msgid "Present"
+msgstr "Yupo"
+
+#: scholr/i18n_catalogue.py:163
+msgid "Primary Education"
+msgstr "Elimu ya msingi"
+
+#: scholr/i18n_catalogue.py:164
+msgid "Principal"
+msgstr "Mkuu wa shule"
+
+#: scholr/i18n_catalogue.py:165
+msgid "Profile photo"
+msgstr "Picha ya wasifu"
+
+#: scholr/i18n_catalogue.py:166
+msgid "Programme Staff"
+msgstr "Wafanyakazi wa programu"
+
+#: scholr/i18n_catalogue.py:167
+msgid "Reason"
+msgstr "Sababu"
+
+#: scholr/i18n_catalogue.py:168
+msgid "Reason (optional)"
+msgstr "Sababu (si lazima)"
+
+#: scholr/i18n_catalogue.py:169
+msgid "Referral"
+msgstr "Rufaa"
+
+#: scholr/i18n_catalogue.py:170 templates/accounts/_profile_details.html:16
+msgid "Region"
+msgstr "Mkoa"
+
+#: scholr/i18n_catalogue.py:171
+msgid "Region/Province/State within country"
+msgstr "Mkoa/jimbo ndani ya nchi"
+
+#: scholr/i18n_catalogue.py:172
+msgid "Rejected"
+msgstr "Imekataliwa"
+
+#: scholr/i18n_catalogue.py:173
+msgid "Remove the map position"
+msgstr "Ondoa mahali kwenye ramani"
+
+#: scholr/i18n_catalogue.py:174
+msgid "Required when skipping a stage, stepping back, or marking as lost."
+msgstr "Inahitajika unaporuka hatua, kurudi nyuma au kuweka kama imepotea."
+
+#: scholr/i18n_catalogue.py:175 templates/partners/portal/dashboard.html:32
+msgid "Review"
+msgstr "Mapitio"
+
+#: scholr/i18n_catalogue.py:176 templates/accounts/_account_card.html:5
+#: templates/partners/portal/team.html:17
+msgid "Role"
+msgstr "Jukumu"
+
+#: scholr/i18n_catalogue.py:177
+msgid "Role title"
+msgstr "Jina la jukumu"
+
+#: scholr/i18n_catalogue.py:178
+msgid "Running"
+msgstr "Inaendelea"
+
+#: scholr/i18n_catalogue.py:179
+msgid "Secondary Education"
+msgstr "Elimu ya sekondari"
+
+#: scholr/i18n_catalogue.py:180
+msgid "Session date"
+msgstr "Tarehe ya kipindi"
+
+#: scholr/i18n_catalogue.py:181
+msgid "Signed on"
+msgstr "Ilisainiwa tarehe"
+
+#: scholr/i18n_catalogue.py:182
+msgid "Small (1-50 members)"
+msgstr "Ndogo (wanachama 1-50)"
+
+#: scholr/i18n_catalogue.py:183
+msgid "Source"
+msgstr "Chanzo"
+
+#: scholr/i18n_catalogue.py:184
+msgid "Staff visit"
+msgstr "Ziara ya wafanyakazi"
+
+#: scholr/i18n_catalogue.py:185
+msgid "Stage change"
+msgstr "Mabadiliko ya hatua"
+
+#: scholr/i18n_catalogue.py:186
+msgid "Start time"
+msgstr "Saa ya kuanza"
+
+#: scholr/i18n_catalogue.py:187
+msgid "Start time on the first day, local time."
+msgstr "Saa ya kuanza siku ya kwanza, saa za eneo husika."
+
+#: scholr/i18n_catalogue.py:188
+msgid "Starts on"
+msgstr "Inaanza tarehe"
+
+#: scholr/i18n_catalogue.py:189
+#: templates/partners/portal/cohort_detail.html:54
+#: templates/partners/portal/dashboard.html:48
+msgid "Status"
+msgstr "Hali"
+
+#: scholr/i18n_catalogue.py:190
+msgid "Student (Pastor)"
+msgstr "Mwanafunzi (mchungaji)"
+
+#: scholr/i18n_catalogue.py:191
+msgid "Superseded by a newer change"
+msgstr "Imebadilishwa na mabadiliko mapya zaidi"
+
+#: scholr/i18n_catalogue.py:192
+msgid "Suspended"
+msgstr "Imesimamishwa"
+
+#: scholr/i18n_catalogue.py:193
+msgid "System Administrator"
+msgstr "Msimamizi wa mfumo"
+
+#: scholr/i18n_catalogue.py:194
+msgid "Teacher"
+msgstr "Mwalimu"
+
+#: scholr/i18n_catalogue.py:195
+msgid "Tell us about your ministry"
+msgstr "Tueleze kuhusu huduma yako"
+
+#: scholr/i18n_catalogue.py:196
+msgid "Terminated"
+msgstr "Imesitishwa kabisa"
+
+#: scholr/i18n_catalogue.py:197
+msgid "The cohort graduating or being visited, if there is one."
+msgstr "Kundi linalohitimu au linalotembelewa, ikiwa lipo."
+
+#: scholr/i18n_catalogue.py:198
+msgid "The signed agreement, as a PDF of up to 10 MB."
+msgstr "Makubaliano yaliyosainiwa, kama PDF ya hadi MB 10."
+
+#: scholr/i18n_catalogue.py:199
+msgid "Theological Training"
+msgstr "Mafunzo ya theolojia"
+
+#: scholr/i18n_catalogue.py:200
+msgid "Title"
+msgstr "Kichwa"
+
+#: scholr/i18n_catalogue.py:201
+msgid "Total years serving in ministry"
+msgstr "Jumla ya miaka ya kuhudumu"
+
+#: scholr/i18n_catalogue.py:202
+msgid "Training (METP 100a or 100b)"
+msgstr "Mafunzo (METP 100a au 100b)"
+
+#: scholr/i18n_catalogue.py:203
+msgid "Training completed on"
+msgstr "Mafunzo yalikamilika tarehe"
+
+#: scholr/i18n_catalogue.py:204 templates/partners/portal/place.html:56
+msgid "Travel notes"
+msgstr "Maelezo ya safari"
+
+#: scholr/i18n_catalogue.py:205
+msgid "Type"
+msgstr "Aina"
+
+#: scholr/i18n_catalogue.py:206
+msgid "Undergraduate Degree"
+msgstr "Shahada ya kwanza"
+
+#: scholr/i18n_catalogue.py:207
+msgid "Used for age analytics, not displayed publicly"
+msgstr "Hutumika kwa takwimu za umri, haionyeshwi hadharani"
+
+#: scholr/i18n_catalogue.py:208
+msgid "Venue"
+msgstr "Mahali"
+
+#: scholr/i18n_catalogue.py:209
+msgid "Village or town name"
+msgstr "Jina la kijiji au mji"
+
+#: scholr/i18n_catalogue.py:210
+msgid "Village town"
+msgstr "Kijiji au mji"
+
+#: scholr/i18n_catalogue.py:211
+msgid "Waived"
+msgstr "Imesamehewa"
+
+#: scholr/i18n_catalogue.py:212
+msgid "Website"
+msgstr "Tovuti"
+
+#: scholr/i18n_catalogue.py:213
+msgid "Website enquiry"
+msgstr "Ulizo kupitia tovuti"
+
+#: scholr/i18n_catalogue.py:214
+msgid "WhatsApp number if different from phone number"
+msgstr "Namba ya WhatsApp ikiwa ni tofauti na namba ya simu"
+
+#: scholr/i18n_catalogue.py:215
+msgid "Whatsapp number"
+msgstr "Namba ya WhatsApp"
+
+#: scholr/i18n_catalogue.py:216
+msgid "Who to phone on arrival, if not the coordinator."
+msgstr "Nani wa kupigia simu ukifika, ikiwa si mratibu."
+
+#: scholr/i18n_catalogue.py:217
+msgid "Withdrawn"
+msgstr "Ameondolewa"
+
+#: scholr/i18n_catalogue.py:218 templates/accounts/_profile_details.html:28
+msgid "Years in ministry"
+msgstr "Miaka ya huduma"
+
+#: scholr/i18n_catalogue.py:219
+msgid "Your name"
+msgstr "Jina lako"
+
+#: scholr/i18n_catalogue.py:220
+msgid "Your role"
+msgstr "Jukumu lako"
+
+#: templates/accounts/_account_card.html:3
+#: templates/partners/portal/team.html:17
+msgid "Account"
+msgstr "Akaunti"
+
+#: templates/accounts/_account_card.html:7
+msgid "Verified by"
+msgstr "Imethibitishwa na"
+
+#: templates/accounts/_account_card.html:8
+msgid "Verified on"
+msgstr "Imethibitishwa tarehe"
+
+#: templates/accounts/_account_card.html:10
+msgid "Member since"
+msgstr "Mwanachama tangu"
+
+#: templates/accounts/_account_card.html:11
+msgid "Last signed in"
+msgstr "Aliingia mara ya mwisho"
+
+#: templates/accounts/_profile_details.html:3
+#: templates/accounts/profile_edit.html:15 templates/base/footer.html:130
+msgid "Contact"
+msgstr "Mawasiliano"
+
+#: templates/accounts/_profile_details.html:5
+msgid "Username"
+msgstr "Jina la mtumiaji"
+
+#: templates/accounts/_profile_details.html:8
+#: templates/partners/_phone_actions.html:2
+msgid "WhatsApp"
+msgstr "WhatsApp"
+
+#: templates/accounts/_profile_details.html:13
+#: templates/accounts/dashboards/student.html:90
+#: templates/accounts/profile_edit.html:23
+msgid "Location"
+msgstr "Mahali"
+
+#: templates/accounts/_profile_details.html:17
+msgid "Village or town"
+msgstr "Kijiji au mji"
+
+#: templates/accounts/_profile_details.html:22
+#: templates/accounts/profile_edit.html:32
+msgid "Ministry"
+msgstr "Huduma"
+
+#: templates/accounts/_profile_details.html:25
+msgid "Affiliation"
+msgstr "Uhusiano"
+
+#: templates/accounts/_profile_details.html:27
+msgid "Position"
+msgstr "Nafasi"
+
+#: templates/accounts/_profile_details.html:33
+#: templates/accounts/profile_complete.html:42
+#: templates/accounts/profile_edit.html:43
+msgid "Education and languages"
+msgstr "Elimu na lugha"
+
+#: templates/accounts/_profile_details.html:36
+msgid "Languages"
+msgstr "Lugha"
+
+#: templates/accounts/_profile_details.html:37
+msgid "About"
+msgstr "Kuhusu"
+
+#: templates/accounts/_status.html:2
+msgid "Verified"
+msgstr "Imethibitishwa"
+
+#: templates/accounts/_status.html:2
+msgid "Awaiting verification"
+msgstr "Inasubiri uthibitisho"
+
+#: templates/accounts/dashboards/student.html:9
+msgid "Open my courses"
+msgstr "Fungua kozi zangu"
+
+#: templates/accounts/dashboards/student.html:10
+msgid "My enrolments"
+msgstr "Usajili wangu"
+
+#: templates/accounts/dashboards/student.html:16
+msgid "Your account is waiting for verification"
+msgstr "Akaunti yako inasubiri uthibitisho"
+
+#: templates/accounts/dashboards/student.html:17
+msgid ""
+"Your dean or training centre will confirm your details. Your courses open as"
+" soon as you are verified."
+msgstr ""
+"Mkuu wako au kituo chako cha mafunzo kitathibitisha taarifa zako. Kozi zako "
+"zitafunguka mara tu utakapothibitishwa."
+
+#: templates/accounts/dashboards/student.html:24
+msgid "Finish your profile"
+msgstr "Kamilisha wasifu wako"
+
+#: templates/accounts/dashboards/student.html:25
+msgid "Your country, region, church and education level are still needed."
+msgstr "Nchi yako, mkoa, kanisa na kiwango cha elimu bado vinahitajika."
+
+#: templates/accounts/dashboards/student.html:27
+#: templates/accounts/profile_detail.html:20
+msgid "Complete profile"
+msgstr "Kamilisha wasifu"
+
+#: templates/accounts/dashboards/student.html:33
+msgid "Your programmes"
+msgstr "Programu zako"
+
+#: templates/accounts/dashboards/student.html:42
+#: templates/shop/my_courses.html:150
+#, python-format
+msgid "Enrolled %(created_at)s"
+msgstr "Alisajiliwa %(created_at)s"
+
+#: templates/accounts/dashboards/student.html:43
+#, python-format
+msgid "&middot; access until %(expires_at)s"
+msgstr "&middot; ufikiaji hadi %(expires_at)s"
+
+#: templates/accounts/dashboards/student.html:46
+msgid "Access ended"
+msgstr "Ufikiaji umeisha"
+
+#: templates/accounts/dashboards/student.html:77
+msgid "You are not enrolled in anything yet"
+msgstr "Bado hujasajiliwa kwenye chochote"
+
+#: templates/accounts/dashboards/student.html:78
+msgid ""
+"If you study at a training location, your coordinator gives you online "
+"access."
+msgstr ""
+"Ukisoma katika kituo cha mafunzo, mratibu wako atakupa ufikiaji wa "
+"mtandaoni."
+
+#: templates/accounts/dashboards/student.html:78
+msgid "Browse the catalogue to find a course."
+msgstr "Vinjari orodha ili kupata kozi."
+
+#: templates/accounts/dashboards/student.html:79 templates/base/footer.html:70
+#: templates/base/footer.html:96 templates/shop/my_courses.html:310
+msgid "Browse courses"
+msgstr "Vinjari kozi"
+
+#: templates/accounts/dashboards/student.html:87
+msgid "Your profile"
+msgstr "Wasifu wako"
+
+#: templates/accounts/dashboards/student.html:94
+msgid "View profile"
+msgstr "Angalia wasifu"
+
+#: templates/accounts/dashboards/student.html:95
+#: templates/partners/portal/cohort_detail.html:20
+#: templates/partners/portal/cohort_detail.html:134
+#: templates/partners/portal/participant_detail.html:11
+#: templates/partners/portal/place.html:80
+msgid "Edit"
+msgstr "Hariri"
 
 #: templates/accounts/login.html:11 templates/accounts/login.html:25
 msgid "Sign in"
@@ -103,9 +1317,59 @@ msgstr "Mwanafunzi mpya?"
 msgid "Start an application"
 msgstr "Anza maombi"
 
-#: templates/base/_language_switcher.html:8
-msgid "Language"
-msgstr "Lugha"
+#: templates/accounts/profile_complete.html:10
+msgid "Profile completion"
+msgstr "Ukamilifu wa wasifu"
+
+#: templates/accounts/profile_complete.html:24
+#: templates/accounts/profile_edit.html:52
+msgid "About you"
+msgstr "Kuhusu wewe"
+
+#: templates/accounts/profile_complete.html:31
+msgid "Where you serve"
+msgstr "Mahali unapohudumu"
+
+#: templates/accounts/profile_complete.html:48
+msgid "Skip for now"
+msgstr "Ruka kwa sasa"
+
+#: templates/accounts/profile_complete.html:49
+msgid "Save and continue"
+msgstr "Hifadhi na uendelee"
+
+#: templates/accounts/profile_detail.html:10
+#: templates/accounts/profile_edit.html:6
+msgid "Edit profile"
+msgstr "Hariri wasifu"
+
+#: templates/accounts/profile_detail.html:17
+msgid "Your profile is not complete"
+msgstr "Wasifu wako haujakamilika"
+
+#: templates/accounts/profile_detail.html:18
+msgid ""
+"Add your country, region, church and education level to unlock everything."
+msgstr ""
+"Ongeza nchi yako, mkoa, kanisa na kiwango cha elimu ili kufungua kila kitu."
+
+#: templates/accounts/profile_edit.html:5
+msgid "My profile"
+msgstr "Wasifu wangu"
+
+#: templates/accounts/profile_edit.html:58
+#: templates/partners/portal/cohort_form.html:26
+#: templates/partners/portal/member_form.html:25
+#: templates/partners/portal/participant_form.html:43
+#: templates/partners/portal/participant_import.html:67
+#: templates/partners/portal/place_form.html:59
+#: templates/partners/portal/session_form.html:25
+msgid "Cancel"
+msgstr "Ghairi"
+
+#: templates/accounts/profile_edit.html:59
+msgid "Save changes"
+msgstr "Hifadhi mabadiliko"
 
 #: templates/base/_language_switcher.html:15
 msgid "Change"
@@ -116,12 +1380,10 @@ msgid "Platform operational"
 msgstr "Jukwaa linafanya kazi"
 
 #: templates/base/footer.html:64
-#| msgid "Create an account"
 msgid "Your account"
 msgstr "Akaunti yako"
 
 #: templates/base/footer.html:64
-#| msgid "My Learning"
 msgid "Learning"
 msgstr "Kujifunza"
 
@@ -137,11 +1399,7 @@ msgstr "Kujifunza"
 msgid "Dashboard"
 msgstr "Dashibodi"
 
-#: templates/base/footer.html:70 templates/base/footer.html:96
-msgid "Browse courses"
-msgstr "Vinjari kozi"
-
-#: templates/base/footer.html:71
+#: templates/base/footer.html:71 templates/shop/my_courses.html:78
 msgid "My learning"
 msgstr "Masomo yangu"
 
@@ -169,6 +1427,7 @@ msgid "Online courses"
 msgstr "Kozi za mtandaoni"
 
 #: templates/base/footer.html:86 templates/base/navbar.html:588
+#: templates/partners/portal/results.html:13
 msgid "Courses"
 msgstr "Kozi"
 
@@ -198,10 +1457,6 @@ msgstr "Ingia"
 #: templates/base/footer.html:104
 msgid "Create an account"
 msgstr "Fungua akaunti"
-
-#: templates/base/footer.html:130
-msgid "Contact"
-msgstr "Mawasiliano"
 
 #: templates/base/footer.html:175
 msgid "All rights reserved."
@@ -340,7 +1595,7 @@ msgstr "Ripoti ya masomo"
 msgid "Enrollment Report"
 msgstr "Ripoti ya usajili"
 
-#: templates/base/navbar.html:624
+#: templates/base/navbar.html:624 templates/partners/portal/results.html:10
 msgid "Overview"
 msgstr "Muhtasari"
 
@@ -364,19 +1619,279 @@ msgstr "Wasifu"
 msgid "Register free"
 msgstr "Jisajili bure"
 
+#: templates/integration/_lms_portal.html:11
+msgid "LMS Portal"
+msgstr "Lango la LMS"
+
+#: templates/integration/_lms_portal.html:12
+msgid "Opening&hellip;"
+msgstr "Inafunguka&hellip;"
+
+#: templates/integration/_lms_portal.html:23
+msgid "Opening the LMS"
+msgstr "Kufungua LMS"
+
+#: templates/integration/_lms_portal.html:24
+#: templates/integration/_lms_portal.html:63
+#: templates/integration/_lms_portal.html:82
+msgid "Close"
+msgstr "Funga"
+
+#: templates/integration/_lms_portal.html:59
+msgid "The LMS could not be opened"
+msgstr "LMS haikuweza kufunguka"
+
+#: templates/integration/_lms_portal.html:64
+msgid "Try again"
+msgstr "Jaribu tena"
+
+#: templates/integration/_lms_portal.html:69
+msgid ""
+"The LMS has opened in a new tab. If you closed it, you can open it again."
+msgstr ""
+"LMS imefunguka kwenye kichupo kipya. Ukikifunga, unaweza kukifungua tena."
+
+#: templates/integration/_lms_portal.html:71
+msgid "Done"
+msgstr "Imekamilika"
+
+#: templates/integration/_lms_portal.html:72
+msgid "Open again"
+msgstr "Fungua tena"
+
+#: templates/integration/_lms_portal.html:78
+msgid "Your browser blocked the new tab"
+msgstr "Kivinjari chako kimezuia kichupo kipya"
+
+#: templates/integration/_lms_portal.html:79
+msgid "Everything is ready. Use the button below to open the LMS."
+msgstr "Kila kitu kiko tayari. Tumia kitufe hapa chini kufungua LMS."
+
+#: templates/integration/_lms_portal.html:83
+msgid "Open the LMS"
+msgstr "Fungua LMS"
+
+#: templates/partners/_activation.html:5
+msgid ""
+"Send this link to the person by WhatsApp or SMS. It works once, and this is "
+"the only time it is shown."
+msgstr ""
+"Tuma kiungo hiki kwa mtu huyo kwa WhatsApp au SMS. Kinafanya kazi mara moja "
+"tu, na kinaonyeshwa sasa pekee."
+
+#: templates/partners/_activation.html:7
+msgid "Set-password link"
+msgstr "Kiungo cha kuweka nenosiri"
+
+#: templates/partners/_activation.html:11
+msgid "Copy link"
+msgstr "Nakili kiungo"
+
+#: templates/partners/_activation.html:11
+msgid "Copied"
+msgstr "Imenakiliwa"
+
+#: templates/partners/_field.html:22 templates/ui/_field.html:22
+msgid "Nobody to choose yet."
+msgstr "Hakuna wa kuchagua bado."
+
+#: templates/partners/_pagination.html:3 templates/ui/_pagination.html:3
+msgid "Pagination"
+msgstr "Kurasa"
+
+#: templates/partners/_pagination.html:4 templates/ui/_pagination.html:4
+#, python-format
+msgid "Page %(number)s of %(num_pages)s"
+msgstr "Ukurasa %(number)s kati ya %(num_pages)s"
+
+#: templates/partners/_pagination.html:7 templates/shop/my_courses.html:284
+#: templates/ui/_pagination.html:7
+msgid "Previous"
+msgstr "Iliyotangulia"
+
+#: templates/partners/_pagination.html:10 templates/shop/my_courses.html:288
+#: templates/ui/_pagination.html:10
+msgid "Next"
+msgstr "Inayofuata"
+
+#: templates/partners/_results_grid.html:8
+#: templates/partners/portal/results.html:34
+msgid "Participant"
+msgstr "Mshiriki"
+
+#: templates/partners/_results_grid.html:28
+#: templates/partners/portal/results.html:44
+msgid "No online results"
+msgstr "Hakuna matokeo ya mtandaoni"
+
+#: templates/partners/_results_grid.html:30
+#: templates/partners/portal/results.html:59
+msgid "No quizzes"
+msgstr "Hakuna majaribio"
+
+#: templates/partners/_results_grid.html:34
+#, python-format
+msgid "%(quizzes_attempted)s of %(quizzes_total)s"
+msgstr "%(quizzes_attempted)s kati ya %(quizzes_total)s"
+
+#: templates/partners/_results_grid.html:35
+#: templates/partners/portal/results.html:55
+#, python-format
+msgid "averaging %(attempted_percentage)s%%"
+msgstr "wastani wa %(attempted_percentage)s%%"
+
+#: templates/partners/_results_grid.html:37
+#: templates/partners/portal/results.html:57
+msgid "Not started"
+msgstr "Haijaanza"
+
+#: templates/partners/_results_grid.html:43
+msgid "No result yet"
+msgstr "Bado hakuna matokeo"
+
+#: templates/partners/_results_grid.html:47
+#: templates/partners/portal/participant_detail.html:44
+#: templates/partners/portal/results.html:69
+msgid "Signed off"
+msgstr "Imethibitishwa"
+
+#: templates/partners/_results_grid.html:55
+msgid "No participants match."
+msgstr "Hakuna mshiriki anayelingana."
+
+#: templates/partners/_results_grid.html:61
+msgid "online"
+msgstr "mtandaoni"
+
+#: templates/partners/_results_grid.html:72
+#, python-format
+msgid ""
+"Online scores count unattempted quizzes as zero. A course is passed online "
+"once every quiz is attempted and the overall score is %(pass_mark)s%% or "
+"more. Partly finished courses show how many quizzes are done and the average"
+" so far."
+msgstr ""
+"Alama za mtandaoni huhesabu majaribio ambayo hayajafanywa kama sifuri. Kozi "
+"hupitishwa mtandaoni pale kila jaribio limefanywa na alama ya jumla ni "
+"%(pass_mark)s%% au zaidi. Kozi zilizokamilika nusu zinaonyesha majaribio "
+"mangapi yamefanywa na wastani hadi sasa."
+
+#: templates/partners/_results_grid.html:74
+msgid ""
+"Programme results are the scores recorded by the location and include the "
+"classroom attendance requirement."
+msgstr ""
+"Matokeo ya programu ni alama zilizorekodiwa na kituo na yanajumuisha sharti "
+"la mahudhurio darasani."
+
+#: templates/partners/_results_toolbar.html:3
+msgid "Which results"
+msgstr "Matokeo yapi"
+
+#: templates/partners/_results_toolbar.html:4
+#: templates/partners/_results_toolbar.html:14
+msgid "Programme results"
+msgstr "Matokeo ya programu"
+
+#: templates/partners/_results_toolbar.html:5
+#: templates/partners/_results_toolbar.html:14
+msgid "Online quiz results"
+msgstr "Matokeo ya majaribio ya mtandaoni"
+
+#: templates/partners/_results_toolbar.html:10
+msgid "Export to spreadsheet"
+msgstr "Hamisha kwenda lahajedwali"
+
+#: templates/partners/_results_toolbar.html:13
+msgid "Everything shown, one sheet"
+msgstr "Kila kinachoonyeshwa, karatasi moja"
+
+#: templates/partners/_results_toolbar.html:13
+msgid "This cohort"
+msgstr "Kundi hili"
+
+#: templates/partners/_results_toolbar.html:14
+msgid ", with a summary"
+msgstr ", pamoja na muhtasari"
+
+#: templates/partners/_results_toolbar.html:18
+msgid "A sheet per partner"
+msgstr "Karatasi moja kwa kila mshirika"
+
+#: templates/partners/_results_toolbar.html:19
+msgid "Each partner's participants on their own sheet"
+msgstr "Washiriki wa kila mshirika kwenye karatasi yao"
+
+#: templates/partners/_results_toolbar.html:22
+msgid "A sheet per cohort"
+msgstr "Karatasi moja kwa kila kundi"
+
+#: templates/partners/_results_toolbar.html:23
+msgid "Each cohort on its own sheet"
+msgstr "Kila kundi kwenye karatasi yake"
+
+#: templates/partners/_results_toolbar.html:33
+#, python-format
+msgid "Updated %(online_synced_at)s ago"
+msgstr "Imesasishwa %(online_synced_at)s zilizopita"
+
+#: templates/partners/_results_toolbar.html:33
+msgid "Not fetched from the LMS yet"
+msgstr "Bado haijaletwa kutoka LMS"
+
+#: templates/partners/_results_toolbar.html:34
+msgid "Refresh from LMS"
+msgstr "Sasisha kutoka LMS"
+
+#: templates/partners/offline/app.html:9
+#, python-format
+msgid "Offline registers &mdash; %(name)s"
+msgstr "Mahudhurio nje ya mtandao &mdash; %(name)s"
+
+#: templates/partners/offline/app.html:19
+msgid "offline"
+msgstr "nje ya mtandao"
+
+#: templates/partners/offline/app.html:21
+msgid "Portal"
+msgstr "Lango"
+
+#: templates/partners/offline/app.html:27
+msgid "Loading..."
+msgstr "Inapakia..."
+
+#: templates/partners/offline/app.html:30
+msgid "The offline register needs JavaScript."
+msgstr "Daftari la nje ya mtandao linahitaji JavaScript."
+
+#: templates/partners/portal/_nav.html:5
+#, python-format
+msgid ""
+"You are viewing %(name)s as programme staff. Cohorts and participants are "
+"read-only for you; you can update its position, directions and events."
+msgstr ""
+"Unaangalia %(name)s kama mfanyakazi wa programu. Makundi na washiriki ni ya "
+"kuangalia tu kwako; unaweza kusasisha mahali, maelekezo na matukio."
+
 #: templates/partners/portal/_nav.html:6
 msgid "Back to the network"
 msgstr "Rudi kwenye mtandao"
 
 #: templates/partners/portal/_nav.html:10
+#: templates/partners/portal/dashboard.html:38
+#: templates/partners/portal/dashboard.html:45
+#: templates/partners/portal/participant_list.html:29
 msgid "Cohorts"
 msgstr "Makundi"
 
 #: templates/partners/portal/_nav.html:11
+#: templates/partners/portal/cohort_detail.html:46
+#: templates/partners/portal/dashboard.html:37
 msgid "Participants"
 msgstr "Washiriki"
 
 #: templates/partners/portal/_nav.html:12
+#: templates/partners/portal/dashboard.html:39
 msgid "Team"
 msgstr "Timu"
 
@@ -392,10 +1907,930 @@ msgstr "Migongano nje ya mtandao"
 msgid "Offline app"
 msgstr "Programu ya nje ya mtandao"
 
+#: templates/partners/portal/cohort_detail.html:14
+#, python-format
+msgid "From %(starts_on)s"
+msgstr "Kuanzia %(starts_on)s"
+
+#: templates/partners/portal/cohort_detail.html:18
 #: templates/partners/staff/_nav.html:8
 msgid "Results"
 msgstr "Matokeo"
 
+#: templates/partners/portal/cohort_detail.html:19
+msgid "Prepare for offline"
+msgstr "Andaa kwa matumizi bila mtandao"
+
+#: templates/partners/portal/cohort_detail.html:24
+msgid "Start cohort"
+msgstr "Anzisha kundi"
+
+#: templates/partners/portal/cohort_detail.html:29
+msgid "Complete cohort"
+msgstr "Kamilisha kundi"
+
+#: templates/partners/portal/cohort_detail.html:39
+msgid "To take registers without signal, sign out and sign in again with"
+msgstr ""
+"Ili kuchukua mahudhurio bila mtandao, toka kisha ingia tena ukiwa umeweka "
+"alama kwenye"
+
+#: templates/partners/portal/cohort_detail.html:39
+msgid "ticked, then press Prepare for offline."
+msgstr "kisha bonyeza Andaa kwa matumizi bila mtandao."
+
+#: templates/partners/portal/cohort_detail.html:47
+msgid "Register someone new"
+msgstr "Sajili mtu mpya"
+
+#: templates/partners/portal/cohort_detail.html:56
+msgid "Online"
+msgstr "Mtandaoni"
+
+#: templates/partners/portal/cohort_detail.html:57
+#: templates/partners/portal/team.html:17
+msgid "Actions"
+msgstr "Vitendo"
+
+#: templates/partners/portal/cohort_detail.html:73
+msgid "Give online access"
+msgstr "Toa ufikiaji wa mtandaoni"
+
+#: templates/partners/portal/cohort_detail.html:77
+msgid "Withdraw access"
+msgstr "Ondoa ufikiaji"
+
+#: templates/partners/portal/cohort_detail.html:83
+msgid "Withdraw"
+msgstr "Ondoa"
+
+#: templates/partners/portal/cohort_detail.html:91
+msgid "No participants yet."
+msgstr "Bado hakuna washiriki."
+
+#: templates/partners/portal/cohort_detail.html:100
+#, python-format
+msgid "Add existing participants (%(available_participants)s)"
+msgstr "Ongeza washiriki waliopo (%(available_participants)s)"
+
+#: templates/partners/portal/cohort_detail.html:110
+msgid "Add to cohort"
+msgstr "Ongeza kwenye kundi"
+
+#: templates/partners/portal/cohort_detail.html:118
+msgid "Sessions"
+msgstr "Vipindi"
+
+#: templates/partners/portal/cohort_detail.html:119
+msgid "Add session"
+msgstr "Ongeza kipindi"
+
+#: templates/partners/portal/cohort_detail.html:127
+#: templates/partners/portal/dashboard.html:75
+#, python-format
+msgid "&middot; %(get_full_name)s"
+msgstr "&middot; %(get_full_name)s"
+
+#: templates/partners/portal/cohort_detail.html:127
+#, python-format
+msgid "&middot; %(marks)s marked"
+msgstr "&middot; %(marks)s wamewekwa alama"
+
+#: templates/partners/portal/cohort_detail.html:132
+msgid "Take register"
+msgstr "Chukua mahudhurio"
+
+#: templates/partners/portal/cohort_detail.html:132
+msgid "View register"
+msgstr "Angalia mahudhurio"
+
+#: templates/partners/portal/cohort_detail.html:133
+msgid "Print register"
+msgstr "Chapisha daftari"
+
+#: templates/partners/portal/cohort_detail.html:138
+msgid "No sessions yet."
+msgstr "Bado hakuna vipindi."
+
+#: templates/partners/portal/cohort_detail.html:142
+msgid "Facilitators:"
+msgstr "Wawezeshaji:"
+
+#: templates/partners/portal/cohort_detail.html:150
+msgid "Cancel this cohort"
+msgstr "Ghairi kundi hili"
+
+#: templates/partners/portal/cohort_form.html:9
+msgid ""
+"A cohort is one class moving through the twelve courses together. Choose "
+"blended delivery if participants will also study online in Moodle."
+msgstr ""
+"Kundi ni darasa moja linalopitia kozi kumi na mbili pamoja. Chagua mfumo "
+"mseto ikiwa washiriki pia watasoma mtandaoni kwenye Moodle."
+
+#: templates/partners/portal/cohort_form.html:25
+#: templates/partners/portal/event_form.html:40
+#: templates/partners/portal/participant_form.html:42
+#: templates/partners/portal/place_form.html:60
+#: templates/partners/portal/session_form.html:24
+msgid "Save"
+msgstr "Hifadhi"
+
+#: templates/partners/portal/conflicts.html:9
+msgid ""
+"A result entered on a device without signal was based on a copy someone has "
+"since changed. Choose which score to keep."
+msgstr ""
+"Tokeo lililowekwa kwenye kifaa kisicho na mtandao lilitokana na nakala "
+"ambayo mtu ameibadilisha tangu hapo. Chagua alama ya kubaki nayo."
+
+#: templates/partners/portal/conflicts.html:18
+#, python-format
+msgid "Sent by %(get_full_name)s on %(received_at)s"
+msgstr "Imetumwa na %(get_full_name)s tarehe %(received_at)s"
+
+#: templates/partners/portal/conflicts.html:18
+#, python-format
+msgid ", entered %(recorded_at)s"
+msgstr ", iliwekwa %(recorded_at)s"
+
+#: templates/partners/portal/conflicts.html:21
+msgid "Now saved"
+msgstr "Iliyohifadhiwa sasa"
+
+#: templates/partners/portal/conflicts.html:22
+msgid "From the device"
+msgstr "Kutoka kwenye kifaa"
+
+#: templates/partners/portal/conflicts.html:28
+msgid "Keep the saved score"
+msgstr "Baki na alama iliyohifadhiwa"
+
+#: templates/partners/portal/conflicts.html:32
+msgid "Use the device's score"
+msgstr "Tumia alama ya kifaa"
+
+#: templates/partners/portal/conflicts.html:37
+msgid "Nothing to resolve. Every offline change has been applied."
+msgstr "Hakuna cha kutatua. Mabadiliko yote ya nje ya mtandao yametekelezwa."
+
+#: templates/partners/portal/dashboard.html:10
+#, python-format
+msgid "%(country_name)s &middot; Teaching in %(language)s"
+msgstr "%(country_name)s &middot; Kufundisha kwa %(language)s"
+
+#: templates/partners/portal/dashboard.html:14
+msgid "New cohort"
+msgstr "Kundi jipya"
+
+#: templates/partners/portal/dashboard.html:15
+msgid "Edit location"
+msgstr "Hariri kituo"
+
+#: templates/partners/portal/dashboard.html:21
+#, python-format
+msgid "Licence %(number)s is %(get_status_display)s"
+msgstr "Leseni %(number)s iko %(get_status_display)s"
+
+#: templates/partners/portal/dashboard.html:21
+msgid "but outside its dates"
+msgstr "lakini nje ya tarehe zake"
+
+#: templates/partners/portal/dashboard.html:21
+msgid ""
+". New cohorts, new participants and online access are paused until it is "
+"active. Contact the METP team."
+msgstr ""
+". Makundi mapya, washiriki wapya na ufikiaji wa mtandaoni vimesitishwa hadi "
+"itakapokuwa hai. Wasiliana na timu ya METP."
+
+#: templates/partners/portal/dashboard.html:25
+#, python-format
+msgid ""
+"Licence %(number)s ends on %(ends_on)s, in %(licence_days)s "
+"day%(licence_days2)s. Talk to the METP team about renewal."
+msgstr ""
+"Leseni %(number)s inaisha %(ends_on)s, baada ya siku "
+"%(licence_days)s%(licence_days2)s. Zungumza na timu ya METP kuhusu "
+"kuihuisha."
+
+#: templates/partners/portal/dashboard.html:31
+#, python-format
+msgid ""
+"offline change%(open_conflicts)s need%(open_conflicts2)s your decision."
+msgstr ""
+"mabadiliko%(open_conflicts)s ya nje ya mtandao yanasubiri%(open_conflicts2)s"
+" uamuzi wako."
+
+#: templates/partners/portal/dashboard.html:52
+#, python-format
+msgid "Started %(starts_on)s &middot; %(get_pace_months_display)s"
+msgstr "Ilianza %(starts_on)s &middot; %(get_pace_months_display)s"
+
+#: templates/partners/portal/dashboard.html:59
+msgid "No cohorts yet. Create the first one to start with METP 101."
+msgstr "Bado hakuna makundi. Unda la kwanza ili kuanza na METP 101."
+
+#: templates/partners/portal/dashboard.html:59
+msgid "You are not assigned to a cohort here yet."
+msgstr "Bado hujapangiwa kundi lolote hapa."
+
+#: templates/partners/portal/dashboard.html:67
+msgid "Coming up"
+msgstr "Vinavyokuja"
+
+#: templates/partners/portal/dashboard.html:78
+msgid "No sessions scheduled."
+msgstr "Hakuna vipindi vilivyopangwa."
+
+#: templates/partners/portal/event_form.html:8
+#, python-format
+msgid "Edit %(title)s"
+msgstr "Hariri %(title)s"
+
+#: templates/partners/portal/event_form.html:8
+msgid "Add an event"
+msgstr "Ongeza tukio"
+
+#: templates/partners/portal/event_form.html:9
+msgid ""
+"Graduations and visits show on the network map, so METP staff can plan their"
+" travel."
+msgstr ""
+"Mahafali na ziara huonekana kwenye ramani ya mtandao, ili wafanyakazi wa "
+"METP wapange safari zao."
+
+#: templates/partners/portal/event_form.html:15
+msgid "Cancel event"
+msgstr "Ghairi tukio"
+
+#: templates/partners/portal/event_form.html:39
+msgid "Back"
+msgstr "Rudi"
+
+#: templates/partners/portal/home.html:23
+msgid ""
+"Your account is not linked to a training location. Ask your coordinator to "
+"add you, or contact the METP team at"
+msgstr ""
+"Akaunti yako haijaunganishwa na kituo chochote cha mafunzo. Muombe mratibu "
+"wako akuongeze, au wasiliana na timu ya METP kupitia"
+
+#: templates/partners/portal/member_form.html:9
+msgid ""
+"They get an account with no password. You will see a one-time link to send "
+"them so they can choose their own."
+msgstr ""
+"Wanapata akaunti isiyo na nenosiri. Utaona kiungo cha mara moja cha "
+"kuwatumia ili wachague nenosiri lao."
+
+#: templates/partners/portal/member_form.html:24
+msgid "Add to team"
+msgstr "Ongeza kwenye timu"
+
+#: templates/partners/portal/participant_detail.html:19
+#: templates/partners/portal/participant_detail.html:20
+msgid "Not given"
+msgstr "Haijatolewa"
+
+#: templates/partners/portal/participant_detail.html:23
+msgid "Online account"
+msgstr "Akaunti ya mtandaoni"
+
+#: templates/partners/portal/participant_detail.html:23
+msgid "None"
+msgstr "Hakuna"
+
+#: templates/partners/portal/participant_detail.html:24
+msgid "Registered"
+msgstr "Amesajiliwa"
+
+#: templates/partners/portal/participant_detail.html:24
+msgid "(offline)"
+msgstr "(nje ya mtandao)"
+
+#: templates/partners/portal/participant_detail.html:35
+#, python-format
+msgid "Joined %(joined_on)s"
+msgstr "Alijiunga %(joined_on)s"
+
+#: templates/partners/portal/participant_detail.html:35
+#, python-format
+msgid "&middot; %(attendance_rate)s%% attendance"
+msgstr "&middot; mahudhurio %(attendance_rate)s%%"
+
+#: templates/partners/portal/participant_detail.html:44
+msgid "Exam"
+msgstr "Mtihani"
+
+#: templates/partners/portal/participant_detail.html:44
+#: templates/partners/portal/results.html:34
+msgid "Result"
+msgstr "Tokeo"
+
+#: templates/partners/portal/participant_detail.html:51
+msgid "Not yet"
+msgstr "Bado"
+
+#: templates/partners/portal/participant_detail.html:54
+msgid "No results recorded yet."
+msgstr "Bado hakuna matokeo yaliyorekodiwa."
+
+#: templates/partners/portal/participant_detail.html:62
+msgid "Not enrolled in a cohort you can see."
+msgstr "Hajasajiliwa kwenye kundi unaloweza kuona."
+
+#: templates/partners/portal/participant_form.html:9
+#, python-format
+msgid "They will be enrolled in %(name)s once saved."
+msgstr "Watasajiliwa kwenye %(name)s baada ya kuhifadhi."
+
+#: templates/partners/portal/participant_form.html:19
+msgid "This might be someone already registered here"
+msgstr "Huenda huyu ni mtu ambaye tayari amesajiliwa hapa"
+
+#: templates/partners/portal/participant_form.html:27
+msgid "This is a different person, add them anyway"
+msgstr "Huyu ni mtu tofauti, mwongeze hata hivyo"
+
+#: templates/partners/portal/participant_import.html:9
+msgid ""
+"Upload a CSV saved from Excel or Google Sheets. You will see every row "
+"before anything is saved."
+msgstr ""
+"Pakia faili la CSV lililohifadhiwa kutoka Excel au Google Sheets. Utaona "
+"kila safu kabla chochote hakijahifadhiwa."
+
+#: templates/partners/portal/participant_import.html:18
+#, python-format
+msgid "of %(preview)s row%(preview2)s can be imported."
+msgstr "kati ya safu %(preview)s%(preview2)s zinaweza kuingizwa."
+
+#: templates/partners/portal/participant_import.html:22
+msgid "Line"
+msgstr "Safu"
+
+#: templates/partners/portal/participant_import.html:22
+msgid "Check"
+msgstr "Ukaguzi"
+
+#: templates/partners/portal/participant_import.html:32
+msgid "Possible duplicate"
+msgstr "Huenda ni nakala"
+
+#: templates/partners/portal/participant_import.html:33
+msgid "Ready"
+msgstr "Tayari"
+
+#: templates/partners/portal/participant_import.html:43
+msgid "Also enrol them in"
+msgstr "Wasajili pia kwenye"
+
+#: templates/partners/portal/participant_import.html:45
+msgid "No cohort for now"
+msgstr "Hakuna kundi kwa sasa"
+
+#: templates/partners/portal/participant_import.html:51
+msgid "Skip possible duplicates"
+msgstr "Ruka zinazoweza kuwa nakala"
+
+#: templates/partners/portal/participant_import.html:54
+#, python-format
+msgid "Import %(valid_count)s participant%(valid_count2)s"
+msgstr "Ingiza washiriki %(valid_count)s%(valid_count2)s"
+
+#: templates/partners/portal/participant_import.html:55
+msgid "Start again"
+msgstr "Anza upya"
+
+#: templates/partners/portal/participant_import.html:64
+msgid "first_name,last_name,phone,email,church_name,position_title"
+msgstr "first_name,last_name,phone,email,church_name,position_title"
+
+#: templates/partners/portal/participant_import.html:64
+msgid "Grace,Mokoena,+27821234567,,Living Word Church,Youth pastor"
+msgstr "Grace,Mokoena,+27821234567,,Living Word Church,Youth pastor"
+
+#: templates/partners/portal/participant_import.html:66
+msgid "Preview"
+msgstr "Hakiki"
+
+#: templates/partners/portal/participant_list.html:10
+msgid "Add participant"
+msgstr "Ongeza mshiriki"
+
+#: templates/partners/portal/participant_list.html:11
+msgid "Import CSV"
+msgstr "Ingiza CSV"
+
+#: templates/partners/portal/participant_list.html:16
+msgid "Search participants"
+msgstr "Tafuta washiriki"
+
+#: templates/partners/portal/participant_list.html:17
+msgid "Search by name or church"
+msgstr "Tafuta kwa jina au kanisa"
+
+#: templates/partners/portal/participant_list.html:18
+msgid "Search"
+msgstr "Tafuta"
+
+#: templates/partners/portal/participant_list.html:41
+msgid "Not in a cohort"
+msgstr "Hayuko kwenye kundi"
+
+#: templates/partners/portal/participant_list.html:45
+msgid "No participants"
+msgstr "Hakuna washiriki"
+
+#: templates/partners/portal/participant_list.html:45
+#, python-format
+msgid "match \"%(query)s\""
+msgstr "yanayolingana na \"%(query)s\""
+
+#: templates/partners/portal/place.html:13
+msgid "Directions in Google Maps"
+msgstr "Maelekezo kwenye Google Maps"
+
+#: templates/partners/portal/place.html:14
+msgid "Edit position and directions"
+msgstr "Hariri mahali na maelekezo"
+
+#: templates/partners/portal/place.html:20
+msgid "This location is marked sensitive"
+msgstr "Kituo hiki kimewekwa alama kuwa nyeti"
+
+#: templates/partners/portal/place.html:21
+msgid ""
+"On the network map it shows only as an approximate area, without its name. "
+"Your visit to this page has been recorded."
+msgstr ""
+"Kwenye ramani ya mtandao huonekana kama eneo la takriban tu, bila jina lake."
+" Ziara yako kwenye ukurasa huu imerekodiwa."
+
+#: templates/partners/portal/place.html:31
+msgid "Apple Maps"
+msgstr "Apple Maps"
+
+#: templates/partners/portal/place.html:32
+msgid "OpenStreetMap"
+msgstr "OpenStreetMap"
+
+#: templates/partners/portal/place.html:33
+msgid "Copy coordinates"
+msgstr "Nakili viwianishi"
+
+#: templates/partners/portal/place.html:34
+msgid "Share on WhatsApp"
+msgstr "Shiriki kwenye WhatsApp"
+
+#: templates/partners/portal/place.html:38
+msgid "The position is estimated from the town name."
+msgstr "Mahali pamekadiriwa kutokana na jina la mji."
+
+#: templates/partners/portal/place.html:38
+msgid "Place the pin exactly"
+msgstr "Weka pini mahali halisi"
+
+#: templates/partners/portal/place.html:38
+msgid "so visitors arrive at the right door."
+msgstr "ili wageni wafike kwenye mlango sahihi."
+
+#: templates/partners/portal/place.html:42
+msgid "This location is not on the map yet"
+msgstr "Kituo hiki bado hakiko kwenye ramani"
+
+#: templates/partners/portal/place.html:43
+msgid "Set the position"
+msgstr "Weka mahali"
+
+#: templates/partners/portal/place.html:49
+#: templates/partners/portal/place_form.html:42
+msgid "Getting there"
+msgstr "Kufika huko"
+
+#: templates/partners/portal/place.html:57
+msgid "Pin checked"
+msgstr "Pini imethibitishwa"
+
+#: templates/partners/portal/place.html:63
+msgid "Events"
+msgstr "Matukio"
+
+#: templates/partners/portal/place.html:64
+msgid "Add event"
+msgstr "Ongeza tukio"
+
+#: templates/partners/portal/place.html:73
+#, python-format
+msgid "%(get_kind_display)s &middot; %(starts_on)s"
+msgstr "%(get_kind_display)s &middot; %(starts_on)s"
+
+#: templates/partners/portal/place.html:73
+#, python-format
+msgid "to %(ends_on)s"
+msgstr "hadi %(ends_on)s"
+
+#: templates/partners/portal/place.html:73
+#, python-format
+msgid "&middot; %(name)s"
+msgstr "&middot; %(name)s"
+
+#: templates/partners/portal/place.html:75
+#, python-format
+msgid "At %(venue)s"
+msgstr "Katika %(venue)s"
+
+#: templates/partners/portal/place.html:76
+msgid "METP staff going:"
+msgstr "Wafanyakazi wa METP watakaokwenda:"
+
+#: templates/partners/portal/place.html:86
+msgid "No graduations, visits or trainings planned."
+msgstr "Hakuna mahafali, ziara au mafunzo yaliyopangwa."
+
+#: templates/partners/portal/place.html:94
+msgid "Who to contact"
+msgstr "Nani wa kuwasiliana naye"
+
+#: templates/partners/portal/place.html:98
+msgid "&middot; on arrival"
+msgstr "&middot; ukifika"
+
+#: templates/partners/portal/place.html:104
+msgid "&middot; coordinator"
+msgstr "&middot; mratibu"
+
+#: templates/partners/portal/place.html:110
+msgid "&middot; facilitator"
+msgstr "&middot; mwezeshaji"
+
+#: templates/partners/portal/place.html:121
+msgid "Nobody added yet."
+msgstr "Bado hakuna aliyeongezwa."
+
+#: templates/partners/portal/place.html:121
+msgid ""
+"Add the team on the Team tab, or an arrival contact under Edit position and "
+"directions."
+msgstr ""
+"Ongeza timu kwenye kichupo cha Timu, au mtu wa kupokea chini ya Hariri "
+"mahali na maelekezo."
+
+#: templates/partners/portal/place.html:128
+msgid "Running cohorts"
+msgstr "Makundi yanayoendelea"
+
+#: templates/partners/portal/place.html:133
+#, python-format
+msgid "Next session %(code)s, %(session_date)s"
+msgstr "Kipindi kijacho %(code)s, %(session_date)s"
+
+#: templates/partners/portal/place.html:133
+msgid "No session planned"
+msgstr "Hakuna kipindi kilichopangwa"
+
+#: templates/partners/portal/place.html:142
+#, python-format
+msgid "Within %(nearby_km)s km"
+msgstr "Ndani ya km %(nearby_km)s"
+
+#: templates/partners/portal/place.html:147
+#, python-format
+msgid "%(km)s km"
+msgstr "km %(km)s"
+
+#: templates/partners/portal/place.html:156
+msgid "Recently viewed by"
+msgstr "Imeangaliwa hivi karibuni na"
+
+#: templates/partners/portal/place_form.html:9
+msgid "Position and directions"
+msgstr "Mahali na maelekezo"
+
+#: templates/partners/portal/place_form.html:10
+msgid ""
+"Put the pin on the building where classes meet, and describe the way in for "
+"someone who has never been there."
+msgstr ""
+"Weka pini kwenye jengo ambalo madarasa hufanyika, na eleza njia ya kuingia "
+"kwa mtu ambaye hajawahi kufika huko."
+
+#: templates/partners/portal/place_form.html:10
+msgid ""
+"This location is marked sensitive, so the network map only ever shows the "
+"area around it."
+msgstr ""
+"Kituo hiki kimewekwa alama kuwa nyeti, kwa hiyo ramani ya mtandao huonyesha "
+"eneo linalokizunguka tu."
+
+#: templates/partners/portal/place_form.html:18
+msgid "Map position"
+msgstr "Mahali kwenye ramani"
+
+#: templates/partners/portal/place_form.html:22
+msgid "Find a town or district"
+msgstr "Tafuta mji au wilaya"
+
+#: templates/partners/portal/place_form.html:23
+msgid "For example Mzuzu, Malawi"
+msgstr "Kwa mfano Mzuzu, Malawi"
+
+#: templates/partners/portal/place_form.html:25
+msgid "Find"
+msgstr "Tafuta"
+
+#: templates/partners/portal/place_form.html:26
+msgid "Use my position"
+msgstr "Tumia mahali nilipo"
+
+#: templates/partners/portal/place_form.html:29
+msgid "Click the map to place the pin, then drag it to the exact spot."
+msgstr "Bofya ramani kuweka pini, kisha iburute hadi mahali halisi."
+
+#: templates/partners/portal/place_form.html:31
+msgid "Map for placing the location pin"
+msgstr "Ramani ya kuweka pini ya kituo"
+
+#: templates/partners/portal/place_form.html:53
+msgid "Contact on arrival"
+msgstr "Mtu wa kupokea"
+
+#: templates/partners/portal/register.html:9
+#, python-format
+msgid "%(title)s &middot; %(session_date)s &middot; %(hours)s hours"
+msgstr "%(title)s &middot; %(session_date)s &middot; saa %(hours)s"
+
+#: templates/partners/portal/register.html:11
+msgid "Print paper register"
+msgstr "Chapisha daftari la karatasi"
+
+#: templates/partners/portal/register.html:19
+msgid ""
+"Tap a mark for each person. Typing up a paper register works the same way."
+msgstr ""
+"Gusa alama kwa kila mtu. Kunakili daftari la karatasi hufanya kazi vivyo "
+"hivyo."
+
+#: templates/partners/portal/register.html:20
+msgid "Mark everyone present"
+msgstr "Weka wote kuwa wapo"
+
+#: templates/partners/portal/register.html:27
+#, python-format
+msgid "Attendance for %(full_name)s"
+msgstr "Mahudhurio ya %(full_name)s"
+
+#: templates/partners/portal/register.html:37
+#: templates/partners/portal/register.html:55
+#: templates/partners/portal/results.html:73
+msgid "No participants in this cohort yet."
+msgstr "Bado hakuna washiriki kwenye kundi hili."
+
+#: templates/partners/portal/register.html:42
+msgid "Save register"
+msgstr "Hifadhi mahudhurio"
+
+#: templates/partners/portal/register.html:52
+msgid "Not marked"
+msgstr "Haijawekwa alama"
+
+#: templates/partners/portal/results.html:9
+#, python-format
+msgid ""
+"A course is passed with %(pass_mark)s%% or more in the exam and at least "
+"%(required_hours)s of %(classroom_hours)s classroom hours attended."
+msgstr ""
+"Kozi hupitishwa kwa %(pass_mark)s%% au zaidi kwenye mtihani na kuhudhuria "
+"angalau saa %(required_hours)s kati ya %(classroom_hours)s za darasani."
+
+#: templates/partners/portal/results.html:10
+#: templates/partners/portal/results_overview.html:11
+msgid "Back to cohort"
+msgstr "Rudi kwenye kundi"
+
+#: templates/partners/portal/results.html:29
+#, python-format
+msgid "Sign off %(unsigned_count)s result%(unsigned_count2)s"
+msgstr "Thibitisha matokeo %(unsigned_count)s%(unsigned_count2)s"
+
+#: templates/partners/portal/results.html:34
+msgid "Hours attended"
+msgstr "Saa zilizohudhuriwa"
+
+#: templates/partners/portal/results.html:34
+msgid "Online quizzes"
+msgstr "Majaribio ya mtandaoni"
+
+#: templates/partners/portal/results.html:34
+#, python-format
+msgid "Exam %%"
+msgstr "Mtihani %%"
+
+#: templates/partners/portal/results.html:47
+#, python-format
+msgid "all %(quizzes_total)s quizzes"
+msgstr "majaribio yote %(quizzes_total)s"
+
+#: templates/partners/portal/results.html:51
+msgid ""
+"Copy the online score into the exam score. It is saved when you press Save "
+"scores."
+msgstr ""
+"Nakili alama ya mtandaoni kwenye alama ya mtihani. Itahifadhiwa ukibonyeza "
+"Hifadhi alama."
+
+#: templates/partners/portal/results.html:51
+msgid "Use"
+msgstr "Tumia"
+
+#: templates/partners/portal/results.html:54
+#, python-format
+msgid "%(quizzes_attempted)s of %(quizzes_total)s quizzes"
+msgstr "Majaribio %(quizzes_attempted)s kati ya %(quizzes_total)s"
+
+#: templates/partners/portal/results.html:69
+msgid "No score yet"
+msgstr "Bado hakuna alama"
+
+#: templates/partners/portal/results.html:80
+msgid "Online scores update"
+msgstr "Alama za mtandaoni husasishwa"
+
+#: templates/partners/portal/results.html:80
+#, python-format
+msgid "nightly; last fetched %(online_synced_at)s ago"
+msgstr "kila usiku; ililetwa mara ya mwisho %(online_synced_at)s zilizopita"
+
+#: templates/partners/portal/results.html:80
+msgid "nightly"
+msgstr "kila usiku"
+
+#: templates/partners/portal/results.html:80
+msgid ". Using one only fills the box; nothing changes until you save."
+msgstr ""
+". Kutumia moja hujaza kisanduku tu; hakuna kinachobadilika hadi uhifadhi."
+
+#: templates/partners/portal/results.html:81
+msgid "Save scores"
+msgstr "Hifadhi alama"
+
+#: templates/partners/portal/results.html:86
+msgid ""
+"No programme courses are set up yet. Ask an administrator to run the "
+"seed_metp_programme command."
+msgstr ""
+"Bado hakuna kozi za programu zilizowekwa. Muombe msimamizi aendeshe amri ya "
+"seed_metp_programme."
+
+#: templates/partners/portal/results_overview.html:8
+#, python-format
+msgid "Every participant across all %(courses)s courses."
+msgstr "Kila mshiriki katika kozi zote %(courses)s."
+
+#: templates/partners/portal/results_overview.html:10
+msgid "Record results"
+msgstr "Rekodi matokeo"
+
+#: templates/partners/portal/session_form.html:32
+msgid ""
+"A session with a register cannot be deleted; set its status to Cancelled "
+"instead."
+msgstr ""
+"Kipindi chenye daftari la mahudhurio hakiwezi kufutwa; badala yake weka hali"
+" yake kuwa Imefutwa."
+
+#: templates/partners/portal/session_form.html:33
+msgid "Delete session"
+msgstr "Futa kipindi"
+
+#: templates/partners/portal/team.html:9
+msgid ""
+"Coordinators have completed METP 100a; everyone who teaches a course has "
+"completed METP 100b."
+msgstr ""
+"Waratibu wamekamilisha METP 100a; kila anayefundisha kozi amekamilisha METP "
+"100b."
+
+#: templates/partners/portal/team.html:10
+msgid "Add team member"
+msgstr "Ongeza mwanatimu"
+
+#: templates/partners/portal/team.html:17
+msgid "Trained"
+msgstr "Amefunzwa"
+
+#: templates/partners/portal/team.html:23
+msgid "&middot;"
+msgstr "&middot;"
+
+#: templates/partners/portal/team.html:28
+msgid "Removed"
+msgstr "Ameondolewa"
+
+#: templates/partners/portal/team.html:29
+msgid "Has not set a password"
+msgstr "Hajaweka nenosiri"
+
+#: templates/partners/portal/team.html:38
+msgid "New set-password link"
+msgstr "Kiungo kipya cha nenosiri"
+
+#: templates/partners/portal/team.html:43
+msgid "Remove"
+msgstr "Ondoa"
+
+#: templates/partners/portal/team.html:52
+msgid "No team members yet."
+msgstr "Bado hakuna wanatimu."
+
+#: templates/partners/portal/team.html:52
+msgid "Add the location coordinator first."
+msgstr "Ongeza mratibu wa kituo kwanza."
+
 #: templates/partners/staff/_nav.html:9
 msgid "Staff"
 msgstr "Wafanyakazi"
+
+#: templates/shop/my_courses.html:77
+msgid "Your courses"
+msgstr "Kozi zako"
+
+#: templates/shop/my_courses.html:87
+msgid "Refresh progress"
+msgstr "Sasisha maendeleo"
+
+#: templates/shop/my_courses.html:126
+msgid "Bundle"
+msgstr "Kifurushi"
+
+#: templates/shop/my_courses.html:128 templates/shop/my_courses.html:238
+msgid "Free"
+msgstr "Bure"
+
+#: templates/shop/my_courses.html:141
+msgid "Overall progress"
+msgstr "Maendeleo ya jumla"
+
+#: templates/shop/my_courses.html:152
+msgid "Access expired"
+msgstr "Ufikiaji umeisha muda"
+
+#: templates/shop/my_courses.html:154
+#, python-format
+msgid "%(days_remaining)s day%(days_remaining2)s of access left"
+msgstr "Siku %(days_remaining)s%(days_remaining2)s za ufikiaji zimebaki"
+
+#: templates/shop/my_courses.html:164
+msgid "Show courses in this bundle"
+msgstr "Onyesha kozi za kifurushi hiki"
+
+#: templates/shop/my_courses.html:175
+#, python-format
+msgid "%(count)s course%(count2)s included"
+msgstr "Kozi %(count)s%(count2)s zimejumuishwa"
+
+#: templates/shop/my_courses.html:194 templates/shop/my_courses.html:248
+msgid "Progress"
+msgstr "Maendeleo"
+
+#: templates/shop/my_courses.html:207
+msgid "Open"
+msgstr "Fungua"
+
+#: templates/shop/my_courses.html:212 templates/shop/my_courses.html:265
+msgid "Available once your account is verified"
+msgstr "Itapatikana akaunti yako ikishathibitishwa"
+
+#: templates/shop/my_courses.html:216
+msgid "Not yet published"
+msgstr "Bado haijachapishwa"
+
+#: templates/shop/my_courses.html:261
+msgid "Open course"
+msgstr "Fungua kozi"
+
+#: templates/shop/my_courses.html:279
+#, python-format
+msgid "Showing %(start_index)s&ndash;%(end_index)s of %(count)s"
+msgstr "Inaonyesha %(start_index)s&ndash;%(end_index)s kati ya %(count)s"
+
+#: templates/shop/my_courses.html:297
+msgid "Nothing here yet"
+msgstr "Bado hakuna kitu hapa"
+
+#: templates/shop/my_courses.html:300
+msgid ""
+"Courses you enrol in will appear here with your progress. Browsing and "
+"studying cost nothing."
+msgstr ""
+"Kozi utakazojisajili zitaonekana hapa pamoja na maendeleo yako. Kuvinjari na"
+" kusoma ni bure."
+
+#: templates/shop/my_courses.html:304
+msgid ""
+"Your courses will appear here once your training location gives you online "
+"access. Speak to your coordinator if you are expecting them."
+msgstr ""
+"Kozi zako zitaonekana hapa mara kituo chako cha mafunzo kitakapokupa "
+"ufikiaji wa mtandaoni. Ongea na mratibu wako ikiwa unazisubiri."

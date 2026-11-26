@@ -8,6 +8,7 @@ import uuid
 
 from django.conf import settings
 from django.contrib import messages
+from django.utils.translation import gettext
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import PermissionDenied
 from django.db import transaction
@@ -191,7 +192,7 @@ class ParticipantCreateView(LocationMixin, CreateView):
         except PartnersError as exc:
             form.add_error(None, exc.message)
             return self.form_invalid(form)
-        messages.success(self.request, f'{participant.full_name} added.')
+        messages.success(self.request, gettext('%(full_name)s added.') % {'full_name': participant.full_name})
         return redirect(cohort_url(cohort) if cohort else participant_url(participant))
 
 
@@ -255,7 +256,7 @@ class ParticipantUpdateView(ParticipantObjectMixin, UpdateView):
 
     def form_valid(self, form):
         roster.update_participant(form.save(commit=False), self.request.user)
-        messages.success(self.request, 'Participant saved.')
+        messages.success(self.request, gettext('Participant saved.'))
         return redirect(participant_url(self.object))
 
 
@@ -296,7 +297,7 @@ class ParticipantImportView(LocationMixin, FormView):
             return super().post(request, *args, **kwargs)
         rows = request.session.pop(self.session_key(), None)
         if not rows:
-            messages.error(request, 'The preview has expired. Upload the file again.')
+            messages.error(request, gettext('The preview has expired. Upload the file again.'))
             return redirect('partners:participant_import', location_id=self.location.public_id)
         cohort_id = request.POST.get('cohort')
         cohort = self.cohorts().filter(public_id=cohort_id).first() if _is_uuid(cohort_id) else None
@@ -318,9 +319,9 @@ class ParticipantImportView(LocationMixin, FormView):
                     roster.enrol(cohort, participant, request.user)
                 created += 1
         except PartnersError as exc:
-            messages.error(request, f'Import stopped after {created} participant(s): {exc.message}')
+            messages.error(request, gettext('Import stopped after %(created)s participant(s): %(message)s') % {'created': created, 'message': exc.message})
             return redirect('partners:participant_list', location_id=self.location.public_id)
-        messages.success(request, f'{created} participant(s) imported, {skipped} skipped.')
+        messages.success(request, gettext('%(created)s participant(s) imported, %(skipped)s skipped.') % {'created': created, 'skipped': skipped})
         return redirect('partners:participant_list', location_id=self.location.public_id)
 
 
@@ -343,7 +344,7 @@ class CohortCreateView(LocationMixin, CreateView):
         except PartnersError as exc:
             form.add_error(None, exc.message)
             return self.form_invalid(form)
-        messages.success(self.request, f'{cohort.name} created. Add participants and sessions next.')
+        messages.success(self.request, gettext('%(name)s created. Add participants and sessions next.') % {'name': cohort.name})
         return redirect(cohort_url(cohort))
 
 
@@ -405,7 +406,7 @@ class CohortUpdateView(CohortMixin, UpdateView):
         except PartnersError as exc:
             form.add_error(None, exc.message)
             return self.form_invalid(form)
-        messages.success(self.request, 'Cohort saved.')
+        messages.success(self.request, gettext('Cohort saved.'))
         return redirect(cohort_url(self.cohort))
 
 
@@ -419,7 +420,7 @@ class CohortStatusView(CohortMixin, ServiceErrorMixin, View):
             roster.change_cohort_status(self.cohort, to_status, request.user)
         except PartnersError as exc:
             return self.service_error(exc, cohort_url(self.cohort))
-        messages.success(request, 'Cohort status updated.')
+        messages.success(request, gettext('Cohort status updated.'))
         return redirect(cohort_url(self.cohort))
 
 
@@ -438,7 +439,7 @@ class CohortEnrolView(CohortMixin, ServiceErrorMixin, View):
                 added += int(created)
         except PartnersError as exc:
             return self.service_error(exc, cohort_url(self.cohort))
-        messages.success(request, f'{added} participant(s) added to {self.cohort.name}.')
+        messages.success(request, gettext('%(added)s participant(s) added to %(name)s.') % {'added': added, 'name': self.cohort.name})
         return redirect(cohort_url(self.cohort))
 
 
@@ -466,15 +467,15 @@ class MembershipActionView(CohortMixin, ServiceErrorMixin, View):
         try:
             if action == 'withdraw':
                 roster.withdraw(membership, request.user)
-                messages.success(request, f'{name} withdrawn from the cohort.')
+                messages.success(request, gettext('%(name)s withdrawn from the cohort.') % {'name': name})
             elif action == 'grant_access':
                 _order, new_user = access.grant_online_access(membership, request.user)
                 if new_user is not None:
                     remember_activation_link(request, new_user, f'Set-password link for {name}')
-                messages.success(request, f'Online access for {name} is being set up in Moodle.')
+                messages.success(request, gettext('Online access for %(name)s is being set up in Moodle.') % {'name': name})
             else:
                 access.withdraw_online_access(membership, request.user)
-                messages.success(request, f'Online access withdrawn for {name}.')
+                messages.success(request, gettext('Online access withdrawn for %(name)s.') % {'name': name})
         except PartnersError as exc:
             return self.service_error(exc, cohort_url(self.cohort))
         return redirect(cohort_url(self.cohort))
@@ -498,7 +499,7 @@ class SessionCreateView(CohortMixin, CreateView):
         except PartnersError as exc:
             form.add_error(None, exc.message)
             return self.form_invalid(form)
-        messages.success(self.request, 'Session added.')
+        messages.success(self.request, gettext('Session added.'))
         return redirect(cohort_url(self.cohort))
 
 
@@ -532,7 +533,7 @@ class SessionUpdateView(SessionObjectMixin, UpdateView):
         except PartnersError as exc:
             form.add_error(None, exc.message)
             return self.form_invalid(form)
-        messages.success(self.request, 'Session saved.')
+        messages.success(self.request, gettext('Session saved.'))
         return redirect(cohort_url(self.cohort))
 
 
@@ -545,7 +546,7 @@ class SessionDeleteView(SessionObjectMixin, ServiceErrorMixin, View):
             roster.delete_session(self.get_session(), request.user)
         except PartnersError as exc:
             return self.service_error(exc, cohort_url(self.cohort))
-        messages.success(request, 'Session deleted.')
+        messages.success(request, gettext('Session deleted.'))
         return redirect(cohort_url(self.cohort))
 
 
@@ -584,13 +585,13 @@ class SessionRegisterView(SessionObjectMixin, ServiceErrorMixin, TemplateView):
             if status in valid:
                 marks[membership] = status
         if not marks:
-            messages.error(request, 'Mark at least one participant before saving.')
+            messages.error(request, gettext('Mark at least one participant before saving.'))
             return redirect(request.path)
         try:
             roster.save_register(session, marks, request.user)
         except PartnersError as exc:
             return self.service_error(exc, request.path)
-        messages.success(request, f'Register saved for {len(marks)} participant(s).')
+        messages.success(request, gettext('Register saved for %(len)s participant(s).') % {'len': len(marks)})
         return redirect(cohort_url(self.cohort))
 
 
@@ -688,7 +689,7 @@ class ResultsView(CohortMixin, ServiceErrorMixin, TemplateView):
             return self.sign_off(course, back)
         form = self.build_form(course, request.POST)
         if not form.is_valid():
-            messages.error(request, 'Some scores are not valid percentages. Check the highlighted rows.')
+            messages.error(request, gettext('Some scores are not valid percentages. Check the highlighted rows.'))
             return self.render_to_response(self.get_context_data(course=course, form=form))
         saved, conflicts = 0, []
         try:
@@ -701,11 +702,11 @@ class ResultsView(CohortMixin, ServiceErrorMixin, TemplateView):
         except PartnersError as exc:
             return self.service_error(exc, back)
         if conflicts:
-            messages.warning(request, (
+            messages.warning(request, gettext(
                 'Someone else changed these results while you were editing, so yours were not saved: '
-                + ', '.join(conflicts) + '. Check them and save again.'
-            ))
-        messages.success(request, f'{saved} result(s) saved for {course.code}.')
+                '%(names)s. Check them and save again.'
+            ) % {'names': ', '.join(conflicts)})
+        messages.success(request, gettext('%(saved)s result(s) saved for %(code)s.') % {'saved': saved, 'code': course.code})
         return redirect(back)
 
     def sign_off(self, course, back):
@@ -721,7 +722,7 @@ class ResultsView(CohortMixin, ServiceErrorMixin, TemplateView):
                 count += 1
         except PartnersError as exc:
             return self.service_error(exc, back)
-        messages.success(self.request, f'{count} result(s) signed off for {course.code}.')
+        messages.success(self.request, gettext('%(count)s result(s) signed off for %(code)s.') % {'count': count, 'code': course.code})
         return redirect(back)
 
 
@@ -785,7 +786,7 @@ class MemberInviteView(LocationMixin, ServiceErrorMixin, FormView):
                 from partners.tasks import send_activation_email
                 user_id, location_id = user.pk, self.location.pk
                 transaction.on_commit(lambda: enqueue(send_activation_email, user_id, location_id))
-        messages.success(self.request, f'{user.get_full_name()} added as {membership.get_role_display()}.')
+        messages.success(self.request, gettext('%(get_full_name)s added as %(get_role_display)s.') % {'get_full_name': user.get_full_name(), 'get_role_display': membership.get_role_display()})
         return redirect('partners:team', location_id=self.location.public_id)
 
 
@@ -806,10 +807,10 @@ class MemberActionView(LocationMixin, ServiceErrorMixin, View):
                 accounts.deactivate_member(membership, request.user)
             except PartnersError as exc:
                 return self.service_error(exc, team_url)
-            messages.success(request, f'{membership.user.get_full_name()} removed from this location.')
+            messages.success(request, gettext('%(get_full_name)s removed from this location.') % {'get_full_name': membership.user.get_full_name()})
         else:
             if not accounts.needs_activation(membership.user):
-                messages.info(request, 'This person has already set a password.')
+                messages.info(request, gettext('This person has already set a password.'))
             else:
                 remember_activation_link(
                     request, membership.user, f'Set-password link for {membership.user.get_full_name()}',
@@ -839,7 +840,7 @@ class ConflictResolveView(LocationMixin, ServiceErrorMixin, View):
             sync.resolve_conflict(operation, request.user, request.POST.get('choice') == 'incoming')
         except PartnersError as exc:
             return self.service_error(exc, back)
-        messages.success(request, 'Conflict resolved.')
+        messages.success(request, gettext('Conflict resolved.'))
         return redirect(back)
 
 

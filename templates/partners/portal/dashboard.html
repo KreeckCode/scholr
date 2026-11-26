@@ -1,4 +1,5 @@
 {% extends 'ui/base.html' %}
+{% load i18n %}
 {% load partners_tags %}
 
 {% block title %}{{ location.name }}{% endblock %}
@@ -6,56 +7,56 @@
 {% block eyebrow %}{{ location.organisation.name }}{% endblock %}
 {% block heading %}{{ location.name }}{% endblock %}
 {% block subheading %}
-<p class="mt-2 text-sm p-slate">{% if location.city %}{{ location.city }}, {% endif %}{{ location.country_name }} &middot; Teaching in {{ location.language }}</p>
+<p class="mt-2 text-sm p-slate">{% if location.city %}{{ location.city }}, {% endif %}{% blocktranslate trimmed with country_name=location.country_name language=location.language %}{{ country_name }} &middot; Teaching in {{ language }}{% endblocktranslate %}</p>
 {% endblock %}
 {% block actions %}
 {% if user.role == 'partner' %}{% if is_coordinator %}{% include 'integration/_lms_portal.html' with portal_button_class='p-btn-ghost' %}{% else %}{% include 'integration/_lms_portal.html' %}{% endif %}{% endif %}
-{% if is_coordinator %}<a class="p-btn" href="{% url 'partners:cohort_create' location_id=location.public_id %}">New cohort</a>{% endif %}
-{% if is_staff_viewer %}<a class="p-btn-ghost" href="{% url 'partners:location_edit' location_id=location.public_id %}">Edit location</a>{% endif %}
+{% if is_coordinator %}<a class="p-btn" href="{% url 'partners:cohort_create' location_id=location.public_id %}">{% translate "New cohort" %}</a>{% endif %}
+{% if is_staff_viewer %}<a class="p-btn-ghost" href="{% url 'partners:location_edit' location_id=location.public_id %}">{% translate "Edit location" %}</a>{% endif %}
 {% endblock %}
 
 {% block body %}
 {% if not licence_live %}
 <div class="p-alert p-alert-warn">
-    Licence {{ licence.number }} is {{ licence.get_status_display|lower }}{% if licence.status == 'active' %} but outside its dates{% endif %}. New cohorts, new participants and online access are paused until it is active. Contact the METP team.
+    {% blocktranslate trimmed with number=licence.number get_status_display=licence.get_status_display|translated|lower %}Licence {{ number }} is {{ get_status_display }}{% endblocktranslate %}{% if licence.status == 'active' %} {% translate "but outside its dates" %}{% endif %}{% translate ". New cohorts, new participants and online access are paused until it is active. Contact the METP team." %}
 </div>
 {% elif licence_days <= 90 %}
 <div class="p-alert p-alert-info">
-    Licence {{ licence.number }} ends on {{ licence.ends_on|date:'d M Y' }}, in {{ licence_days }} day{{ licence_days|pluralize }}. Talk to the METP team about renewal.
+    {% blocktranslate trimmed with number=licence.number ends_on=licence.ends_on|date:'d M Y' licence_days=licence_days licence_days2=licence_days|pluralize %}Licence {{ number }} ends on {{ ends_on }}, in {{ licence_days }} day{{ licence_days2 }}. Talk to the METP team about renewal.{% endblocktranslate %}
 </div>
 {% endif %}
 
 {% if open_conflicts %}
 <a href="{% url 'partners:conflicts' location_id=location.public_id %}" class="p-alert p-alert-warn">
-    <span><strong>{{ open_conflicts }}</strong> offline change{{ open_conflicts|pluralize }} need{{ open_conflicts|pluralize:'s,' }} your decision.</span>
-    <span class="p-btn-ghost p-btn-sm shrink-0">Review</span>
+    <span><strong>{{ open_conflicts }}</strong> {% blocktranslate trimmed with open_conflicts=open_conflicts|pluralize open_conflicts2=open_conflicts|pluralize:'s,' %}offline change{{ open_conflicts }} need{{ open_conflicts2 }} your decision.{% endblocktranslate %}</span>
+    <span class="p-btn-ghost p-btn-sm shrink-0">{% translate "Review" %}</span>
 </a>
 {% endif %}
 
 <div class="mb-8 grid grid-cols-2 gap-3 md:grid-cols-4">
-    <div class="p-card p-5"><p class="p-stat-label">Participants</p><p class="p-stat">{{ participant_count }}</p></div>
-    <div class="p-card p-5"><p class="p-stat-label">Cohorts</p><p class="p-stat">{{ cohorts|length }}</p></div>
-    <div class="p-card p-5"><p class="p-stat-label">Team</p><p class="p-stat">{{ team_count }}</p></div>
-    <div class="p-card p-5"><p class="p-stat-label">Licence</p><p class="mt-2.5">{% include 'partners/_badge.html' with value=licence.status label=licence.get_status_display %}</p></div>
+    <div class="p-card p-5"><p class="p-stat-label">{% translate "Participants" %}</p><p class="p-stat">{{ participant_count }}</p></div>
+    <div class="p-card p-5"><p class="p-stat-label">{% translate "Cohorts" %}</p><p class="p-stat">{{ cohorts|length }}</p></div>
+    <div class="p-card p-5"><p class="p-stat-label">{% translate "Team" %}</p><p class="p-stat">{{ team_count }}</p></div>
+    <div class="p-card p-5"><p class="p-stat-label">{% translate "Licence" %}</p><p class="mt-2.5">{% include 'partners/_badge.html' with value=licence.status label=licence.get_status_display|translated %}</p></div>
 </div>
 
 <div class="grid gap-6 lg:grid-cols-3">
     <section class="p-card overflow-hidden lg:col-span-2">
-        <div class="p-card-head"><h2 class="p-card-title">Cohorts</h2></div>
+        <div class="p-card-head"><h2 class="p-card-title">{% translate "Cohorts" %}</h2></div>
         <div class="overflow-x-auto">
             <table class="p-table">
-                <thead><tr><th scope="col">Cohort</th><th scope="col">Status</th><th scope="col">Delivery</th><th scope="col" class="p-num">Enrolled</th><th scope="col" class="p-num">Completed</th></tr></thead>
+                <thead><tr><th scope="col">{% translate "Cohort" %}</th><th scope="col">{% translate "Status" %}</th><th scope="col">{% translate "Delivery" %}</th><th scope="col" class="p-num">{% translate "Enrolled" %}</th><th scope="col" class="p-num">{% translate "Completed" %}</th></tr></thead>
                 <tbody>
                     {% for cohort in cohorts %}
                     <tr>
-                        <td><a class="p-link" href="{% url 'partners:cohort_detail' location_id=location.public_id cohort_id=cohort.public_id %}">{{ cohort.name }}</a><span class="block text-xs p-muted">Started {{ cohort.starts_on|date:'d M Y' }} &middot; {{ cohort.get_pace_months_display }}</span></td>
-                        <td>{% include 'partners/_badge.html' with value=cohort.status label=cohort.get_status_display %}</td>
-                        <td>{{ cohort.get_delivery_display }}</td>
+                        <td><a class="p-link" href="{% url 'partners:cohort_detail' location_id=location.public_id cohort_id=cohort.public_id %}">{{ cohort.name }}</a><span class="block text-xs p-muted">{% blocktranslate trimmed with starts_on=cohort.starts_on|date:'d M Y' get_pace_months_display=cohort.get_pace_months_display|translated %}Started {{ starts_on }} &middot; {{ get_pace_months_display }}{% endblocktranslate %}</span></td>
+                        <td>{% include 'partners/_badge.html' with value=cohort.status label=cohort.get_status_display|translated %}</td>
+                        <td>{{ cohort.get_delivery_display|translated }}</td>
                         <td class="p-num">{{ cohort.enrolled }}</td>
                         <td class="p-num">{{ cohort.completed }}</td>
                     </tr>
                     {% empty %}
-                    <tr><td colspan="5" class="p-empty">{% if is_coordinator %}No cohorts yet. Create the first one to start with METP 101.{% else %}You are not assigned to a cohort here yet.{% endif %}</td></tr>
+                    <tr><td colspan="5" class="p-empty">{% if is_coordinator %}{% translate "No cohorts yet. Create the first one to start with METP 101." %}{% else %}{% translate "You are not assigned to a cohort here yet." %}{% endif %}</td></tr>
                     {% endfor %}
                 </tbody>
             </table>
@@ -63,7 +64,7 @@
     </section>
 
     <section class="p-card">
-        <div class="p-card-head"><h2 class="p-card-title">Coming up</h2></div>
+        <div class="p-card-head"><h2 class="p-card-title">{% translate "Coming up" %}</h2></div>
         <ul class="p-list">
             {% for session in upcoming_sessions %}
             <li class="px-5 py-3.5 text-sm">
@@ -71,10 +72,10 @@
                     <p class="font-semibold p-navy">{{ session.course.code }}</p>
                     <p class="text-xs p-muted">{{ session.session_date|date:'D d M' }}</p>
                 </div>
-                <p class="mt-0.5 text-xs p-slate">{{ session.cohort.name }}{% if session.facilitator %} &middot; {{ session.facilitator.get_full_name }}{% endif %}</p>
+                <p class="mt-0.5 text-xs p-slate">{{ session.cohort.name }}{% if session.facilitator %} {% blocktranslate trimmed with get_full_name=session.facilitator.get_full_name %}&middot; {{ get_full_name }}{% endblocktranslate %}{% endif %}</p>
             </li>
             {% empty %}
-            <li class="px-5 py-6 text-sm p-muted">No sessions scheduled.</li>
+            <li class="px-5 py-6 text-sm p-muted">{% translate "No sessions scheduled." %}</li>
             {% endfor %}
         </ul>
     </section>

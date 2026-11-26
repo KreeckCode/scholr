@@ -1,11 +1,12 @@
 {% extends 'ui/base.html' %}
+{% load i18n %}
 {% load partners_tags %}
 
 {% block title %}Add team member{% endblock %}
 {% block subnav %}{% include 'partners/portal/_nav.html' %}{% endblock %}
 {% block eyebrow %}{{ location.name }}{% endblock %}
 {% block heading %}Add a team member{% endblock %}
-{% block subheading %}<p class="mt-2 max-w-2xl text-sm p-slate">They get an account with no password. You will see a one-time link to send them so they can choose their own.</p>{% endblock %}
+{% block subheading %}<p class="mt-2 max-w-2xl text-sm p-slate">{% translate "They get an account with no password. You will see a one-time link to send them so they can choose their own." %}</p>{% endblock %}
 
 {% block body %}
 <form method="post" class="p-card max-w-3xl p-6 sm:p-8" novalidate>
@@ -20,8 +21,8 @@
         {% field form.trained_on %}
     </div>
     <div class="p-form-actions">
-        <button type="submit" class="p-btn">Add to team</button>
-        <a class="p-btn-ghost" href="{% url 'partners:team' location_id=location.public_id %}">Cancel</a>
+        <button type="submit" class="p-btn">{% translate "Add to team" %}</button>
+        <a class="p-btn-ghost" href="{% url 'partners:team' location_id=location.public_id %}">{% translate "Cancel" %}</a>
     </div>
 </form>
 {% endblock %}

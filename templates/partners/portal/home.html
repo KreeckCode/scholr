@@ -1,4 +1,5 @@
 {% extends 'ui/base.html' %}
+{% load i18n %}
 {% load partners_tags %}
 
 {% block title %}Location portal{% endblock %}
@@ -19,7 +20,7 @@
 </div>
 {% else %}
 <div class="p-card max-w-xl p-6">
-    <p class="text-sm p-slate">Your account is not linked to a training location. Ask your coordinator to add you, or contact the METP team at <a class="p-link" href="mailto:{{ brand.email }}">{{ brand.email }}</a>.</p>
+    <p class="text-sm p-slate">{% translate "Your account is not linked to a training location. Ask your coordinator to add you, or contact the METP team at" %} <a class="p-link" href="mailto:{{ brand.email }}">{{ brand.email }}</a>.</p>
 </div>
 {% endif %}
 {% endblock %}

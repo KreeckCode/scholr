@@ -1,3 +1,4 @@
+{% load i18n %}
 {% if field.is_hidden %}{{ field }}{% else %}
 <div class="p-field {% if wide %}sm:col-span-2{% endif %} {% if field.errors %}p-field-invalid{% endif %}">
     {% if field.widget_type == 'checkbox' %}
@@ -18,7 +19,7 @@
                 <span>{{ option.choice_label }}</span>
             </label>
             {% empty %}
-            <p class="rounded-xl border border-dashed px-4 py-3 text-sm p-muted" style="border-color: var(--p-field);">Nobody to choose yet.</p>
+            <p class="rounded-xl border border-dashed px-4 py-3 text-sm p-muted" style="border-color: var(--p-field);">{% translate "Nobody to choose yet." %}</p>
             {% endfor %}
         </div>
         {% if field.help_text %}<p class="p-help">{{ field.help_text }}</p>{% endif %}

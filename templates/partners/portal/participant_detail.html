@@ -1,4 +1,5 @@
 {% extends 'ui/base.html' %}
+{% load i18n %}
 {% load partners_tags %}
 
 {% block title %}{{ participant.full_name }}{% endblock %}
@@ -7,7 +8,7 @@
 {% block heading %}{{ participant.full_name }}{% endblock %}
 {% block subheading %}<p class="mt-2 text-sm p-slate">{% if participant.position_title %}{{ participant.position_title }}{% endif %}{% if participant.position_title and participant.church_name %}, {% endif %}{{ participant.church_name }}</p>{% endblock %}
 {% block actions %}
-{% if is_coordinator %}<a class="p-btn-ghost" href="{% url 'partners:participant_edit' location_id=location.public_id participant_id=participant.public_id %}">Edit</a>{% endif %}
+{% if is_coordinator %}<a class="p-btn-ghost" href="{% url 'partners:participant_edit' location_id=location.public_id participant_id=participant.public_id %}">{% translate "Edit" %}</a>{% endif %}
 {% endblock %}
 
 {% block body %}
@@ -15,12 +16,12 @@
     <aside class="p-card h-fit p-6">
         <dl class="p-meta space-y-4 text-sm">
             {% if can_view_contacts %}
-            <div><dt>Phone</dt><dd>{% if participant.phone %}<a class="p-link" href="tel:{{ participant.phone }}">{{ participant.phone }}</a>{% else %}Not given{% endif %}</dd></div>
-            <div><dt>Email</dt><dd class="break-all">{% if participant.email %}<a class="p-link" href="mailto:{{ participant.email }}">{{ participant.email }}</a>{% else %}Not given{% endif %}</dd></div>
+            <div><dt>{% translate "Phone" %}</dt><dd>{% if participant.phone %}<a class="p-link" href="tel:{{ participant.phone }}">{{ participant.phone }}</a>{% else %}{% translate "Not given" %}{% endif %}</dd></div>
+            <div><dt>{% translate "Email" %}</dt><dd class="break-all">{% if participant.email %}<a class="p-link" href="mailto:{{ participant.email }}">{{ participant.email }}</a>{% else %}{% translate "Not given" %}{% endif %}</dd></div>
             {% endif %}
-            <div><dt>Country</dt><dd>{{ participant.country|country|default:'Not given' }}</dd></div>
-            <div><dt>Online account</dt><dd>{% if participant.user %}{{ participant.user.username }}{% else %}None{% endif %}</dd></div>
-            <div><dt>Registered</dt><dd>{{ participant.created_at|date:'d M Y' }}{% if participant.client_uuid %} <span class="text-xs font-normal p-muted">(offline)</span>{% endif %}</dd></div>
+            <div><dt>{% translate "Country" %}</dt><dd>{{ participant.country|country|default:'Not given' }}</dd></div>
+            <div><dt>{% translate "Online account" %}</dt><dd>{% if participant.user %}{{ participant.user.username }}{% else %}{% translate "None" %}{% endif %}</dd></div>
+            <div><dt>{% translate "Registered" %}</dt><dd>{{ participant.created_at|date:'d M Y' }}{% if participant.client_uuid %} <span class="text-xs font-normal p-muted">{% translate "(offline)" %}</span>{% endif %}</dd></div>
         </dl>
     </aside>
 
@@ -31,26 +32,26 @@
             <div class="p-card-head flex flex-wrap items-center justify-between gap-2">
                 <div>
                     <a class="p-card-title p-title-link" href="{% url 'partners:cohort_detail' location_id=location.public_id cohort_id=membership.cohort.public_id %}">{{ membership.cohort.name }}</a>
-                    <p class="text-xs p-muted">Joined {{ membership.joined_on|date:'d M Y' }}{% if row.attendance_rate is not None %} &middot; {{ row.attendance_rate }}% attendance{% endif %}</p>
+                    <p class="text-xs p-muted">{% blocktranslate trimmed with joined_on=membership.joined_on|date:'d M Y' %}Joined {{ joined_on }}{% endblocktranslate %}{% if row.attendance_rate is not None %} {% blocktranslate trimmed with attendance_rate=row.attendance_rate %}&middot; {{ attendance_rate }}% attendance{% endblocktranslate %}{% endif %}</p>
                 </div>
                 <div class="flex flex-wrap gap-2">
-                    {% include 'partners/_badge.html' with value=membership.status label=membership.get_status_display %}
+                    {% include 'partners/_badge.html' with value=membership.status label=membership.get_status_display|translated %}
                     {% if membership.cohort.delivery == 'blended' %}{% include 'partners/_badge.html' with value=row.access_status label=row.access_label %}{% endif %}
                 </div>
             </div>
             <div class="overflow-x-auto">
                 <table class="p-table">
-                    <thead><tr><th scope="col">Course</th><th scope="col" class="p-num">Exam</th><th scope="col">Result</th><th scope="col">Signed off</th></tr></thead>
+                    <thead><tr><th scope="col">{% translate "Course" %}</th><th scope="col" class="p-num">{% translate "Exam" %}</th><th scope="col">{% translate "Result" %}</th><th scope="col">{% translate "Signed off" %}</th></tr></thead>
                     <tbody>
                         {% for result in row.results %}
                         <tr>
                             <td><span class="font-medium p-navy">{{ result.course.code }}</span> <span class="text-xs p-muted">{{ result.course.title }}</span></td>
                             <td class="p-num">{% if result.exam_score is not None %}{{ result.exam_score|floatformat:0 }}%{% endif %}</td>
-                            <td>{% include 'partners/_badge.html' with value=result.status label=result.get_status_display %}</td>
-                            <td class="text-xs">{% if result.signed_off_at %}{{ result.signed_off_at|date:'d M Y' }}{% else %}<span class="p-muted">Not yet</span>{% endif %}</td>
+                            <td>{% include 'partners/_badge.html' with value=result.status label=result.get_status_display|translated %}</td>
+                            <td class="text-xs">{% if result.signed_off_at %}{{ result.signed_off_at|date:'d M Y' }}{% else %}<span class="p-muted">{% translate "Not yet" %}</span>{% endif %}</td>
                         </tr>
                         {% empty %}
-                        <tr><td colspan="4" class="p-empty">No results recorded yet.</td></tr>
+                        <tr><td colspan="4" class="p-empty">{% translate "No results recorded yet." %}</td></tr>
                         {% endfor %}
                     </tbody>
                 </table>
@@ -58,7 +59,7 @@
         </section>
         {% endwith %}
         {% empty %}
-        <div class="p-card p-empty">Not enrolled in a cohort you can see.</div>
+        <div class="p-card p-empty">{% translate "Not enrolled in a cohort you can see." %}</div>
         {% endfor %}
     </div>
 </div>

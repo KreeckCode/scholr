@@ -1,12 +1,13 @@
+{% load i18n %}
 <section class="p-card">
-    <div class="p-card-head"><h2 class="p-card-title">Account</h2>{% include 'accounts/_status.html' %}</div>
+    <div class="p-card-head"><h2 class="p-card-title">{% translate "Account" %}</h2>{% include 'accounts/_status.html' %}</div>
     <dl class="p-meta space-y-4 p-5">
-        <div><dt>Role</dt><dd>{{ person.get_role_display }}</dd></div>
+        <div><dt>{% translate "Role" %}</dt><dd>{{ person.get_role_display|translated }}</dd></div>
         {% if person.verified_by %}
-        <div><dt>Verified by</dt><dd>{{ person.verified_by.get_full_name|default:person.verified_by.username }}</dd></div>
-        <div><dt>Verified on</dt><dd>{{ person.verified_at|date:'d M Y'|default:'Not recorded' }}</dd></div>
+        <div><dt>{% translate "Verified by" %}</dt><dd>{{ person.verified_by.get_full_name|default:person.verified_by.username }}</dd></div>
+        <div><dt>{% translate "Verified on" %}</dt><dd>{{ person.verified_at|date:'d M Y'|default:'Not recorded' }}</dd></div>
         {% endif %}
-        <div><dt>Member since</dt><dd>{{ person.created_at|date:'d M Y' }}</dd></div>
-        <div><dt>Last signed in</dt><dd>{{ person.last_login|date:'d M Y, H:i'|default:'Never' }}</dd></div>
+        <div><dt>{% translate "Member since" %}</dt><dd>{{ person.created_at|date:'d M Y' }}</dd></div>
+        <div><dt>{% translate "Last signed in" %}</dt><dd>{{ person.last_login|date:'d M Y, H:i'|default:'Never' }}</dd></div>
     </dl>
 </section>

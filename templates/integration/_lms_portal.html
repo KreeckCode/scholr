@@ -1,3 +1,4 @@
+{% load i18n %}
 {% if SCHOLR_LMS_ENABLED and user.can_open_lms_as_staff %}
 <div class="contents"
      x-data="lmsPortal($el.dataset)"
@@ -7,8 +8,8 @@
      data-csrf="{{ csrf_token }}">
 
     <button type="button" class="{{ portal_button_class|default:'p-btn' }}" @click="start()" :disabled="running" :aria-busy="running.toString()">
-        <span x-show="!running">LMS Portal</span>
-        <span x-show="running" x-cloak>Opening&hellip;</span>
+        <span x-show="!running">{% translate "LMS Portal" %}</span>
+        <span x-show="running" x-cloak>{% translate "Opening&hellip;" %}</span>
     </button>
 
     <div x-show="open" x-cloak
@@ -19,8 +20,8 @@
 
         <div class="p-card w-full max-w-md text-left" @click.outside="close()">
             <div class="p-card-head">
-                <h2 id="lms-portal-title" class="p-card-title">Opening the LMS</h2>
-                <button type="button" class="p-btn-ghost p-btn-sm" @click="close()" :disabled="running" aria-label="Close">Close</button>
+                <h2 id="lms-portal-title" class="p-card-title">{% translate "Opening the LMS" %}</h2>
+                <button type="button" class="p-btn-ghost p-btn-sm" @click="close()" :disabled="running" aria-label="{% translate 'Close' %}">{% translate "Close" %}</button>
             </div>
 
             <ol class="space-y-4 p-5" aria-live="polite">
@@ -55,31 +56,31 @@
 
             <div class="px-5 pb-5" x-show="failed" x-cloak>
                 <div class="p-alert p-alert-danger">
-                    <p class="p-alert-title">The LMS could not be opened</p>
+                    <p class="p-alert-title">{% translate "The LMS could not be opened" %}</p>
                     <p class="mt-1" x-text="error"></p>
                 </div>
                 <div class="mt-4 flex justify-end gap-2">
-                    <button type="button" class="p-btn-ghost" @click="close()">Close</button>
-                    <button type="button" class="p-btn" @click="start()">Try again</button>
+                    <button type="button" class="p-btn-ghost" @click="close()">{% translate "Close" %}</button>
+                    <button type="button" class="p-btn" @click="start()">{% translate "Try again" %}</button>
                 </div>
             </div>
 
             <div class="px-5 pb-5" x-show="done && !blocked" x-cloak>
-                <p class="text-sm p-slate">The LMS has opened in a new tab. If you closed it, you can open it again.</p>
+                <p class="text-sm p-slate">{% translate "The LMS has opened in a new tab. If you closed it, you can open it again." %}</p>
                 <div class="mt-4 flex justify-end gap-2">
-                    <button type="button" class="p-btn-ghost" @click="close()">Done</button>
-                    <a class="p-btn" :href="config.openUrl" target="_blank" rel="noopener">Open again</a>
+                    <button type="button" class="p-btn-ghost" @click="close()">{% translate "Done" %}</button>
+                    <a class="p-btn" :href="config.openUrl" target="_blank" rel="noopener">{% translate "Open again" %}</a>
                 </div>
             </div>
 
             <div class="px-5 pb-5" x-show="done && blocked" x-cloak>
                 <div class="p-alert p-alert-warn">
-                    <p class="p-alert-title">Your browser blocked the new tab</p>
-                    <p class="mt-1">Everything is ready. Use the button below to open the LMS.</p>
+                    <p class="p-alert-title">{% translate "Your browser blocked the new tab" %}</p>
+                    <p class="mt-1">{% translate "Everything is ready. Use the button below to open the LMS." %}</p>
                 </div>
                 <div class="mt-4 flex justify-end gap-2">
-                    <button type="button" class="p-btn-ghost" @click="close()">Close</button>
-                    <a class="p-btn" :href="config.openUrl" target="_blank" rel="noopener" @click="close()">Open the LMS</a>
+                    <button type="button" class="p-btn-ghost" @click="close()">{% translate "Close" %}</button>
+                    <a class="p-btn" :href="config.openUrl" target="_blank" rel="noopener" @click="close()">{% translate "Open the LMS" %}</a>
                 </div>
             </div>
         </div>

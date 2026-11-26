@@ -150,24 +150,51 @@ class RoleChangeMoodleTests(TestCase):
         queued.assert_called_once_with(other.pk, User.ADMIN, User.LEADER)
 
 
+def parse_po(text):
+    """(msgid, msgstr) pairs from a .po file, joining strings continued over several lines."""
+    entries, current, field = [], {}, None
+    for line in text.splitlines() + ['']:
+        line = line.strip()
+        if line.startswith(('msgid ', 'msgstr ')):
+            field, _space, value = line.partition(' ')
+            if field == 'msgid' and 'msgstr' in current:
+                entries.append((current['msgid'], current['msgstr']))
+                current = {}
+            current[field] = _unquote(value)
+        elif line.startswith('"') and field:
+            current[field] += _unquote(line)
+        elif not line and 'msgstr' in current:
+            entries.append((current['msgid'], current['msgstr']))
+            current, field = {}, None
+    return [(msgid, msgstr) for msgid, msgstr in entries if msgid]
+
+
+def _unquote(value):
+    escapes = {'n': '\n', 't': '\t', '"': '"', '\\': '\\'}
+    return re.sub(r'\\(.)', lambda match: escapes.get(match.group(1), match.group(0)), value[1:-1])
+
+
 class CatalogueTests(TestCase):
     """Guards for the rule that every feature is translatable: catalogues complete and compiled."""
 
     def test_every_language_has_a_complete_compiled_catalogue(self):
+        from django.utils import translation
         for code, _name in settings.LANGUAGES:
             if code == 'en':
                 continue
             folder = Path(settings.LOCALE_PATHS[0]) / code / 'LC_MESSAGES'
-            source = (folder / 'django.po').read_text(encoding='utf-8')
-            untranslated = re.findall(r'\nmsgid "(.+)"\nmsgstr ""\n\n', source + '\n')
-            self.assertEqual(untranslated, [], code)
+            entries = parse_po((folder / 'django.po').read_text(encoding='utf-8'))
+            self.assertEqual([msgid for msgid, msgstr in entries if not msgstr], [], code)
             self.assertTrue((folder / 'django.mo').exists(), code)
             # A compiled catalogue that lags its source shows up as a string Django cannot translate
-            from django.utils import translation
-            pairs = re.findall(r'\nmsgid "(.+)"\nmsgstr "(.+)"\n', source)
             with translation.override(code):
-                stale = [msgid for msgid, msgstr in pairs if translation.gettext(msgid) != msgstr.replace('\\"', '"')]
+                stale = [msgid for msgid, msgstr in entries if translation.gettext(msgid) != msgstr]
             self.assertEqual(stale, [], f'{code}: run compilemessages')
+
+    def test_python_catalogue_is_current(self):
+        from main.management.commands.build_i18n_catalogue import OUTPUT, collect, render
+        self.assertEqual(OUTPUT.read_text(encoding='utf-8'), render(collect()),
+                         'Run manage.py build_i18n_catalogue, then makemessages and compilemessages')
 
     def test_no_duplicate_template_tag_libraries(self):
         self.assertNotIn('templates.W003', [message.id for message in run_checks()])

@@ -1,4 +1,5 @@
 {% extends 'base/base.html' %}
+{% load i18n %}
 {% load static %}
 {% load progress_tags %}
 
@@ -73,8 +74,8 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-20">
             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-5">
                 <div>
-                    <p class="snap-eyebrow mb-3" style="color: var(--snap-teal-bright);">Your courses</p>
-                    <h1 class="snap-display text-3xl font-bold text-white">My learning</h1>
+                    <p class="snap-eyebrow mb-3" style="color: var(--snap-teal-bright);">{% translate "Your courses" %}</p>
+                    <h1 class="snap-display text-3xl font-bold text-white">{% translate "My learning" %}</h1>
                 </div>
 
                 <button type="button" id="refreshBtn"
@@ -83,7 +84,7 @@
                     <svg id="refreshIcon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
                     </svg>
-                    <span id="refreshText">Refresh progress</span>
+                    <span id="refreshText">{% translate "Refresh progress" %}</span>
                 </button>
             </div>
 
@@ -97,15 +98,15 @@
         <div class="grid grid-cols-3 snap-card rounded-2xl shadow-sm mb-8 overflow-hidden">
             <div class="p-5 sm:p-6">
                 <p class="snap-display text-3xl font-bold snap-text-navy leading-none">{{ total_courses }}</p>
-                <p class="text-xs snap-text-muted mt-2">Enrolled</p>
+                <p class="text-xs snap-text-muted mt-2">{% translate "Enrolled" %}</p>
             </div>
             <div class="p-5 sm:p-6" style="border-left: 1px solid var(--snap-line);">
                 <p class="snap-display text-3xl font-bold snap-text-navy leading-none">{{ active_courses }}</p>
-                <p class="text-xs snap-text-muted mt-2">In progress</p>
+                <p class="text-xs snap-text-muted mt-2">{% translate "In progress" %}</p>
             </div>
             <div class="p-5 sm:p-6" style="border-left: 1px solid var(--snap-line);">
                 <p class="snap-display text-3xl font-bold snap-text-teal-deep leading-none">{{ completed_courses }}</p>
-                <p class="text-xs snap-text-muted mt-2">Completed</p>
+                <p class="text-xs snap-text-muted mt-2">{% translate "Completed" %}</p>
             </div>
         </div>
 
@@ -122,9 +123,9 @@
                             <div class="flex-1 min-w-0">
 
                                 <div class="flex items-center gap-2 mb-3">
-                                    <span class="snap-tag snap-tag-bundle">Bundle</span>
+                                    <span class="snap-tag snap-tag-bundle">{% translate "Bundle" %}</span>
                                     {% if enrollment.is_free %}
-                                    <span class="snap-tag snap-tag-free">Free</span>
+                                    <span class="snap-tag snap-tag-free">{% translate "Free" %}</span>
                                     {% endif %}
                                 </div>
 
@@ -137,7 +138,7 @@
 
                                 <div class="mb-5 max-w-md">
                                     <div class="flex items-center justify-between mb-2">
-                                        <span class="text-xs font-medium snap-text-muted">Overall progress</span>
+                                        <span class="text-xs font-medium snap-text-muted">{% translate "Overall progress" %}</span>
                                         <span class="text-xs font-bold snap-text-navy">{{ enrollment.progress_percentage }}%</span>
                                     </div>
                                     <div class="snap-track h-2">
@@ -146,11 +147,11 @@
                                 </div>
 
                                 <div class="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs snap-text-muted">
-                                    <span>Enrolled {{ enrollment.created_at|date:"j M Y" }}</span>
+                                    <span>{% blocktranslate trimmed with created_at=enrollment.created_at|date:"j M Y" %}Enrolled {{ created_at }}{% endblocktranslate %}</span>
                                     {% if enrollment.is_expired %}
-                                    <span class="font-medium" style="color: #DC2626;">Access expired</span>
+                                    <span class="font-medium" style="color: #DC2626;">{% translate "Access expired" %}</span>
                                     {% else %}
-                                    <span>{{ enrollment.days_remaining }} day{{ enrollment.days_remaining|pluralize }} of access left</span>
+                                    <span>{% blocktranslate trimmed with days_remaining=enrollment.days_remaining days_remaining2=enrollment.days_remaining|pluralize %}{{ days_remaining }} day{{ days_remaining2 }} of access left{% endblocktranslate %}</span>
                                     {% endif %}
                                 </div>
                             </div>
@@ -160,7 +161,7 @@
                                     data-target="bundle-{{ enrollment.id }}"
                                     aria-expanded="false"
                                     aria-controls="bundle-{{ enrollment.id }}"
-                                    aria-label="Show courses in this bundle">
+                                    aria-label="{% translate 'Show courses in this bundle' %}">
                                 <svg class="js-bundle-icon w-5 h-5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                                 </svg>
@@ -171,7 +172,7 @@
                     <div id="bundle-{{ enrollment.id }}" class="hidden snap-bg-paper snap-rule">
                         <div class="p-6">
                             <h3 class="snap-eyebrow snap-text-muted mb-4">
-                                {{ enrollment.product.bundle_items.count }} course{{ enrollment.product.bundle_items.count|pluralize }} included
+                                {% blocktranslate trimmed with count=enrollment.product.bundle_items.count count2=enrollment.product.bundle_items.count|pluralize %}{{ count }} course{{ count2 }} included{% endblocktranslate %}
                             </h3>
 
                             <div class="space-y-3">
@@ -190,7 +191,7 @@
                                             {% get_course_progress user course as progress %}
                                             <div class="max-w-xs">
                                                 <div class="flex items-center justify-between mb-1.5">
-                                                    <span class="text-xs snap-text-muted">Progress</span>
+                                                    <span class="text-xs snap-text-muted">{% translate "Progress" %}</span>
                                                     <span class="text-xs font-bold snap-text-navy">{{ progress }}%</span>
                                                 </div>
                                                 <div class="snap-track h-1.5">
@@ -203,16 +204,16 @@
                                             {% if user.is_verified and course.moodle_course_id %}
                                             <a href="{% url 'integration:access_lms' %}?course={{ course.moodle_course_id }}"
                                                class="snap-btn-teal snap-display inline-flex items-center px-4 py-2 rounded-lg text-sm font-medium">
-                                                Open
+                                                {% translate "Open" %}
                                             </a>
                                             {% elif not user.is_verified %}
 
                                             <span class="block text-xs snap-text-muted text-right max-w-[130px] leading-relaxed">
-                                                Available once your account is verified
+                                                {% translate "Available once your account is verified" %}
                                             </span>
                                             {% else %}
                                             <span class="block text-xs snap-text-muted text-right max-w-[130px] leading-relaxed">
-                                                Not yet published
+                                                {% translate "Not yet published" %}
                                             </span>
                                             {% endif %}
                                         </div>
@@ -232,9 +233,9 @@
                         <div class="flex-1 min-w-0">
 
                             <div class="flex items-center gap-2 mb-3">
-                                <span class="snap-tag snap-tag-bundle">Course</span>
+                                <span class="snap-tag snap-tag-bundle">{% translate "Course" %}</span>
                                 {% if enrollment.is_free %}
-                                <span class="snap-tag snap-tag-free">Free</span>
+                                <span class="snap-tag snap-tag-free">{% translate "Free" %}</span>
                                 {% endif %}
                             </div>
 
@@ -244,7 +245,7 @@
 
                             <div class="max-w-md">
                                 <div class="flex items-center justify-between mb-2">
-                                    <span class="text-xs font-medium snap-text-muted">Progress</span>
+                                    <span class="text-xs font-medium snap-text-muted">{% translate "Progress" %}</span>
                                     <span class="text-xs font-bold snap-text-navy">{{ enrollment.progress_percentage }}%</span>
                                 </div>
                                 <div class="snap-track h-2">
@@ -257,11 +258,11 @@
                             {% if enrollment.product.moodle_course and user.is_verified %}
                             <a href="{% url 'integration:access_lms' %}?course={{ enrollment.product.moodle_course.moodle_course_id }}"
                                class="snap-btn-teal snap-display inline-flex items-center px-6 py-3 rounded-xl font-semibold">
-                                Open course
+                                {% translate "Open course" %}
                             </a>
                             {% elif not user.is_verified %}
                             <span class="block text-xs snap-text-muted text-right max-w-[150px] leading-relaxed">
-                                Available once your account is verified
+                                {% translate "Available once your account is verified" %}
                             </span>
                             {% endif %}
                         </div>
@@ -275,16 +276,16 @@
         {% if page_obj.has_other_pages %}
         <div class="mt-8 flex items-center justify-between gap-4">
             <p class="text-sm snap-text-muted">
-                Showing {{ page_obj.start_index }}&ndash;{{ page_obj.end_index }} of {{ page_obj.paginator.count }}
+                {% blocktranslate trimmed with start_index=page_obj.start_index end_index=page_obj.end_index count=page_obj.paginator.count %}Showing {{ start_index }}&ndash;{{ end_index }} of {{ count }}{% endblocktranslate %}
             </p>
             <div class="flex gap-2">
                 {% if page_obj.has_previous %}
                 <a href="?page={{ page_obj.previous_page_number }}"
-                   class="snap-btn-quiet snap-display px-4 py-2 rounded-xl text-sm font-medium">Previous</a>
+                   class="snap-btn-quiet snap-display px-4 py-2 rounded-xl text-sm font-medium">{% translate "Previous" %}</a>
                 {% endif %}
                 {% if page_obj.has_next %}
                 <a href="?page={{ page_obj.next_page_number }}"
-                   class="snap-btn-teal snap-display px-4 py-2 rounded-xl text-sm font-medium">Next</a>
+                   class="snap-btn-teal snap-display px-4 py-2 rounded-xl text-sm font-medium">{% translate "Next" %}</a>
                 {% endif %}
             </div>
         </div>
@@ -293,22 +294,20 @@
         {% else %}
 
         <div class="snap-card rounded-2xl p-16 text-center">
-            <h2 class="snap-display text-2xl font-semibold snap-text-navy mb-3">Nothing here yet</h2>
+            <h2 class="snap-display text-2xl font-semibold snap-text-navy mb-3">{% translate "Nothing here yet" %}</h2>
             {% if SCHOLR_PURCHASES_ENABLED %}
             <p class="snap-text-muted mb-8 max-w-sm mx-auto leading-relaxed">
-                Courses you enrol in will appear here with your progress. Browsing and
-                studying cost nothing.
+                {% translate "Courses you enrol in will appear here with your progress. Browsing and studying cost nothing." %}
             </p>
             {% else %}
             <p class="snap-text-muted max-w-sm mx-auto leading-relaxed">
-                Your courses will appear here once your training location gives you online access.
-                Speak to your coordinator if you are expecting them.
+                {% translate "Your courses will appear here once your training location gives you online access. Speak to your coordinator if you are expecting them." %}
             </p>
             {% endif %}
             {% if SCHOLR_PURCHASES_ENABLED %}
             <a href="{% url 'shop:catalog' %}"
                class="snap-btn-teal snap-display inline-flex items-center gap-2 px-6 py-3 font-semibold rounded-xl">
-                Browse courses
+                {% translate "Browse courses" %}
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
                 </svg>

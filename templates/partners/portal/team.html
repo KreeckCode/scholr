@@ -1,32 +1,33 @@
 {% extends 'ui/base.html' %}
+{% load i18n %}
 {% load partners_tags %}
 
 {% block title %}Team &middot; {{ location.name }}{% endblock %}
 {% block subnav %}{% include 'partners/portal/_nav.html' %}{% endblock %}
 {% block eyebrow %}{{ location.name }}{% endblock %}
 {% block heading %}Team{% endblock %}
-{% block subheading %}<p class="mt-2 text-sm p-slate">Coordinators have completed METP 100a; everyone who teaches a course has completed METP 100b.</p>{% endblock %}
-{% block actions %}{% if can_invite %}<a class="p-btn" href="{% url 'partners:member_invite' location_id=location.public_id %}">Add team member</a>{% endif %}{% endblock %}
+{% block subheading %}<p class="mt-2 text-sm p-slate">{% translate "Coordinators have completed METP 100a; everyone who teaches a course has completed METP 100b." %}</p>{% endblock %}
+{% block actions %}{% if can_invite %}<a class="p-btn" href="{% url 'partners:member_invite' location_id=location.public_id %}">{% translate "Add team member" %}</a>{% endif %}{% endblock %}
 
 {% block body %}
 {% include 'partners/_activation.html' %}
 <div class="p-card overflow-hidden">
     <div class="overflow-x-auto">
         <table class="p-table">
-            <thead><tr><th scope="col">Name</th><th scope="col">Role</th><th scope="col">Trained</th><th scope="col">Account</th>{% if can_invite %}<th scope="col"><span class="sr-only">Actions</span></th>{% endif %}</tr></thead>
+            <thead><tr><th scope="col">{% translate "Name" %}</th><th scope="col">{% translate "Role" %}</th><th scope="col">{% translate "Trained" %}</th><th scope="col">{% translate "Account" %}</th>{% if can_invite %}<th scope="col"><span class="sr-only">{% translate "Actions" %}</span></th>{% endif %}</tr></thead>
             <tbody>
                 {% for member in members %}
                 <tr class="{% if not member.is_active %}opacity-60{% endif %}">
                     <td>
                         <span class="font-semibold p-navy">{{ member.user.get_full_name }}</span>
-                        {% if can_view_contacts %}<span class="block text-xs p-muted">{{ member.user.email|default:'' }}{% if member.user.email and member.user.phone_number %} &middot; {% endif %}{{ member.user.phone_number|default:'' }}</span>{% endif %}
+                        {% if can_view_contacts %}<span class="block text-xs p-muted">{{ member.user.email|default:'' }}{% if member.user.email and member.user.phone_number %} {% translate "&middot;" %} {% endif %}{{ member.user.phone_number|default:'' }}</span>{% endif %}
                     </td>
-                    <td>{{ member.get_role_display }}</td>
+                    <td>{{ member.get_role_display|translated }}</td>
                     <td class="whitespace-nowrap">{{ member.trained_on|date:'d M Y'|default:'Not recorded' }}</td>
                     <td>
-                        {% if not member.is_active %}<span class="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-slate-700 ring-1 ring-inset ring-slate-200">Removed</span>
-                        {% elif member.awaiting_activation %}<span class="rounded-full bg-amber-50 px-2.5 py-0.5 text-xs font-semibold text-amber-800 ring-1 ring-inset ring-amber-200">Has not set a password</span>
-                        {% else %}<span class="rounded-full bg-teal-50 px-2.5 py-0.5 text-xs font-semibold text-teal-800 ring-1 ring-inset ring-teal-200">Active</span>{% endif %}
+                        {% if not member.is_active %}<span class="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-slate-700 ring-1 ring-inset ring-slate-200">{% translate "Removed" %}</span>
+                        {% elif member.awaiting_activation %}<span class="rounded-full bg-amber-50 px-2.5 py-0.5 text-xs font-semibold text-amber-800 ring-1 ring-inset ring-amber-200">{% translate "Has not set a password" %}</span>
+                        {% else %}<span class="rounded-full bg-teal-50 px-2.5 py-0.5 text-xs font-semibold text-teal-800 ring-1 ring-inset ring-teal-200">{% translate "Active" %}</span>{% endif %}
                     </td>
                     {% if can_invite %}
                     <td class="whitespace-nowrap text-right">
@@ -34,12 +35,12 @@
                         <div class="p-row-actions">
                             {% if member.awaiting_activation %}
                             <form method="post" action="{% url 'partners:member_action' location_id=location.public_id pk=member.pk action='link' %}">
-                                {% csrf_token %}<button type="submit" class="p-btn-ghost p-btn-sm">New set-password link</button>
+                                {% csrf_token %}<button type="submit" class="p-btn-ghost p-btn-sm">{% translate "New set-password link" %}</button>
                             </form>
                             {% endif %}
                             {% if member.user != request.user %}
                             <form method="post" action="{% url 'partners:member_action' location_id=location.public_id pk=member.pk action='deactivate' %}" onsubmit="return confirm('Remove {{ member.user.get_full_name|escapejs }} from this location?');">
-                                {% csrf_token %}<button type="submit" class="p-btn-danger p-btn-sm">Remove</button>
+                                {% csrf_token %}<button type="submit" class="p-btn-danger p-btn-sm">{% translate "Remove" %}</button>
                             </form>
                             {% endif %}
                         </div>
@@ -48,7 +49,7 @@
                     {% endif %}
                 </tr>
                 {% empty %}
-                <tr><td colspan="5" class="p-empty">No team members yet.{% if is_staff_viewer %} Add the location coordinator first.{% endif %}</td></tr>
+                <tr><td colspan="5" class="p-empty">{% translate "No team members yet." %}{% if is_staff_viewer %} {% translate "Add the location coordinator first." %}{% endif %}</td></tr>
                 {% endfor %}
             </tbody>
         </table>

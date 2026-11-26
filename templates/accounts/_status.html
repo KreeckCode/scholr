@@ -1,1 +1,2 @@
-{% if person.is_verified %}<span class="p-badge p-badge-good">Verified</span>{% else %}<span class="p-badge p-badge-warn">Awaiting verification</span>{% endif %}
+{% load i18n %}
+{% if person.is_verified %}<span class="p-badge p-badge-good">{% translate "Verified" %}</span>{% else %}<span class="p-badge p-badge-warn">{% translate "Awaiting verification" %}</span>{% endif %}

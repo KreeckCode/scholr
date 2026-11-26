@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Scholr (METP)\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-26 05:36+0200\n"
+"POT-Creation-Date: 2026-11-26 07:05+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: Portuguese\n"
@@ -15,25 +15,158 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: accounts/forms.py:213 accounts/forms.py:216
+#: accounts/forms.py:215 accounts/forms.py:218
 msgid "Username or phone number"
 msgstr "Nome de utilizador ou número de telefone"
 
-#: accounts/forms.py:223 accounts/forms.py:226
+#: accounts/forms.py:225 accounts/forms.py:228
 msgid "Password"
 msgstr "Palavra-passe"
 
-#: accounts/forms.py:235
+#: accounts/forms.py:237 templates/partners/portal/cohort_detail.html:39
 msgid "Keep me signed in"
 msgstr "Manter sessão iniciada"
 
-#: accounts/forms.py:242 accounts/forms.py:243
+#: accounts/forms.py:244 accounts/forms.py:245
 msgid "Username, email or phone number"
 msgstr "Nome de utilizador, e-mail ou número de telefone"
 
 #: accounts/models.py:95
 msgid "email address"
 msgstr "endereço de e-mail"
+
+#: partners/views/places.py:197
+msgid "Position and directions saved."
+msgstr "Localização e indicações guardadas."
+
+#: partners/views/places.py:222
+#, python-format
+msgid "%(title)s saved."
+msgstr "%(title)s guardado."
+
+#: partners/views/places.py:251
+#, python-format
+msgid "%(title)s cancelled."
+msgstr "%(title)s cancelado."
+
+#: partners/views/portal.py:195
+#, python-format
+msgid "%(full_name)s added."
+msgstr "%(full_name)s adicionado."
+
+#: partners/views/portal.py:259
+msgid "Participant saved."
+msgstr "Participante guardado."
+
+#: partners/views/portal.py:300
+msgid "The preview has expired. Upload the file again."
+msgstr "A pré-visualização expirou. Carregue o ficheiro novamente."
+
+#: partners/views/portal.py:322
+#, python-format
+msgid "Import stopped after %(created)s participant(s): %(message)s"
+msgstr "Importação interrompida após %(created)s participante(s): %(message)s"
+
+#: partners/views/portal.py:324
+#, python-format
+msgid "%(created)s participant(s) imported, %(skipped)s skipped."
+msgstr "%(created)s participante(s) importado(s), %(skipped)s ignorado(s)."
+
+#: partners/views/portal.py:347
+#, python-format
+msgid "%(name)s created. Add participants and sessions next."
+msgstr "%(name)s criada. A seguir, adicione participantes e sessões."
+
+#: partners/views/portal.py:409
+msgid "Cohort saved."
+msgstr "Turma guardada."
+
+#: partners/views/portal.py:423
+msgid "Cohort status updated."
+msgstr "Estado da turma atualizado."
+
+#: partners/views/portal.py:442
+#, python-format
+msgid "%(added)s participant(s) added to %(name)s."
+msgstr "%(added)s participante(s) adicionado(s) a %(name)s."
+
+#: partners/views/portal.py:470
+#, python-format
+msgid "%(name)s withdrawn from the cohort."
+msgstr "%(name)s retirado da turma."
+
+#: partners/views/portal.py:475
+#, python-format
+msgid "Online access for %(name)s is being set up in Moodle."
+msgstr "O acesso online de %(name)s está a ser configurado no Moodle."
+
+#: partners/views/portal.py:478
+#, python-format
+msgid "Online access withdrawn for %(name)s."
+msgstr "Acesso online retirado a %(name)s."
+
+#: partners/views/portal.py:502
+msgid "Session added."
+msgstr "Sessão adicionada."
+
+#: partners/views/portal.py:536
+msgid "Session saved."
+msgstr "Sessão guardada."
+
+#: partners/views/portal.py:549
+msgid "Session deleted."
+msgstr "Sessão eliminada."
+
+#: partners/views/portal.py:588
+msgid "Mark at least one participant before saving."
+msgstr "Assinale pelo menos um participante antes de guardar."
+
+#: partners/views/portal.py:594
+#, python-format
+msgid "Register saved for %(len)s participant(s)."
+msgstr "Presenças guardadas para %(len)s participante(s)."
+
+#: partners/views/portal.py:692
+msgid "Some scores are not valid percentages. Check the highlighted rows."
+msgstr ""
+"Algumas notas não são percentagens válidas. Verifique as linhas destacadas."
+
+#: partners/views/portal.py:706
+#, python-format
+msgid ""
+"Someone else changed these results while you were editing, so yours were not"
+" saved: %(names)s. Check them and save again."
+msgstr ""
+"Outra pessoa alterou estes resultados enquanto editava, por isso os seus não"
+" foram guardados: %(names)s. Verifique-os e guarde novamente."
+
+#: partners/views/portal.py:709
+#, python-format
+msgid "%(saved)s result(s) saved for %(code)s."
+msgstr "%(saved)s resultado(s) guardado(s) para %(code)s."
+
+#: partners/views/portal.py:725
+#, python-format
+msgid "%(count)s result(s) signed off for %(code)s."
+msgstr "%(count)s resultado(s) validado(s) para %(code)s."
+
+#: partners/views/portal.py:789
+#, python-format
+msgid "%(get_full_name)s added as %(get_role_display)s."
+msgstr "%(get_full_name)s adicionado como %(get_role_display)s."
+
+#: partners/views/portal.py:810
+#, python-format
+msgid "%(get_full_name)s removed from this location."
+msgstr "%(get_full_name)s removido deste local."
+
+#: partners/views/portal.py:813
+msgid "This person has already set a password."
+msgstr "Esta pessoa já definiu uma palavra-passe."
+
+#: partners/views/portal.py:843
+msgid "Conflict resolved."
+msgstr "Conflito resolvido."
 
 #: scholr/brands.py:97
 msgid ""
@@ -54,7 +187,6 @@ msgid "Updates"
 msgstr "Novidades"
 
 #: scholr/brands.py:104
-#| msgid "Overview"
 msgid "Course overview"
 msgstr "Visão geral dos cursos"
 
@@ -69,6 +201,1090 @@ msgid ""
 msgstr ""
 "Parte do departamento GlobalEd da Mission Global e das Assembleias "
 "Pentecostais do Canadá."
+
+#: scholr/i18n_catalogue.py:5
+msgid "12 months (one course a month)"
+msgstr "12 meses (um curso por mês)"
+
+#: scholr/i18n_catalogue.py:6
+msgid "3 months (one course a week)"
+msgstr "3 meses (um curso por semana)"
+
+#: scholr/i18n_catalogue.py:7
+msgid "6 months (two courses a month)"
+msgstr "6 meses (dois cursos por mês)"
+
+#: scholr/i18n_catalogue.py:8
+msgid "Absent"
+msgstr "Ausente"
+
+#: scholr/i18n_catalogue.py:9
+msgid ""
+"Accommodation nearby, road conditions, the best time of year, anything a "
+"visitor should know."
+msgstr ""
+"Alojamento próximo, estado das estradas, a melhor época do ano, tudo o que "
+"um visitante deve saber."
+
+#: scholr/i18n_catalogue.py:10 templates/accounts/dashboards/student.html:46
+#: templates/partners/portal/team.html:30
+msgid "Active"
+msgstr "Ativo"
+
+#: scholr/i18n_catalogue.py:11
+msgid "Added by staff"
+msgstr "Adicionado pela equipa"
+
+#: scholr/i18n_catalogue.py:12 templates/partners/portal/place.html:53
+msgid "Address"
+msgstr "Morada"
+
+#: scholr/i18n_catalogue.py:13
+msgid "Admin training (METP 100a)"
+msgstr "Formação de administradores (METP 100a)"
+
+#: scholr/i18n_catalogue.py:14
+msgid "Administrative Clerk"
+msgstr "Funcionário administrativo"
+
+#: scholr/i18n_catalogue.py:15
+msgid "Agreement file"
+msgstr "Ficheiro do acordo"
+
+#: scholr/i18n_catalogue.py:16
+msgid "Ambassador"
+msgstr "Embaixador"
+
+#: scholr/i18n_catalogue.py:17
+msgid "Applied"
+msgstr "Candidatura enviada"
+
+#: scholr/i18n_catalogue.py:18
+msgid "Approximate size of congregation"
+msgstr "Tamanho aproximado da congregação"
+
+#: scholr/i18n_catalogue.py:19
+msgid "Arrival contact name"
+msgstr "Nome do contacto à chegada"
+
+#: scholr/i18n_catalogue.py:20
+msgid "Arrival contact phone"
+msgstr "Telefone do contacto à chegada"
+
+#: scholr/i18n_catalogue.py:21
+msgid "Attendance"
+msgstr "Presenças"
+
+#: scholr/i18n_catalogue.py:22
+msgid "Attendees"
+msgstr "Participantes"
+
+#: scholr/i18n_catalogue.py:23
+msgid "Bible college or seminary"
+msgstr "Instituto bíblico ou seminário"
+
+#: scholr/i18n_catalogue.py:24
+msgid "Bio"
+msgstr "Biografia"
+
+#: scholr/i18n_catalogue.py:25
+msgid "Brief biography or ministry background"
+msgstr "Breve biografia ou percurso ministerial"
+
+#: scholr/i18n_catalogue.py:26
+msgid "CSV file"
+msgstr "Ficheiro CSV"
+
+#: scholr/i18n_catalogue.py:27
+msgid "Call"
+msgstr "Ligar"
+
+#: scholr/i18n_catalogue.py:28
+msgid "Cancelled"
+msgstr "Cancelado"
+
+#: scholr/i18n_catalogue.py:29
+msgid "Certificate/Diploma"
+msgstr "Certificado/Diploma"
+
+#: scholr/i18n_catalogue.py:30 templates/accounts/_profile_details.html:24
+#: templates/accounts/dashboards/student.html:89
+#: templates/partners/portal/participant_import.html:22
+#: templates/partners/portal/participant_list.html:27
+msgid "Church"
+msgstr "Igreja"
+
+#: scholr/i18n_catalogue.py:31
+msgid "Church affiliation"
+msgstr "Filiação da igreja"
+
+#: scholr/i18n_catalogue.py:32
+msgid "Church name"
+msgstr "Nome da igreja"
+
+#: scholr/i18n_catalogue.py:33
+msgid "Church or organisation"
+msgstr "Igreja ou organização"
+
+#: scholr/i18n_catalogue.py:34 templates/accounts/_profile_details.html:26
+msgid "Church size"
+msgstr "Tamanho da igreja"
+
+#: scholr/i18n_catalogue.py:35
+msgid "City"
+msgstr "Cidade"
+
+#: scholr/i18n_catalogue.py:36
+msgid "City or town"
+msgstr "Cidade ou vila"
+
+#: scholr/i18n_catalogue.py:37
+msgid "Classroom and online"
+msgstr "Presencial e online"
+
+#: scholr/i18n_catalogue.py:38
+msgid "Classroom only"
+msgstr "Apenas presencial"
+
+#: scholr/i18n_catalogue.py:39
+msgid "Closed"
+msgstr "Encerrado"
+
+#: scholr/i18n_catalogue.py:40 templates/partners/_results_grid.html:9
+#: templates/partners/portal/dashboard.html:48
+msgid "Cohort"
+msgstr "Turma"
+
+#: scholr/i18n_catalogue.py:41
+msgid ""
+"Columns: first_name, last_name, phone, email, church_name, position_title. "
+"Up to 500 rows."
+msgstr ""
+"Colunas: first_name, last_name, phone, email, church_name, position_title. "
+"Até 500 linhas."
+
+#: scholr/i18n_catalogue.py:42
+msgid "Comma-separated list of languages (e.g., English, Swahili, French)"
+msgstr ""
+"Lista de línguas separadas por vírgulas (por exemplo, inglês, suaíli, "
+"francês)"
+
+#: scholr/i18n_catalogue.py:43 templates/partners/portal/dashboard.html:48
+#: templates/shop/my_courses.html:109
+msgid "Completed"
+msgstr "Concluído"
+
+#: scholr/i18n_catalogue.py:44
+msgid "Confirmed"
+msgstr "Confirmado"
+
+#: scholr/i18n_catalogue.py:45
+msgid "Conflict"
+msgstr "Conflito"
+
+#: scholr/i18n_catalogue.py:46
+msgid "Coordinator (METP 100a)"
+msgstr "Coordenador (METP 100a)"
+
+#: scholr/i18n_catalogue.py:47 templates/accounts/_profile_details.html:15
+#: templates/partners/portal/participant_detail.html:22
+msgid "Country"
+msgstr "País"
+
+#: scholr/i18n_catalogue.py:48
+msgid "Country where pastor ministers"
+msgstr "País onde o pastor exerce o ministério"
+
+#: scholr/i18n_catalogue.py:49
+#: templates/partners/portal/participant_detail.html:44
+#: templates/shop/my_courses.html:236
+msgid "Course"
+msgstr "Curso"
+
+#: scholr/i18n_catalogue.py:50
+msgid "Course result"
+msgstr "Resultado do curso"
+
+#: scholr/i18n_catalogue.py:51
+msgid "Current ministry position (e.g., Senior Pastor, Youth Pastor)"
+msgstr ""
+"Função ministerial atual (por exemplo, pastor sénior, pastor de jovens)"
+
+#: scholr/i18n_catalogue.py:52
+msgid "Date"
+msgstr "Data"
+
+#: scholr/i18n_catalogue.py:53
+msgid "Date of birth"
+msgstr "Data de nascimento"
+
+#: scholr/i18n_catalogue.py:54
+msgid "Dean (Facilitator)"
+msgstr "Decano (facilitador)"
+
+#: scholr/i18n_catalogue.py:55 templates/partners/portal/dashboard.html:48
+msgid "Delivery"
+msgstr "Modalidade"
+
+#: scholr/i18n_catalogue.py:56
+msgid "Denomination"
+msgstr "Denominação"
+
+#: scholr/i18n_catalogue.py:57
+msgid "Denomination or network affiliation"
+msgstr "Denominação ou rede a que pertence"
+
+#: scholr/i18n_catalogue.py:58
+msgid "Details"
+msgstr "Detalhes"
+
+#: scholr/i18n_catalogue.py:59
+msgid "Document"
+msgstr "Documento"
+
+#: scholr/i18n_catalogue.py:60
+msgid "Draft"
+msgstr "Rascunho"
+
+#: scholr/i18n_catalogue.py:61 templates/accounts/_profile_details.html:35
+msgid "Education level"
+msgstr "Nível de escolaridade"
+
+#: scholr/i18n_catalogue.py:62 templates/accounts/_profile_details.html:7
+#: templates/partners/portal/participant_detail.html:20
+msgid "Email"
+msgstr "E-mail"
+
+#: scholr/i18n_catalogue.py:63
+msgid "Email address"
+msgstr "Endereço de e-mail"
+
+#: scholr/i18n_catalogue.py:64
+msgid "Email is optional - many pastors don't have regular access"
+msgstr "O e-mail é opcional - muitos pastores não têm acesso regular"
+
+#: scholr/i18n_catalogue.py:65
+msgid "Ends on"
+msgstr "Termina em"
+
+#: scholr/i18n_catalogue.py:66
+msgid "Enquiry"
+msgstr "Pedido de informação"
+
+#: scholr/i18n_catalogue.py:67 templates/partners/portal/dashboard.html:48
+#: templates/shop/my_courses.html:101
+msgid "Enrolled"
+msgstr "Inscrito"
+
+#: scholr/i18n_catalogue.py:68
+msgid "Estimated from the town name"
+msgstr "Estimado a partir do nome da localidade"
+
+#: scholr/i18n_catalogue.py:69
+msgid "Event"
+msgstr "Evento"
+
+#: scholr/i18n_catalogue.py:70
+msgid "Excused"
+msgstr "Justificado"
+
+#: scholr/i18n_catalogue.py:71
+msgid "Expected participants"
+msgstr "Participantes previstos"
+
+#: scholr/i18n_catalogue.py:72
+msgid "Expired"
+msgstr "Expirado"
+
+#: scholr/i18n_catalogue.py:73
+msgid "Facilitator"
+msgstr "Facilitador"
+
+#: scholr/i18n_catalogue.py:74
+msgid "Facilitator (METP 100b)"
+msgstr "Facilitador (METP 100b)"
+
+#: scholr/i18n_catalogue.py:75
+msgid "Facilitator training (METP 100b)"
+msgstr "Formação de facilitadores (METP 100b)"
+
+#: scholr/i18n_catalogue.py:76
+msgid "Facilitators"
+msgstr "Facilitadores"
+
+#: scholr/i18n_catalogue.py:77
+msgid "Failed"
+msgstr "Reprovado"
+
+#: scholr/i18n_catalogue.py:78
+msgid "Fee amount"
+msgstr "Valor da propina"
+
+#: scholr/i18n_catalogue.py:79
+msgid "Fee currency"
+msgstr "Moeda da propina"
+
+#: scholr/i18n_catalogue.py:80
+msgid "Fee status"
+msgstr "Estado da propina"
+
+#: scholr/i18n_catalogue.py:81
+msgid "First name"
+msgstr "Nome próprio"
+
+#: scholr/i18n_catalogue.py:82
+msgid "For sending the set-password link by WhatsApp or SMS."
+msgstr ""
+"Para enviar a ligação de definição da palavra-passe por WhatsApp ou SMS."
+
+#: scholr/i18n_catalogue.py:83
+msgid "Graduation"
+msgstr "Formatura"
+
+#: scholr/i18n_catalogue.py:84
+msgid "Head of Department"
+msgstr "Chefe de departamento"
+
+#: scholr/i18n_catalogue.py:85
+msgid "Held"
+msgstr "Realizada"
+
+#: scholr/i18n_catalogue.py:86
+msgid ""
+"Hide names from exports and offline packs, for partners in places where "
+"Christian leaders face danger."
+msgstr ""
+"Ocultar os nomes nas exportações e nos pacotes offline, para parceiros em "
+"locais onde os líderes cristãos correm perigo."
+
+#: scholr/i18n_catalogue.py:87
+msgid "Hide participant names from exports and use initials in offline packs."
+msgstr ""
+"Ocultar os nomes dos participantes nas exportações e usar iniciais nos "
+"pacotes offline."
+
+#: scholr/i18n_catalogue.py:88
+msgid "Highest level of formal education completed"
+msgstr "Nível mais alto de ensino formal concluído"
+
+#: scholr/i18n_catalogue.py:89
+msgid "Hours"
+msgstr "Horas"
+
+#: scholr/i18n_catalogue.py:90
+msgid "How many people would you like to train?"
+msgstr "Quantas pessoas gostaria de formar?"
+
+#: scholr/i18n_catalogue.py:91 templates/partners/portal/place.html:51
+msgid "How to get there"
+msgstr "Como chegar"
+
+#: scholr/i18n_catalogue.py:92
+msgid ""
+"How to get there in plain words: landmarks, which road, which bus, who to "
+"ask for."
+msgstr ""
+"Como chegar em palavras simples: pontos de referência, que estrada, que "
+"autocarro, por quem perguntar."
+
+#: scholr/i18n_catalogue.py:93
+msgid "Hub Administrator"
+msgstr "Administrador regional"
+
+#: scholr/i18n_catalogue.py:94 templates/shop/my_courses.html:105
+msgid "In progress"
+msgstr "Em curso"
+
+#: scholr/i18n_catalogue.py:95
+msgid "Incomplete (attendance)"
+msgstr "Incompleto (presenças)"
+
+#: scholr/i18n_catalogue.py:96
+msgid "International format, for example +27821234567."
+msgstr "Formato internacional, por exemplo +27821234567."
+
+#: scholr/i18n_catalogue.py:97
+msgid "Intro call"
+msgstr "Chamada de apresentação"
+
+#: scholr/i18n_catalogue.py:98
+msgid "Invoiced"
+msgstr "Faturado"
+
+#: scholr/i18n_catalogue.py:99
+msgid "Is primary"
+msgstr "Principal"
+
+#: scholr/i18n_catalogue.py:100
+msgid "Is sensitive"
+msgstr "Sensível"
+
+#: scholr/i18n_catalogue.py:101
+msgid "Kept in the role history, for example \"Now covering East Africa\"."
+msgstr ""
+"Guardado no histórico de funções, por exemplo \"Agora responsável pela "
+"África Oriental\"."
+
+#: scholr/i18n_catalogue.py:102
+msgid "Kind"
+msgstr "Tipo"
+
+#: scholr/i18n_catalogue.py:103 templates/base/_language_switcher.html:8
+msgid "Language"
+msgstr "Idioma"
+
+#: scholr/i18n_catalogue.py:104
+msgid "Languages spoken"
+msgstr "Línguas faladas"
+
+#: scholr/i18n_catalogue.py:105
+msgid "Large (201-500 members)"
+msgstr "Grande (201-500 membros)"
+
+#: scholr/i18n_catalogue.py:106
+msgid "Last day (if more than one)"
+msgstr "Último dia (se for mais de um)"
+
+#: scholr/i18n_catalogue.py:107
+msgid "Last name"
+msgstr "Apelido"
+
+#: scholr/i18n_catalogue.py:108
+msgid "Late"
+msgstr "Atrasado"
+
+#: scholr/i18n_catalogue.py:109
+msgid "Latitude"
+msgstr "Latitude"
+
+#: scholr/i18n_catalogue.py:110
+msgid "Launched"
+msgstr "Lançado"
+
+#: scholr/i18n_catalogue.py:111
+msgid "Leader (view only)"
+msgstr "Líder (só consulta)"
+
+#: scholr/i18n_catalogue.py:112
+msgid "Learner"
+msgstr "Formando"
+
+#: scholr/i18n_catalogue.py:113
+msgid "Leave blank for no limit."
+msgstr "Deixe em branco para não haver limite."
+
+#: scholr/i18n_catalogue.py:114
+msgid "Leave this empty"
+msgstr "Deixe isto vazio"
+
+#: scholr/i18n_catalogue.py:115 templates/partners/portal/dashboard.html:40
+msgid "Licence"
+msgstr "Licença"
+
+#: scholr/i18n_catalogue.py:116
+msgid "Location details"
+msgstr "Detalhes do local"
+
+#: scholr/i18n_catalogue.py:117
+msgid "Longitude"
+msgstr "Longitude"
+
+#: scholr/i18n_catalogue.py:118
+msgid "Lost"
+msgstr "Perdido"
+
+#: scholr/i18n_catalogue.py:119
+msgid "METP 100a for coordinators, METP 100b for facilitators."
+msgstr "METP 100a para coordenadores, METP 100b para facilitadores."
+
+#: scholr/i18n_catalogue.py:120
+msgid "METP staff member responsible for the next step."
+msgstr "Membro da equipa METP responsável pelo próximo passo."
+
+#: scholr/i18n_catalogue.py:121
+msgid "METP staff travelling to this event."
+msgstr "Equipa METP que se desloca a este evento."
+
+#: scholr/i18n_catalogue.py:122
+msgid "Max locations"
+msgstr "Máximo de locais"
+
+#: scholr/i18n_catalogue.py:123
+msgid "Medium (51-200 members)"
+msgstr "Média (51-200 membros)"
+
+#: scholr/i18n_catalogue.py:124
+msgid "Mega Church (500+ members)"
+msgstr "Mega-igreja (500+ membros)"
+
+#: scholr/i18n_catalogue.py:125
+msgid "Ministry organisation"
+msgstr "Organização ministerial"
+
+#: scholr/i18n_catalogue.py:126
+msgid "Move to"
+msgstr "Mover para"
+
+#: scholr/i18n_catalogue.py:127
+#: templates/partners/portal/cohort_detail.html:53
+#: templates/partners/portal/participant_import.html:22
+#: templates/partners/portal/participant_list.html:26
+#: templates/partners/portal/team.html:17
+msgid "Name"
+msgstr "Nome"
+
+#: scholr/i18n_catalogue.py:128
+msgid "Name of church or ministry"
+msgstr "Nome da igreja ou ministério"
+
+#: scholr/i18n_catalogue.py:129 templates/partners/portal/place.html:54
+msgid "Nearest airport"
+msgstr "Aeroporto mais próximo"
+
+#: scholr/i18n_catalogue.py:130
+msgid "New participant"
+msgstr "Novo participante"
+
+#: scholr/i18n_catalogue.py:131
+msgid "New role"
+msgstr "Nova função"
+
+#: scholr/i18n_catalogue.py:132
+msgid "Next action"
+msgstr "Próxima ação"
+
+#: scholr/i18n_catalogue.py:133
+msgid "Next action due"
+msgstr "Prazo da próxima ação"
+
+#: scholr/i18n_catalogue.py:134
+msgid "No Formal Education"
+msgstr "Sem educação formal"
+
+#: scholr/i18n_catalogue.py:135
+msgid "Not invoiced"
+msgstr "Não faturado"
+
+#: scholr/i18n_catalogue.py:136
+msgid "Note"
+msgstr "Nota"
+
+#: scholr/i18n_catalogue.py:137
+msgid "Notes"
+msgstr "Notas"
+
+#: scholr/i18n_catalogue.py:138
+msgid "Only if it is not at the training location itself."
+msgstr "Só se não for no próprio local de formação."
+
+#: scholr/i18n_catalogue.py:139
+msgid "Optional profile photo"
+msgstr "Fotografia de perfil opcional"
+
+#: scholr/i18n_catalogue.py:140
+msgid "Or paste coordinates or a map link"
+msgstr "Ou cole coordenadas ou uma ligação do mapa"
+
+#: scholr/i18n_catalogue.py:141
+msgid "Other"
+msgstr "Outro"
+
+#: scholr/i18n_catalogue.py:142
+msgid "Owner"
+msgstr "Responsável"
+
+#: scholr/i18n_catalogue.py:143
+msgid "Pace"
+msgstr "Ritmo"
+
+#: scholr/i18n_catalogue.py:144
+msgid "Paid"
+msgstr "Pago"
+
+#: scholr/i18n_catalogue.py:145
+msgid "Parent / Guardian"
+msgstr "Pai / encarregado de educação"
+
+#: scholr/i18n_catalogue.py:146
+msgid "Partner Staff"
+msgstr "Equipa do parceiro"
+
+#: scholr/i18n_catalogue.py:147
+msgid "Partnership strategy"
+msgstr "Estratégia de parceria"
+
+#: scholr/i18n_catalogue.py:148 templates/partners/_results_grid.html:61
+#: templates/partners/portal/cohort_detail.html:55
+msgid "Passed"
+msgstr "Aprovado"
+
+#: scholr/i18n_catalogue.py:149
+msgid "Pasted coordinates or link"
+msgstr "Coordenadas ou ligação coladas"
+
+#: scholr/i18n_catalogue.py:150
+msgid "Paused"
+msgstr "Em pausa"
+
+#: scholr/i18n_catalogue.py:151
+#: templates/partners/portal/participant_detail.html:19
+#: templates/partners/portal/participant_import.html:22
+#: templates/partners/portal/participant_list.html:28
+msgid "Phone"
+msgstr "Telefone"
+
+#: scholr/i18n_catalogue.py:152 templates/accounts/_profile_details.html:6
+#: templates/accounts/dashboards/student.html:91
+msgid "Phone number"
+msgstr "Número de telefone"
+
+#: scholr/i18n_catalogue.py:153
+msgid "Phone or laptop position"
+msgstr "Localização do telemóvel ou computador"
+
+#: scholr/i18n_catalogue.py:154
+msgid "Placed on the map"
+msgstr "Colocado no mapa"
+
+#: scholr/i18n_catalogue.py:155
+msgid ""
+"Plain coordinates, or a full Google Maps, Apple Maps or OpenStreetMap "
+"address."
+msgstr ""
+"Coordenadas simples, ou um endereço completo do Google Maps, Apple Maps ou "
+"OpenStreetMap."
+
+#: scholr/i18n_catalogue.py:156
+msgid "Planned"
+msgstr "Planeado"
+
+#: scholr/i18n_catalogue.py:157
+msgid "Planned end date"
+msgstr "Data de fim prevista"
+
+#: scholr/i18n_catalogue.py:158
+msgid "Position source"
+msgstr "Origem da localização"
+
+#: scholr/i18n_catalogue.py:159
+msgid "Position title"
+msgstr "Cargo"
+
+#: scholr/i18n_catalogue.py:160
+msgid "Postgraduate Degree"
+msgstr "Pós-graduação"
+
+#: scholr/i18n_catalogue.py:161
+msgid "Preparing"
+msgstr "Em preparação"
+
+#: scholr/i18n_catalogue.py:162
+msgid "Present"
+msgstr "Presente"
+
+#: scholr/i18n_catalogue.py:163
+msgid "Primary Education"
+msgstr "Ensino primário"
+
+#: scholr/i18n_catalogue.py:164
+msgid "Principal"
+msgstr "Diretor"
+
+#: scholr/i18n_catalogue.py:165
+msgid "Profile photo"
+msgstr "Fotografia de perfil"
+
+#: scholr/i18n_catalogue.py:166
+msgid "Programme Staff"
+msgstr "Equipa do programa"
+
+#: scholr/i18n_catalogue.py:167
+msgid "Reason"
+msgstr "Motivo"
+
+#: scholr/i18n_catalogue.py:168
+msgid "Reason (optional)"
+msgstr "Motivo (opcional)"
+
+#: scholr/i18n_catalogue.py:169
+msgid "Referral"
+msgstr "Recomendação"
+
+#: scholr/i18n_catalogue.py:170 templates/accounts/_profile_details.html:16
+msgid "Region"
+msgstr "Região"
+
+#: scholr/i18n_catalogue.py:171
+msgid "Region/Province/State within country"
+msgstr "Região/província/estado do país"
+
+#: scholr/i18n_catalogue.py:172
+msgid "Rejected"
+msgstr "Rejeitado"
+
+#: scholr/i18n_catalogue.py:173
+msgid "Remove the map position"
+msgstr "Remover a localização do mapa"
+
+#: scholr/i18n_catalogue.py:174
+msgid "Required when skipping a stage, stepping back, or marking as lost."
+msgstr "Obrigatório ao saltar uma etapa, recuar ou marcar como perdido."
+
+#: scholr/i18n_catalogue.py:175 templates/partners/portal/dashboard.html:32
+msgid "Review"
+msgstr "Análise"
+
+#: scholr/i18n_catalogue.py:176 templates/accounts/_account_card.html:5
+#: templates/partners/portal/team.html:17
+msgid "Role"
+msgstr "Função"
+
+#: scholr/i18n_catalogue.py:177
+msgid "Role title"
+msgstr "Designação da função"
+
+#: scholr/i18n_catalogue.py:178
+msgid "Running"
+msgstr "Em curso"
+
+#: scholr/i18n_catalogue.py:179
+msgid "Secondary Education"
+msgstr "Ensino secundário"
+
+#: scholr/i18n_catalogue.py:180
+msgid "Session date"
+msgstr "Data da sessão"
+
+#: scholr/i18n_catalogue.py:181
+msgid "Signed on"
+msgstr "Assinado em"
+
+#: scholr/i18n_catalogue.py:182
+msgid "Small (1-50 members)"
+msgstr "Pequena (1-50 membros)"
+
+#: scholr/i18n_catalogue.py:183
+msgid "Source"
+msgstr "Origem"
+
+#: scholr/i18n_catalogue.py:184
+msgid "Staff visit"
+msgstr "Visita da equipa"
+
+#: scholr/i18n_catalogue.py:185
+msgid "Stage change"
+msgstr "Mudança de etapa"
+
+#: scholr/i18n_catalogue.py:186
+msgid "Start time"
+msgstr "Hora de início"
+
+#: scholr/i18n_catalogue.py:187
+msgid "Start time on the first day, local time."
+msgstr "Hora de início no primeiro dia, hora local."
+
+#: scholr/i18n_catalogue.py:188
+msgid "Starts on"
+msgstr "Começa em"
+
+#: scholr/i18n_catalogue.py:189
+#: templates/partners/portal/cohort_detail.html:54
+#: templates/partners/portal/dashboard.html:48
+msgid "Status"
+msgstr "Estado"
+
+#: scholr/i18n_catalogue.py:190
+msgid "Student (Pastor)"
+msgstr "Estudante (pastor)"
+
+#: scholr/i18n_catalogue.py:191
+msgid "Superseded by a newer change"
+msgstr "Substituído por uma alteração mais recente"
+
+#: scholr/i18n_catalogue.py:192
+msgid "Suspended"
+msgstr "Suspenso"
+
+#: scholr/i18n_catalogue.py:193
+msgid "System Administrator"
+msgstr "Administrador do sistema"
+
+#: scholr/i18n_catalogue.py:194
+msgid "Teacher"
+msgstr "Professor"
+
+#: scholr/i18n_catalogue.py:195
+msgid "Tell us about your ministry"
+msgstr "Fale-nos do seu ministério"
+
+#: scholr/i18n_catalogue.py:196
+msgid "Terminated"
+msgstr "Rescindido"
+
+#: scholr/i18n_catalogue.py:197
+msgid "The cohort graduating or being visited, if there is one."
+msgstr "A turma que termina ou é visitada, se houver."
+
+#: scholr/i18n_catalogue.py:198
+msgid "The signed agreement, as a PDF of up to 10 MB."
+msgstr "O acordo assinado, em PDF, até 10 MB."
+
+#: scholr/i18n_catalogue.py:199
+msgid "Theological Training"
+msgstr "Formação teológica"
+
+#: scholr/i18n_catalogue.py:200
+msgid "Title"
+msgstr "Título"
+
+#: scholr/i18n_catalogue.py:201
+msgid "Total years serving in ministry"
+msgstr "Total de anos de ministério"
+
+#: scholr/i18n_catalogue.py:202
+msgid "Training (METP 100a or 100b)"
+msgstr "Formação (METP 100a ou 100b)"
+
+#: scholr/i18n_catalogue.py:203
+msgid "Training completed on"
+msgstr "Formação concluída em"
+
+#: scholr/i18n_catalogue.py:204 templates/partners/portal/place.html:56
+msgid "Travel notes"
+msgstr "Notas de viagem"
+
+#: scholr/i18n_catalogue.py:205
+msgid "Type"
+msgstr "Tipo"
+
+#: scholr/i18n_catalogue.py:206
+msgid "Undergraduate Degree"
+msgstr "Licenciatura"
+
+#: scholr/i18n_catalogue.py:207
+msgid "Used for age analytics, not displayed publicly"
+msgstr "Usado para estatísticas por idade, não é mostrado publicamente"
+
+#: scholr/i18n_catalogue.py:208
+msgid "Venue"
+msgstr "Local"
+
+#: scholr/i18n_catalogue.py:209
+msgid "Village or town name"
+msgstr "Nome da aldeia ou vila"
+
+#: scholr/i18n_catalogue.py:210
+msgid "Village town"
+msgstr "Aldeia ou vila"
+
+#: scholr/i18n_catalogue.py:211
+msgid "Waived"
+msgstr "Isento"
+
+#: scholr/i18n_catalogue.py:212
+msgid "Website"
+msgstr "Sítio web"
+
+#: scholr/i18n_catalogue.py:213
+msgid "Website enquiry"
+msgstr "Pedido pelo sítio web"
+
+#: scholr/i18n_catalogue.py:214
+msgid "WhatsApp number if different from phone number"
+msgstr "Número de WhatsApp, se for diferente do telefone"
+
+#: scholr/i18n_catalogue.py:215
+msgid "Whatsapp number"
+msgstr "Número de WhatsApp"
+
+#: scholr/i18n_catalogue.py:216
+msgid "Who to phone on arrival, if not the coordinator."
+msgstr "A quem telefonar à chegada, se não for o coordenador."
+
+#: scholr/i18n_catalogue.py:217
+msgid "Withdrawn"
+msgstr "Retirado"
+
+#: scholr/i18n_catalogue.py:218 templates/accounts/_profile_details.html:28
+msgid "Years in ministry"
+msgstr "Anos de ministério"
+
+#: scholr/i18n_catalogue.py:219
+msgid "Your name"
+msgstr "O seu nome"
+
+#: scholr/i18n_catalogue.py:220
+msgid "Your role"
+msgstr "A sua função"
+
+#: templates/accounts/_account_card.html:3
+#: templates/partners/portal/team.html:17
+msgid "Account"
+msgstr "Conta"
+
+#: templates/accounts/_account_card.html:7
+msgid "Verified by"
+msgstr "Verificado por"
+
+#: templates/accounts/_account_card.html:8
+msgid "Verified on"
+msgstr "Verificado em"
+
+#: templates/accounts/_account_card.html:10
+msgid "Member since"
+msgstr "Membro desde"
+
+#: templates/accounts/_account_card.html:11
+msgid "Last signed in"
+msgstr "Último início de sessão"
+
+#: templates/accounts/_profile_details.html:3
+#: templates/accounts/profile_edit.html:15 templates/base/footer.html:130
+msgid "Contact"
+msgstr "Contacto"
+
+#: templates/accounts/_profile_details.html:5
+msgid "Username"
+msgstr "Nome de utilizador"
+
+#: templates/accounts/_profile_details.html:8
+#: templates/partners/_phone_actions.html:2
+msgid "WhatsApp"
+msgstr "WhatsApp"
+
+#: templates/accounts/_profile_details.html:13
+#: templates/accounts/dashboards/student.html:90
+#: templates/accounts/profile_edit.html:23
+msgid "Location"
+msgstr "Localização"
+
+#: templates/accounts/_profile_details.html:17
+msgid "Village or town"
+msgstr "Aldeia ou vila"
+
+#: templates/accounts/_profile_details.html:22
+#: templates/accounts/profile_edit.html:32
+msgid "Ministry"
+msgstr "Ministério"
+
+#: templates/accounts/_profile_details.html:25
+msgid "Affiliation"
+msgstr "Filiação"
+
+#: templates/accounts/_profile_details.html:27
+msgid "Position"
+msgstr "Cargo"
+
+#: templates/accounts/_profile_details.html:33
+#: templates/accounts/profile_complete.html:42
+#: templates/accounts/profile_edit.html:43
+msgid "Education and languages"
+msgstr "Escolaridade e línguas"
+
+#: templates/accounts/_profile_details.html:36
+msgid "Languages"
+msgstr "Línguas"
+
+#: templates/accounts/_profile_details.html:37
+msgid "About"
+msgstr "Sobre"
+
+#: templates/accounts/_status.html:2
+msgid "Verified"
+msgstr "Verificado"
+
+#: templates/accounts/_status.html:2
+msgid "Awaiting verification"
+msgstr "A aguardar verificação"
+
+#: templates/accounts/dashboards/student.html:9
+msgid "Open my courses"
+msgstr "Abrir os meus cursos"
+
+#: templates/accounts/dashboards/student.html:10
+msgid "My enrolments"
+msgstr "As minhas inscrições"
+
+#: templates/accounts/dashboards/student.html:16
+msgid "Your account is waiting for verification"
+msgstr "A sua conta aguarda verificação"
+
+#: templates/accounts/dashboards/student.html:17
+msgid ""
+"Your dean or training centre will confirm your details. Your courses open as"
+" soon as you are verified."
+msgstr ""
+"O seu decano ou centro de formação vai confirmar os seus dados. Os seus "
+"cursos abrem assim que for verificado."
+
+#: templates/accounts/dashboards/student.html:24
+msgid "Finish your profile"
+msgstr "Complete o seu perfil"
+
+#: templates/accounts/dashboards/student.html:25
+msgid "Your country, region, church and education level are still needed."
+msgstr ""
+"Ainda são necessários o seu país, região, igreja e nível de escolaridade."
+
+#: templates/accounts/dashboards/student.html:27
+#: templates/accounts/profile_detail.html:20
+msgid "Complete profile"
+msgstr "Completar perfil"
+
+#: templates/accounts/dashboards/student.html:33
+msgid "Your programmes"
+msgstr "Os seus programas"
+
+#: templates/accounts/dashboards/student.html:42
+#: templates/shop/my_courses.html:150
+#, python-format
+msgid "Enrolled %(created_at)s"
+msgstr "Inscrito em %(created_at)s"
+
+#: templates/accounts/dashboards/student.html:43
+#, python-format
+msgid "&middot; access until %(expires_at)s"
+msgstr "&middot; acesso até %(expires_at)s"
+
+#: templates/accounts/dashboards/student.html:46
+msgid "Access ended"
+msgstr "Acesso terminado"
+
+#: templates/accounts/dashboards/student.html:77
+msgid "You are not enrolled in anything yet"
+msgstr "Ainda não está inscrito em nada"
+
+#: templates/accounts/dashboards/student.html:78
+msgid ""
+"If you study at a training location, your coordinator gives you online "
+"access."
+msgstr ""
+"Se estuda num local de formação, o seu coordenador dá-lhe acesso online."
+
+#: templates/accounts/dashboards/student.html:78
+msgid "Browse the catalogue to find a course."
+msgstr "Explore o catálogo para encontrar um curso."
+
+#: templates/accounts/dashboards/student.html:79 templates/base/footer.html:70
+#: templates/base/footer.html:96 templates/shop/my_courses.html:310
+msgid "Browse courses"
+msgstr "Explorar cursos"
+
+#: templates/accounts/dashboards/student.html:87
+msgid "Your profile"
+msgstr "O seu perfil"
+
+#: templates/accounts/dashboards/student.html:94
+msgid "View profile"
+msgstr "Ver perfil"
+
+#: templates/accounts/dashboards/student.html:95
+#: templates/partners/portal/cohort_detail.html:20
+#: templates/partners/portal/cohort_detail.html:134
+#: templates/partners/portal/participant_detail.html:11
+#: templates/partners/portal/place.html:80
+msgid "Edit"
+msgstr "Editar"
 
 #: templates/accounts/login.html:11 templates/accounts/login.html:25
 msgid "Sign in"
@@ -105,9 +1321,60 @@ msgstr "Novo formando?"
 msgid "Start an application"
 msgstr "Iniciar uma candidatura"
 
-#: templates/base/_language_switcher.html:8
-msgid "Language"
-msgstr "Idioma"
+#: templates/accounts/profile_complete.html:10
+msgid "Profile completion"
+msgstr "Perfil preenchido"
+
+#: templates/accounts/profile_complete.html:24
+#: templates/accounts/profile_edit.html:52
+msgid "About you"
+msgstr "Sobre si"
+
+#: templates/accounts/profile_complete.html:31
+msgid "Where you serve"
+msgstr "Onde serve"
+
+#: templates/accounts/profile_complete.html:48
+msgid "Skip for now"
+msgstr "Saltar por agora"
+
+#: templates/accounts/profile_complete.html:49
+msgid "Save and continue"
+msgstr "Guardar e continuar"
+
+#: templates/accounts/profile_detail.html:10
+#: templates/accounts/profile_edit.html:6
+msgid "Edit profile"
+msgstr "Editar perfil"
+
+#: templates/accounts/profile_detail.html:17
+msgid "Your profile is not complete"
+msgstr "O seu perfil não está completo"
+
+#: templates/accounts/profile_detail.html:18
+msgid ""
+"Add your country, region, church and education level to unlock everything."
+msgstr ""
+"Adicione o seu país, região, igreja e nível de escolaridade para desbloquear"
+" tudo."
+
+#: templates/accounts/profile_edit.html:5
+msgid "My profile"
+msgstr "O meu perfil"
+
+#: templates/accounts/profile_edit.html:58
+#: templates/partners/portal/cohort_form.html:26
+#: templates/partners/portal/member_form.html:25
+#: templates/partners/portal/participant_form.html:43
+#: templates/partners/portal/participant_import.html:67
+#: templates/partners/portal/place_form.html:59
+#: templates/partners/portal/session_form.html:25
+msgid "Cancel"
+msgstr "Cancelar"
+
+#: templates/accounts/profile_edit.html:59
+msgid "Save changes"
+msgstr "Guardar alterações"
 
 #: templates/base/_language_switcher.html:15
 msgid "Change"
@@ -118,12 +1385,10 @@ msgid "Platform operational"
 msgstr "Plataforma operacional"
 
 #: templates/base/footer.html:64
-#| msgid "Create an account"
 msgid "Your account"
 msgstr "A sua conta"
 
 #: templates/base/footer.html:64
-#| msgid "My Learning"
 msgid "Learning"
 msgstr "Aprendizagem"
 
@@ -139,11 +1404,7 @@ msgstr "Aprendizagem"
 msgid "Dashboard"
 msgstr "Painel"
 
-#: templates/base/footer.html:70 templates/base/footer.html:96
-msgid "Browse courses"
-msgstr "Explorar cursos"
-
-#: templates/base/footer.html:71
+#: templates/base/footer.html:71 templates/shop/my_courses.html:78
 msgid "My learning"
 msgstr "A minha aprendizagem"
 
@@ -171,6 +1432,7 @@ msgid "Online courses"
 msgstr "Cursos online"
 
 #: templates/base/footer.html:86 templates/base/navbar.html:588
+#: templates/partners/portal/results.html:13
 msgid "Courses"
 msgstr "Cursos"
 
@@ -200,10 +1462,6 @@ msgstr "Iniciar sessão"
 #: templates/base/footer.html:104
 msgid "Create an account"
 msgstr "Criar uma conta"
-
-#: templates/base/footer.html:130
-msgid "Contact"
-msgstr "Contacto"
 
 #: templates/base/footer.html:175
 msgid "All rights reserved."
@@ -342,7 +1600,7 @@ msgstr "Relatório académico"
 msgid "Enrollment Report"
 msgstr "Relatório de inscrições"
 
-#: templates/base/navbar.html:624
+#: templates/base/navbar.html:624 templates/partners/portal/results.html:10
 msgid "Overview"
 msgstr "Visão geral"
 
@@ -366,19 +1624,279 @@ msgstr "Perfil"
 msgid "Register free"
 msgstr "Registo gratuito"
 
+#: templates/integration/_lms_portal.html:11
+msgid "LMS Portal"
+msgstr "Portal LMS"
+
+#: templates/integration/_lms_portal.html:12
+msgid "Opening&hellip;"
+msgstr "A abrir&hellip;"
+
+#: templates/integration/_lms_portal.html:23
+msgid "Opening the LMS"
+msgstr "A abrir o LMS"
+
+#: templates/integration/_lms_portal.html:24
+#: templates/integration/_lms_portal.html:63
+#: templates/integration/_lms_portal.html:82
+msgid "Close"
+msgstr "Fechar"
+
+#: templates/integration/_lms_portal.html:59
+msgid "The LMS could not be opened"
+msgstr "Não foi possível abrir o LMS"
+
+#: templates/integration/_lms_portal.html:64
+msgid "Try again"
+msgstr "Tentar novamente"
+
+#: templates/integration/_lms_portal.html:69
+msgid ""
+"The LMS has opened in a new tab. If you closed it, you can open it again."
+msgstr "O LMS abriu num novo separador. Se o fechou, pode abri-lo novamente."
+
+#: templates/integration/_lms_portal.html:71
+msgid "Done"
+msgstr "Concluído"
+
+#: templates/integration/_lms_portal.html:72
+msgid "Open again"
+msgstr "Abrir novamente"
+
+#: templates/integration/_lms_portal.html:78
+msgid "Your browser blocked the new tab"
+msgstr "O seu navegador bloqueou o novo separador"
+
+#: templates/integration/_lms_portal.html:79
+msgid "Everything is ready. Use the button below to open the LMS."
+msgstr "Está tudo pronto. Use o botão abaixo para abrir o LMS."
+
+#: templates/integration/_lms_portal.html:83
+msgid "Open the LMS"
+msgstr "Abrir o LMS"
+
+#: templates/partners/_activation.html:5
+msgid ""
+"Send this link to the person by WhatsApp or SMS. It works once, and this is "
+"the only time it is shown."
+msgstr ""
+"Envie esta ligação à pessoa por WhatsApp ou SMS. Funciona uma única vez e só"
+" é mostrada agora."
+
+#: templates/partners/_activation.html:7
+msgid "Set-password link"
+msgstr "Ligação para definir a palavra-passe"
+
+#: templates/partners/_activation.html:11
+msgid "Copy link"
+msgstr "Copiar ligação"
+
+#: templates/partners/_activation.html:11
+msgid "Copied"
+msgstr "Copiado"
+
+#: templates/partners/_field.html:22 templates/ui/_field.html:22
+msgid "Nobody to choose yet."
+msgstr "Ainda não há ninguém para escolher."
+
+#: templates/partners/_pagination.html:3 templates/ui/_pagination.html:3
+msgid "Pagination"
+msgstr "Paginação"
+
+#: templates/partners/_pagination.html:4 templates/ui/_pagination.html:4
+#, python-format
+msgid "Page %(number)s of %(num_pages)s"
+msgstr "Página %(number)s de %(num_pages)s"
+
+#: templates/partners/_pagination.html:7 templates/shop/my_courses.html:284
+#: templates/ui/_pagination.html:7
+msgid "Previous"
+msgstr "Anterior"
+
+#: templates/partners/_pagination.html:10 templates/shop/my_courses.html:288
+#: templates/ui/_pagination.html:10
+msgid "Next"
+msgstr "Seguinte"
+
+#: templates/partners/_results_grid.html:8
+#: templates/partners/portal/results.html:34
+msgid "Participant"
+msgstr "Participante"
+
+#: templates/partners/_results_grid.html:28
+#: templates/partners/portal/results.html:44
+msgid "No online results"
+msgstr "Sem resultados online"
+
+#: templates/partners/_results_grid.html:30
+#: templates/partners/portal/results.html:59
+msgid "No quizzes"
+msgstr "Sem questionários"
+
+#: templates/partners/_results_grid.html:34
+#, python-format
+msgid "%(quizzes_attempted)s of %(quizzes_total)s"
+msgstr "%(quizzes_attempted)s de %(quizzes_total)s"
+
+#: templates/partners/_results_grid.html:35
+#: templates/partners/portal/results.html:55
+#, python-format
+msgid "averaging %(attempted_percentage)s%%"
+msgstr "média de %(attempted_percentage)s%%"
+
+#: templates/partners/_results_grid.html:37
+#: templates/partners/portal/results.html:57
+msgid "Not started"
+msgstr "Não iniciado"
+
+#: templates/partners/_results_grid.html:43
+msgid "No result yet"
+msgstr "Ainda sem resultado"
+
+#: templates/partners/_results_grid.html:47
+#: templates/partners/portal/participant_detail.html:44
+#: templates/partners/portal/results.html:69
+msgid "Signed off"
+msgstr "Validado"
+
+#: templates/partners/_results_grid.html:55
+msgid "No participants match."
+msgstr "Nenhum participante corresponde."
+
+#: templates/partners/_results_grid.html:61
+msgid "online"
+msgstr "online"
+
+#: templates/partners/_results_grid.html:72
+#, python-format
+msgid ""
+"Online scores count unattempted quizzes as zero. A course is passed online "
+"once every quiz is attempted and the overall score is %(pass_mark)s%% or "
+"more. Partly finished courses show how many quizzes are done and the average"
+" so far."
+msgstr ""
+"As notas online contam os questionários não tentados como zero. Um curso "
+"fica aprovado online quando todos os questionários foram tentados e a nota "
+"global é de %(pass_mark)s%% ou mais. Os cursos em parte concluídos mostram "
+"quantos questionários estão feitos e a média até agora."
+
+#: templates/partners/_results_grid.html:74
+msgid ""
+"Programme results are the scores recorded by the location and include the "
+"classroom attendance requirement."
+msgstr ""
+"Os resultados do programa são as notas registadas pelo local e incluem o "
+"requisito de presença nas aulas."
+
+#: templates/partners/_results_toolbar.html:3
+msgid "Which results"
+msgstr "Que resultados"
+
+#: templates/partners/_results_toolbar.html:4
+#: templates/partners/_results_toolbar.html:14
+msgid "Programme results"
+msgstr "Resultados do programa"
+
+#: templates/partners/_results_toolbar.html:5
+#: templates/partners/_results_toolbar.html:14
+msgid "Online quiz results"
+msgstr "Resultados dos questionários online"
+
+#: templates/partners/_results_toolbar.html:10
+msgid "Export to spreadsheet"
+msgstr "Exportar para folha de cálculo"
+
+#: templates/partners/_results_toolbar.html:13
+msgid "Everything shown, one sheet"
+msgstr "Tudo o que está visível, uma folha"
+
+#: templates/partners/_results_toolbar.html:13
+msgid "This cohort"
+msgstr "Esta turma"
+
+#: templates/partners/_results_toolbar.html:14
+msgid ", with a summary"
+msgstr ", com um resumo"
+
+#: templates/partners/_results_toolbar.html:18
+msgid "A sheet per partner"
+msgstr "Uma folha por parceiro"
+
+#: templates/partners/_results_toolbar.html:19
+msgid "Each partner's participants on their own sheet"
+msgstr "Os participantes de cada parceiro na sua própria folha"
+
+#: templates/partners/_results_toolbar.html:22
+msgid "A sheet per cohort"
+msgstr "Uma folha por turma"
+
+#: templates/partners/_results_toolbar.html:23
+msgid "Each cohort on its own sheet"
+msgstr "Cada turma na sua própria folha"
+
+#: templates/partners/_results_toolbar.html:33
+#, python-format
+msgid "Updated %(online_synced_at)s ago"
+msgstr "Atualizado há %(online_synced_at)s"
+
+#: templates/partners/_results_toolbar.html:33
+msgid "Not fetched from the LMS yet"
+msgstr "Ainda não obtido do LMS"
+
+#: templates/partners/_results_toolbar.html:34
+msgid "Refresh from LMS"
+msgstr "Atualizar a partir do LMS"
+
+#: templates/partners/offline/app.html:9
+#, python-format
+msgid "Offline registers &mdash; %(name)s"
+msgstr "Registos offline &mdash; %(name)s"
+
+#: templates/partners/offline/app.html:19
+msgid "offline"
+msgstr "offline"
+
+#: templates/partners/offline/app.html:21
+msgid "Portal"
+msgstr "Portal"
+
+#: templates/partners/offline/app.html:27
+msgid "Loading..."
+msgstr "A carregar..."
+
+#: templates/partners/offline/app.html:30
+msgid "The offline register needs JavaScript."
+msgstr "O registo offline precisa de JavaScript."
+
+#: templates/partners/portal/_nav.html:5
+#, python-format
+msgid ""
+"You are viewing %(name)s as programme staff. Cohorts and participants are "
+"read-only for you; you can update its position, directions and events."
+msgstr ""
+"Está a ver %(name)s como equipa do programa. As turmas e os participantes "
+"são só de consulta para si; pode atualizar a localização, as indicações e os"
+" eventos."
+
 #: templates/partners/portal/_nav.html:6
 msgid "Back to the network"
 msgstr "Voltar à rede"
 
 #: templates/partners/portal/_nav.html:10
+#: templates/partners/portal/dashboard.html:38
+#: templates/partners/portal/dashboard.html:45
+#: templates/partners/portal/participant_list.html:29
 msgid "Cohorts"
 msgstr "Turmas"
 
 #: templates/partners/portal/_nav.html:11
+#: templates/partners/portal/cohort_detail.html:46
+#: templates/partners/portal/dashboard.html:37
 msgid "Participants"
 msgstr "Participantes"
 
 #: templates/partners/portal/_nav.html:12
+#: templates/partners/portal/dashboard.html:39
 msgid "Team"
 msgstr "Equipa"
 
@@ -394,10 +1912,928 @@ msgstr "Conflitos offline"
 msgid "Offline app"
 msgstr "Aplicação offline"
 
+#: templates/partners/portal/cohort_detail.html:14
+#, python-format
+msgid "From %(starts_on)s"
+msgstr "A partir de %(starts_on)s"
+
+#: templates/partners/portal/cohort_detail.html:18
 #: templates/partners/staff/_nav.html:8
 msgid "Results"
 msgstr "Resultados"
 
+#: templates/partners/portal/cohort_detail.html:19
+msgid "Prepare for offline"
+msgstr "Preparar para offline"
+
+#: templates/partners/portal/cohort_detail.html:24
+msgid "Start cohort"
+msgstr "Iniciar turma"
+
+#: templates/partners/portal/cohort_detail.html:29
+msgid "Complete cohort"
+msgstr "Concluir turma"
+
+#: templates/partners/portal/cohort_detail.html:39
+msgid "To take registers without signal, sign out and sign in again with"
+msgstr ""
+"Para registar presenças sem rede, termine a sessão e inicie-a novamente com"
+
+#: templates/partners/portal/cohort_detail.html:39
+msgid "ticked, then press Prepare for offline."
+msgstr "assinalado e depois prima Preparar para offline."
+
+#: templates/partners/portal/cohort_detail.html:47
+msgid "Register someone new"
+msgstr "Registar uma pessoa nova"
+
+#: templates/partners/portal/cohort_detail.html:56
+msgid "Online"
+msgstr "Online"
+
+#: templates/partners/portal/cohort_detail.html:57
+#: templates/partners/portal/team.html:17
+msgid "Actions"
+msgstr "Ações"
+
+#: templates/partners/portal/cohort_detail.html:73
+msgid "Give online access"
+msgstr "Dar acesso online"
+
+#: templates/partners/portal/cohort_detail.html:77
+msgid "Withdraw access"
+msgstr "Retirar acesso"
+
+#: templates/partners/portal/cohort_detail.html:83
+msgid "Withdraw"
+msgstr "Retirar"
+
+#: templates/partners/portal/cohort_detail.html:91
+msgid "No participants yet."
+msgstr "Ainda não há participantes."
+
+#: templates/partners/portal/cohort_detail.html:100
+#, python-format
+msgid "Add existing participants (%(available_participants)s)"
+msgstr "Adicionar participantes existentes (%(available_participants)s)"
+
+#: templates/partners/portal/cohort_detail.html:110
+msgid "Add to cohort"
+msgstr "Adicionar à turma"
+
+#: templates/partners/portal/cohort_detail.html:118
+msgid "Sessions"
+msgstr "Sessões"
+
+#: templates/partners/portal/cohort_detail.html:119
+msgid "Add session"
+msgstr "Adicionar sessão"
+
+#: templates/partners/portal/cohort_detail.html:127
+#: templates/partners/portal/dashboard.html:75
+#, python-format
+msgid "&middot; %(get_full_name)s"
+msgstr "&middot; %(get_full_name)s"
+
+#: templates/partners/portal/cohort_detail.html:127
+#, python-format
+msgid "&middot; %(marks)s marked"
+msgstr "&middot; %(marks)s registado(s)"
+
+#: templates/partners/portal/cohort_detail.html:132
+msgid "Take register"
+msgstr "Registar presenças"
+
+#: templates/partners/portal/cohort_detail.html:132
+msgid "View register"
+msgstr "Ver registo"
+
+#: templates/partners/portal/cohort_detail.html:133
+msgid "Print register"
+msgstr "Imprimir registo"
+
+#: templates/partners/portal/cohort_detail.html:138
+msgid "No sessions yet."
+msgstr "Ainda não há sessões."
+
+#: templates/partners/portal/cohort_detail.html:142
+msgid "Facilitators:"
+msgstr "Facilitadores:"
+
+#: templates/partners/portal/cohort_detail.html:150
+msgid "Cancel this cohort"
+msgstr "Cancelar esta turma"
+
+#: templates/partners/portal/cohort_form.html:9
+msgid ""
+"A cohort is one class moving through the twelve courses together. Choose "
+"blended delivery if participants will also study online in Moodle."
+msgstr ""
+"Uma turma é uma classe que percorre os doze cursos em conjunto. Escolha o "
+"regime misto se os participantes também vão estudar online no Moodle."
+
+#: templates/partners/portal/cohort_form.html:25
+#: templates/partners/portal/event_form.html:40
+#: templates/partners/portal/participant_form.html:42
+#: templates/partners/portal/place_form.html:60
+#: templates/partners/portal/session_form.html:24
+msgid "Save"
+msgstr "Guardar"
+
+#: templates/partners/portal/conflicts.html:9
+msgid ""
+"A result entered on a device without signal was based on a copy someone has "
+"since changed. Choose which score to keep."
+msgstr ""
+"Um resultado introduzido num dispositivo sem rede baseou-se numa cópia que "
+"alguém entretanto alterou. Escolha a nota a manter."
+
+#: templates/partners/portal/conflicts.html:18
+#, python-format
+msgid "Sent by %(get_full_name)s on %(received_at)s"
+msgstr "Enviado por %(get_full_name)s em %(received_at)s"
+
+#: templates/partners/portal/conflicts.html:18
+#, python-format
+msgid ", entered %(recorded_at)s"
+msgstr ", introduzido em %(recorded_at)s"
+
+#: templates/partners/portal/conflicts.html:21
+msgid "Now saved"
+msgstr "Guardado atualmente"
+
+#: templates/partners/portal/conflicts.html:22
+msgid "From the device"
+msgstr "Do dispositivo"
+
+#: templates/partners/portal/conflicts.html:28
+msgid "Keep the saved score"
+msgstr "Manter a nota guardada"
+
+#: templates/partners/portal/conflicts.html:32
+msgid "Use the device's score"
+msgstr "Usar a nota do dispositivo"
+
+#: templates/partners/portal/conflicts.html:37
+msgid "Nothing to resolve. Every offline change has been applied."
+msgstr "Nada a resolver. Todas as alterações offline foram aplicadas."
+
+#: templates/partners/portal/dashboard.html:10
+#, python-format
+msgid "%(country_name)s &middot; Teaching in %(language)s"
+msgstr "%(country_name)s &middot; Ensino em %(language)s"
+
+#: templates/partners/portal/dashboard.html:14
+msgid "New cohort"
+msgstr "Nova turma"
+
+#: templates/partners/portal/dashboard.html:15
+msgid "Edit location"
+msgstr "Editar local"
+
+#: templates/partners/portal/dashboard.html:21
+#, python-format
+msgid "Licence %(number)s is %(get_status_display)s"
+msgstr "A licença %(number)s está %(get_status_display)s"
+
+#: templates/partners/portal/dashboard.html:21
+msgid "but outside its dates"
+msgstr "mas fora das datas"
+
+#: templates/partners/portal/dashboard.html:21
+msgid ""
+". New cohorts, new participants and online access are paused until it is "
+"active. Contact the METP team."
+msgstr ""
+". Novas turmas, novos participantes e o acesso online ficam em pausa até "
+"estar ativa. Contacte a equipa METP."
+
+#: templates/partners/portal/dashboard.html:25
+#, python-format
+msgid ""
+"Licence %(number)s ends on %(ends_on)s, in %(licence_days)s "
+"day%(licence_days2)s. Talk to the METP team about renewal."
+msgstr ""
+"A licença %(number)s termina em %(ends_on)s, daqui a %(licence_days)s "
+"dia%(licence_days2)s. Fale com a equipa METP sobre a renovação."
+
+#: templates/partners/portal/dashboard.html:31
+#, python-format
+msgid ""
+"offline change%(open_conflicts)s need%(open_conflicts2)s your decision."
+msgstr ""
+"alteração%(open_conflicts)s offline aguarda%(open_conflicts2)s a sua "
+"decisão."
+
+#: templates/partners/portal/dashboard.html:52
+#, python-format
+msgid "Started %(starts_on)s &middot; %(get_pace_months_display)s"
+msgstr "Iniciada em %(starts_on)s &middot; %(get_pace_months_display)s"
+
+#: templates/partners/portal/dashboard.html:59
+msgid "No cohorts yet. Create the first one to start with METP 101."
+msgstr "Ainda não há turmas. Crie a primeira para começar com o METP 101."
+
+#: templates/partners/portal/dashboard.html:59
+msgid "You are not assigned to a cohort here yet."
+msgstr "Ainda não está atribuído a nenhuma turma aqui."
+
+#: templates/partners/portal/dashboard.html:67
+msgid "Coming up"
+msgstr "Próximas"
+
+#: templates/partners/portal/dashboard.html:78
+msgid "No sessions scheduled."
+msgstr "Sem sessões agendadas."
+
+#: templates/partners/portal/event_form.html:8
+#, python-format
+msgid "Edit %(title)s"
+msgstr "Editar %(title)s"
+
+#: templates/partners/portal/event_form.html:8
+msgid "Add an event"
+msgstr "Adicionar evento"
+
+#: templates/partners/portal/event_form.html:9
+msgid ""
+"Graduations and visits show on the network map, so METP staff can plan their"
+" travel."
+msgstr ""
+"As formaturas e as visitas aparecem no mapa da rede, para que a equipa METP "
+"possa planear as deslocações."
+
+#: templates/partners/portal/event_form.html:15
+msgid "Cancel event"
+msgstr "Cancelar evento"
+
+#: templates/partners/portal/event_form.html:39
+msgid "Back"
+msgstr "Voltar"
+
+#: templates/partners/portal/home.html:23
+msgid ""
+"Your account is not linked to a training location. Ask your coordinator to "
+"add you, or contact the METP team at"
+msgstr ""
+"A sua conta não está ligada a nenhum local de formação. Peça ao seu "
+"coordenador que o adicione, ou contacte a equipa METP em"
+
+#: templates/partners/portal/member_form.html:9
+msgid ""
+"They get an account with no password. You will see a one-time link to send "
+"them so they can choose their own."
+msgstr ""
+"Recebem uma conta sem palavra-passe. Verá uma ligação de utilização única "
+"para lhes enviar, para escolherem a sua."
+
+#: templates/partners/portal/member_form.html:24
+msgid "Add to team"
+msgstr "Adicionar à equipa"
+
+#: templates/partners/portal/participant_detail.html:19
+#: templates/partners/portal/participant_detail.html:20
+msgid "Not given"
+msgstr "Não indicado"
+
+#: templates/partners/portal/participant_detail.html:23
+msgid "Online account"
+msgstr "Conta online"
+
+#: templates/partners/portal/participant_detail.html:23
+msgid "None"
+msgstr "Nenhum"
+
+#: templates/partners/portal/participant_detail.html:24
+msgid "Registered"
+msgstr "Registado"
+
+#: templates/partners/portal/participant_detail.html:24
+msgid "(offline)"
+msgstr "(offline)"
+
+#: templates/partners/portal/participant_detail.html:35
+#, python-format
+msgid "Joined %(joined_on)s"
+msgstr "Entrou em %(joined_on)s"
+
+#: templates/partners/portal/participant_detail.html:35
+#, python-format
+msgid "&middot; %(attendance_rate)s%% attendance"
+msgstr "&middot; %(attendance_rate)s%% de presenças"
+
+#: templates/partners/portal/participant_detail.html:44
+msgid "Exam"
+msgstr "Exame"
+
+#: templates/partners/portal/participant_detail.html:44
+#: templates/partners/portal/results.html:34
+msgid "Result"
+msgstr "Resultado"
+
+#: templates/partners/portal/participant_detail.html:51
+msgid "Not yet"
+msgstr "Ainda não"
+
+#: templates/partners/portal/participant_detail.html:54
+msgid "No results recorded yet."
+msgstr "Ainda não há resultados registados."
+
+#: templates/partners/portal/participant_detail.html:62
+msgid "Not enrolled in a cohort you can see."
+msgstr "Não está inscrito numa turma que possa ver."
+
+#: templates/partners/portal/participant_form.html:9
+#, python-format
+msgid "They will be enrolled in %(name)s once saved."
+msgstr "Ficarão inscritos em %(name)s depois de guardar."
+
+#: templates/partners/portal/participant_form.html:19
+msgid "This might be someone already registered here"
+msgstr "Pode ser alguém já registado aqui"
+
+#: templates/partners/portal/participant_form.html:27
+msgid "This is a different person, add them anyway"
+msgstr "É outra pessoa, adicionar mesmo assim"
+
+#: templates/partners/portal/participant_import.html:9
+msgid ""
+"Upload a CSV saved from Excel or Google Sheets. You will see every row "
+"before anything is saved."
+msgstr ""
+"Carregue um CSV guardado a partir do Excel ou do Google Sheets. Verá todas "
+"as linhas antes de qualquer coisa ser guardada."
+
+#: templates/partners/portal/participant_import.html:18
+#, python-format
+msgid "of %(preview)s row%(preview2)s can be imported."
+msgstr "de %(preview)s linha%(preview2)s podem ser importadas."
+
+#: templates/partners/portal/participant_import.html:22
+msgid "Line"
+msgstr "Linha"
+
+#: templates/partners/portal/participant_import.html:22
+msgid "Check"
+msgstr "Verificação"
+
+#: templates/partners/portal/participant_import.html:32
+msgid "Possible duplicate"
+msgstr "Possível duplicado"
+
+#: templates/partners/portal/participant_import.html:33
+msgid "Ready"
+msgstr "Pronto"
+
+#: templates/partners/portal/participant_import.html:43
+msgid "Also enrol them in"
+msgstr "Inscrevê-los também em"
+
+#: templates/partners/portal/participant_import.html:45
+msgid "No cohort for now"
+msgstr "Nenhuma turma por agora"
+
+#: templates/partners/portal/participant_import.html:51
+msgid "Skip possible duplicates"
+msgstr "Ignorar possíveis duplicados"
+
+#: templates/partners/portal/participant_import.html:54
+#, python-format
+msgid "Import %(valid_count)s participant%(valid_count2)s"
+msgstr "Importar %(valid_count)s participante%(valid_count2)s"
+
+#: templates/partners/portal/participant_import.html:55
+msgid "Start again"
+msgstr "Recomeçar"
+
+#: templates/partners/portal/participant_import.html:64
+msgid "first_name,last_name,phone,email,church_name,position_title"
+msgstr "first_name,last_name,phone,email,church_name,position_title"
+
+#: templates/partners/portal/participant_import.html:64
+msgid "Grace,Mokoena,+27821234567,,Living Word Church,Youth pastor"
+msgstr "Grace,Mokoena,+27821234567,,Living Word Church,Youth pastor"
+
+#: templates/partners/portal/participant_import.html:66
+msgid "Preview"
+msgstr "Pré-visualizar"
+
+#: templates/partners/portal/participant_list.html:10
+msgid "Add participant"
+msgstr "Adicionar participante"
+
+#: templates/partners/portal/participant_list.html:11
+msgid "Import CSV"
+msgstr "Importar CSV"
+
+#: templates/partners/portal/participant_list.html:16
+msgid "Search participants"
+msgstr "Pesquisar participantes"
+
+#: templates/partners/portal/participant_list.html:17
+msgid "Search by name or church"
+msgstr "Pesquisar por nome ou igreja"
+
+#: templates/partners/portal/participant_list.html:18
+msgid "Search"
+msgstr "Pesquisar"
+
+#: templates/partners/portal/participant_list.html:41
+msgid "Not in a cohort"
+msgstr "Sem turma"
+
+#: templates/partners/portal/participant_list.html:45
+msgid "No participants"
+msgstr "Sem participantes"
+
+#: templates/partners/portal/participant_list.html:45
+#, python-format
+msgid "match \"%(query)s\""
+msgstr "correspondentes a \"%(query)s\""
+
+#: templates/partners/portal/place.html:13
+msgid "Directions in Google Maps"
+msgstr "Indicações no Google Maps"
+
+#: templates/partners/portal/place.html:14
+msgid "Edit position and directions"
+msgstr "Editar localização e indicações"
+
+#: templates/partners/portal/place.html:20
+msgid "This location is marked sensitive"
+msgstr "Este local está marcado como sensível"
+
+#: templates/partners/portal/place.html:21
+msgid ""
+"On the network map it shows only as an approximate area, without its name. "
+"Your visit to this page has been recorded."
+msgstr ""
+"No mapa da rede aparece apenas como uma área aproximada, sem o nome. A sua "
+"visita a esta página foi registada."
+
+#: templates/partners/portal/place.html:31
+msgid "Apple Maps"
+msgstr "Apple Maps"
+
+#: templates/partners/portal/place.html:32
+msgid "OpenStreetMap"
+msgstr "OpenStreetMap"
+
+#: templates/partners/portal/place.html:33
+msgid "Copy coordinates"
+msgstr "Copiar coordenadas"
+
+#: templates/partners/portal/place.html:34
+msgid "Share on WhatsApp"
+msgstr "Partilhar no WhatsApp"
+
+#: templates/partners/portal/place.html:38
+msgid "The position is estimated from the town name."
+msgstr "A localização é estimada a partir do nome da localidade."
+
+#: templates/partners/portal/place.html:38
+msgid "Place the pin exactly"
+msgstr "Coloque o marcador no sítio exato"
+
+#: templates/partners/portal/place.html:38
+msgid "so visitors arrive at the right door."
+msgstr "para que os visitantes cheguem à porta certa."
+
+#: templates/partners/portal/place.html:42
+msgid "This location is not on the map yet"
+msgstr "Este local ainda não está no mapa"
+
+#: templates/partners/portal/place.html:43
+msgid "Set the position"
+msgstr "Definir localização"
+
+#: templates/partners/portal/place.html:49
+#: templates/partners/portal/place_form.html:42
+msgid "Getting there"
+msgstr "Como chegar"
+
+#: templates/partners/portal/place.html:57
+msgid "Pin checked"
+msgstr "Marcador confirmado"
+
+#: templates/partners/portal/place.html:63
+msgid "Events"
+msgstr "Eventos"
+
+#: templates/partners/portal/place.html:64
+msgid "Add event"
+msgstr "Adicionar evento"
+
+#: templates/partners/portal/place.html:73
+#, python-format
+msgid "%(get_kind_display)s &middot; %(starts_on)s"
+msgstr "%(get_kind_display)s &middot; %(starts_on)s"
+
+#: templates/partners/portal/place.html:73
+#, python-format
+msgid "to %(ends_on)s"
+msgstr "a %(ends_on)s"
+
+#: templates/partners/portal/place.html:73
+#, python-format
+msgid "&middot; %(name)s"
+msgstr "&middot; %(name)s"
+
+#: templates/partners/portal/place.html:75
+#, python-format
+msgid "At %(venue)s"
+msgstr "Em %(venue)s"
+
+#: templates/partners/portal/place.html:76
+msgid "METP staff going:"
+msgstr "Equipa METP presente:"
+
+#: templates/partners/portal/place.html:86
+msgid "No graduations, visits or trainings planned."
+msgstr "Sem formaturas, visitas ou formações planeadas."
+
+#: templates/partners/portal/place.html:94
+msgid "Who to contact"
+msgstr "Quem contactar"
+
+#: templates/partners/portal/place.html:98
+msgid "&middot; on arrival"
+msgstr "&middot; à chegada"
+
+#: templates/partners/portal/place.html:104
+msgid "&middot; coordinator"
+msgstr "&middot; coordenador"
+
+#: templates/partners/portal/place.html:110
+msgid "&middot; facilitator"
+msgstr "&middot; facilitador"
+
+#: templates/partners/portal/place.html:121
+msgid "Nobody added yet."
+msgstr "Ainda ninguém foi adicionado."
+
+#: templates/partners/portal/place.html:121
+msgid ""
+"Add the team on the Team tab, or an arrival contact under Edit position and "
+"directions."
+msgstr ""
+"Adicione a equipa no separador Equipa, ou um contacto à chegada em Editar "
+"localização e indicações."
+
+#: templates/partners/portal/place.html:128
+msgid "Running cohorts"
+msgstr "Turmas em curso"
+
+#: templates/partners/portal/place.html:133
+#, python-format
+msgid "Next session %(code)s, %(session_date)s"
+msgstr "Próxima sessão %(code)s, %(session_date)s"
+
+#: templates/partners/portal/place.html:133
+msgid "No session planned"
+msgstr "Sem sessão planeada"
+
+#: templates/partners/portal/place.html:142
+#, python-format
+msgid "Within %(nearby_km)s km"
+msgstr "A menos de %(nearby_km)s km"
+
+#: templates/partners/portal/place.html:147
+#, python-format
+msgid "%(km)s km"
+msgstr "%(km)s km"
+
+#: templates/partners/portal/place.html:156
+msgid "Recently viewed by"
+msgstr "Visto recentemente por"
+
+#: templates/partners/portal/place_form.html:9
+msgid "Position and directions"
+msgstr "Localização e indicações"
+
+#: templates/partners/portal/place_form.html:10
+msgid ""
+"Put the pin on the building where classes meet, and describe the way in for "
+"someone who has never been there."
+msgstr ""
+"Coloque o marcador no edifício onde decorrem as aulas e descreva o caminho "
+"para alguém que nunca lá esteve."
+
+#: templates/partners/portal/place_form.html:10
+msgid ""
+"This location is marked sensitive, so the network map only ever shows the "
+"area around it."
+msgstr ""
+"Este local está marcado como sensível, por isso o mapa da rede mostra apenas"
+" a área em redor."
+
+#: templates/partners/portal/place_form.html:18
+msgid "Map position"
+msgstr "Localização no mapa"
+
+#: templates/partners/portal/place_form.html:22
+msgid "Find a town or district"
+msgstr "Encontrar uma localidade ou distrito"
+
+#: templates/partners/portal/place_form.html:23
+msgid "For example Mzuzu, Malawi"
+msgstr "Por exemplo Mzuzu, Malawi"
+
+#: templates/partners/portal/place_form.html:25
+msgid "Find"
+msgstr "Encontrar"
+
+#: templates/partners/portal/place_form.html:26
+msgid "Use my position"
+msgstr "Usar a minha localização"
+
+#: templates/partners/portal/place_form.html:29
+msgid "Click the map to place the pin, then drag it to the exact spot."
+msgstr ""
+"Clique no mapa para colocar o marcador e arraste-o para o local exato."
+
+#: templates/partners/portal/place_form.html:31
+msgid "Map for placing the location pin"
+msgstr "Mapa para colocar o marcador do local"
+
+#: templates/partners/portal/place_form.html:53
+msgid "Contact on arrival"
+msgstr "Contacto à chegada"
+
+#: templates/partners/portal/register.html:9
+#, python-format
+msgid "%(title)s &middot; %(session_date)s &middot; %(hours)s hours"
+msgstr "%(title)s &middot; %(session_date)s &middot; %(hours)s horas"
+
+#: templates/partners/portal/register.html:11
+msgid "Print paper register"
+msgstr "Imprimir registo em papel"
+
+#: templates/partners/portal/register.html:19
+msgid ""
+"Tap a mark for each person. Typing up a paper register works the same way."
+msgstr ""
+"Toque numa marcação para cada pessoa. Passar a limpo um registo em papel "
+"funciona da mesma forma."
+
+#: templates/partners/portal/register.html:20
+msgid "Mark everyone present"
+msgstr "Marcar todos como presentes"
+
+#: templates/partners/portal/register.html:27
+#, python-format
+msgid "Attendance for %(full_name)s"
+msgstr "Presença de %(full_name)s"
+
+#: templates/partners/portal/register.html:37
+#: templates/partners/portal/register.html:55
+#: templates/partners/portal/results.html:73
+msgid "No participants in this cohort yet."
+msgstr "Ainda não há participantes nesta turma."
+
+#: templates/partners/portal/register.html:42
+msgid "Save register"
+msgstr "Guardar presenças"
+
+#: templates/partners/portal/register.html:52
+msgid "Not marked"
+msgstr "Não registado"
+
+#: templates/partners/portal/results.html:9
+#, python-format
+msgid ""
+"A course is passed with %(pass_mark)s%% or more in the exam and at least "
+"%(required_hours)s of %(classroom_hours)s classroom hours attended."
+msgstr ""
+"Um curso fica aprovado com %(pass_mark)s%% ou mais no exame e pelo menos "
+"%(required_hours)s das %(classroom_hours)s horas de aulas assistidas."
+
+#: templates/partners/portal/results.html:10
+#: templates/partners/portal/results_overview.html:11
+msgid "Back to cohort"
+msgstr "Voltar à turma"
+
+#: templates/partners/portal/results.html:29
+#, python-format
+msgid "Sign off %(unsigned_count)s result%(unsigned_count2)s"
+msgstr "Validar %(unsigned_count)s resultado%(unsigned_count2)s"
+
+#: templates/partners/portal/results.html:34
+msgid "Hours attended"
+msgstr "Horas assistidas"
+
+#: templates/partners/portal/results.html:34
+msgid "Online quizzes"
+msgstr "Questionários online"
+
+#: templates/partners/portal/results.html:34
+#, python-format
+msgid "Exam %%"
+msgstr "Exame %%"
+
+#: templates/partners/portal/results.html:47
+#, python-format
+msgid "all %(quizzes_total)s quizzes"
+msgstr "os %(quizzes_total)s questionários"
+
+#: templates/partners/portal/results.html:51
+msgid ""
+"Copy the online score into the exam score. It is saved when you press Save "
+"scores."
+msgstr ""
+"Copiar a nota online para a nota do exame. É guardada quando premir Guardar "
+"notas."
+
+#: templates/partners/portal/results.html:51
+msgid "Use"
+msgstr "Usar"
+
+#: templates/partners/portal/results.html:54
+#, python-format
+msgid "%(quizzes_attempted)s of %(quizzes_total)s quizzes"
+msgstr "%(quizzes_attempted)s de %(quizzes_total)s questionários"
+
+#: templates/partners/portal/results.html:69
+msgid "No score yet"
+msgstr "Ainda sem nota"
+
+#: templates/partners/portal/results.html:80
+msgid "Online scores update"
+msgstr "As notas online são atualizadas"
+
+#: templates/partners/portal/results.html:80
+#, python-format
+msgid "nightly; last fetched %(online_synced_at)s ago"
+msgstr "todas as noites; última obtenção há %(online_synced_at)s"
+
+#: templates/partners/portal/results.html:80
+msgid "nightly"
+msgstr "todas as noites"
+
+#: templates/partners/portal/results.html:80
+msgid ". Using one only fills the box; nothing changes until you save."
+msgstr ". Usar uma apenas preenche a caixa; nada muda até guardar."
+
+#: templates/partners/portal/results.html:81
+msgid "Save scores"
+msgstr "Guardar notas"
+
+#: templates/partners/portal/results.html:86
+msgid ""
+"No programme courses are set up yet. Ask an administrator to run the "
+"seed_metp_programme command."
+msgstr ""
+"Ainda não há cursos do programa configurados. Peça a um administrador que "
+"execute o comando seed_metp_programme."
+
+#: templates/partners/portal/results_overview.html:8
+#, python-format
+msgid "Every participant across all %(courses)s courses."
+msgstr "Todos os participantes nos %(courses)s cursos."
+
+#: templates/partners/portal/results_overview.html:10
+msgid "Record results"
+msgstr "Registar resultados"
+
+#: templates/partners/portal/session_form.html:32
+msgid ""
+"A session with a register cannot be deleted; set its status to Cancelled "
+"instead."
+msgstr ""
+"Uma sessão com registo de presenças não pode ser eliminada; altere o estado "
+"para Cancelado."
+
+#: templates/partners/portal/session_form.html:33
+msgid "Delete session"
+msgstr "Eliminar sessão"
+
+#: templates/partners/portal/team.html:9
+msgid ""
+"Coordinators have completed METP 100a; everyone who teaches a course has "
+"completed METP 100b."
+msgstr ""
+"Os coordenadores concluíram o METP 100a; todos os que ensinam um curso "
+"concluíram o METP 100b."
+
+#: templates/partners/portal/team.html:10
+msgid "Add team member"
+msgstr "Adicionar membro da equipa"
+
+#: templates/partners/portal/team.html:17
+msgid "Trained"
+msgstr "Formado"
+
+#: templates/partners/portal/team.html:23
+msgid "&middot;"
+msgstr "&middot;"
+
+#: templates/partners/portal/team.html:28
+msgid "Removed"
+msgstr "Removido"
+
+#: templates/partners/portal/team.html:29
+msgid "Has not set a password"
+msgstr "Não definiu palavra-passe"
+
+#: templates/partners/portal/team.html:38
+msgid "New set-password link"
+msgstr "Nova ligação de palavra-passe"
+
+#: templates/partners/portal/team.html:43
+msgid "Remove"
+msgstr "Remover"
+
+#: templates/partners/portal/team.html:52
+msgid "No team members yet."
+msgstr "Ainda não há membros da equipa."
+
+#: templates/partners/portal/team.html:52
+msgid "Add the location coordinator first."
+msgstr "Adicione primeiro o coordenador do local."
+
 #: templates/partners/staff/_nav.html:9
 msgid "Staff"
 msgstr "Pessoal"
+
+#: templates/shop/my_courses.html:77
+msgid "Your courses"
+msgstr "Os seus cursos"
+
+#: templates/shop/my_courses.html:87
+msgid "Refresh progress"
+msgstr "Atualizar progresso"
+
+#: templates/shop/my_courses.html:126
+msgid "Bundle"
+msgstr "Pacote"
+
+#: templates/shop/my_courses.html:128 templates/shop/my_courses.html:238
+msgid "Free"
+msgstr "Gratuito"
+
+#: templates/shop/my_courses.html:141
+msgid "Overall progress"
+msgstr "Progresso global"
+
+#: templates/shop/my_courses.html:152
+msgid "Access expired"
+msgstr "Acesso expirado"
+
+#: templates/shop/my_courses.html:154
+#, python-format
+msgid "%(days_remaining)s day%(days_remaining2)s of access left"
+msgstr "%(days_remaining)s dia%(days_remaining2)s de acesso restante(s)"
+
+#: templates/shop/my_courses.html:164
+msgid "Show courses in this bundle"
+msgstr "Mostrar os cursos deste pacote"
+
+#: templates/shop/my_courses.html:175
+#, python-format
+msgid "%(count)s course%(count2)s included"
+msgstr "%(count)s curso%(count2)s incluído%(count2)s"
+
+#: templates/shop/my_courses.html:194 templates/shop/my_courses.html:248
+msgid "Progress"
+msgstr "Progresso"
+
+#: templates/shop/my_courses.html:207
+msgid "Open"
+msgstr "Abrir"
+
+#: templates/shop/my_courses.html:212 templates/shop/my_courses.html:265
+msgid "Available once your account is verified"
+msgstr "Disponível quando a sua conta for verificada"
+
+#: templates/shop/my_courses.html:216
+msgid "Not yet published"
+msgstr "Ainda não publicado"
+
+#: templates/shop/my_courses.html:261
+msgid "Open course"
+msgstr "Abrir curso"
+
+#: templates/shop/my_courses.html:279
+#, python-format
+msgid "Showing %(start_index)s&ndash;%(end_index)s of %(count)s"
+msgstr "A mostrar %(start_index)s&ndash;%(end_index)s de %(count)s"
+
+#: templates/shop/my_courses.html:297
+msgid "Nothing here yet"
+msgstr "Ainda não há nada aqui"
+
+#: templates/shop/my_courses.html:300
+msgid ""
+"Courses you enrol in will appear here with your progress. Browsing and "
+"studying cost nothing."
+msgstr ""
+"Os cursos em que se inscrever aparecem aqui com o seu progresso. Explorar e "
+"estudar não custa nada."
+
+#: templates/shop/my_courses.html:304
+msgid ""
+"Your courses will appear here once your training location gives you online "
+"access. Speak to your coordinator if you are expecting them."
+msgstr ""
+"Os seus cursos aparecem aqui quando o seu local de formação lhe der acesso "
+"online. Fale com o seu coordenador se estiver à espera deles."

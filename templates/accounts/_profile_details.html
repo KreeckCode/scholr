@@ -1,38 +1,39 @@
+{% load i18n %}
 <section class="p-card">
-    <div class="p-card-head"><h2 class="p-card-title">Contact</h2></div>
+    <div class="p-card-head"><h2 class="p-card-title">{% translate "Contact" %}</h2></div>
     <dl class="p-meta grid gap-5 p-5 sm:grid-cols-2">
-        <div><dt>Username</dt><dd>{{ person.username }}</dd></div>
-        <div><dt>Phone number</dt><dd>{{ person.phone_number|default:'Not provided' }}</dd></div>
-        <div><dt>Email</dt><dd class="break-all">{{ person.email|default:'Not provided' }}</dd></div>
-        <div><dt>WhatsApp</dt><dd>{{ profile.whatsapp_number|default:'Not provided' }}</dd></div>
+        <div><dt>{% translate "Username" %}</dt><dd>{{ person.username }}</dd></div>
+        <div><dt>{% translate "Phone number" %}</dt><dd>{{ person.phone_number|default:'Not provided' }}</dd></div>
+        <div><dt>{% translate "Email" %}</dt><dd class="break-all">{{ person.email|default:'Not provided' }}</dd></div>
+        <div><dt>{% translate "WhatsApp" %}</dt><dd>{{ profile.whatsapp_number|default:'Not provided' }}</dd></div>
     </dl>
 </section>
 
 <section class="p-card">
-    <div class="p-card-head"><h2 class="p-card-title">Location</h2></div>
+    <div class="p-card-head"><h2 class="p-card-title">{% translate "Location" %}</h2></div>
     <dl class="p-meta grid gap-5 p-5 sm:grid-cols-3">
-        <div><dt>Country</dt><dd>{{ profile.country|default:'Not provided' }}</dd></div>
-        <div><dt>Region</dt><dd>{{ profile.region|default:'Not provided' }}</dd></div>
-        <div><dt>Village or town</dt><dd>{{ profile.village_town|default:'Not provided' }}</dd></div>
+        <div><dt>{% translate "Country" %}</dt><dd>{{ profile.country|default:'Not provided' }}</dd></div>
+        <div><dt>{% translate "Region" %}</dt><dd>{{ profile.region|default:'Not provided' }}</dd></div>
+        <div><dt>{% translate "Village or town" %}</dt><dd>{{ profile.village_town|default:'Not provided' }}</dd></div>
     </dl>
 </section>
 
 <section class="p-card">
-    <div class="p-card-head"><h2 class="p-card-title">Ministry</h2></div>
+    <div class="p-card-head"><h2 class="p-card-title">{% translate "Ministry" %}</h2></div>
     <dl class="p-meta grid gap-5 p-5 sm:grid-cols-2">
-        <div><dt>Church</dt><dd>{{ profile.church_name|default:'Not provided' }}</dd></div>
-        <div><dt>Affiliation</dt><dd>{{ profile.church_affiliation|default:'Not provided' }}</dd></div>
-        <div><dt>Church size</dt><dd>{{ profile.get_church_size_display|default:'Not provided' }}</dd></div>
-        <div><dt>Position</dt><dd>{{ profile.position_title|default:'Not provided' }}</dd></div>
-        <div><dt>Years in ministry</dt><dd>{{ profile.years_in_ministry|default_if_none:'Not provided' }}</dd></div>
+        <div><dt>{% translate "Church" %}</dt><dd>{{ profile.church_name|default:'Not provided' }}</dd></div>
+        <div><dt>{% translate "Affiliation" %}</dt><dd>{{ profile.church_affiliation|default:'Not provided' }}</dd></div>
+        <div><dt>{% translate "Church size" %}</dt><dd>{{ profile.get_church_size_display|translated|default:'Not provided' }}</dd></div>
+        <div><dt>{% translate "Position" %}</dt><dd>{{ profile.position_title|default:'Not provided' }}</dd></div>
+        <div><dt>{% translate "Years in ministry" %}</dt><dd>{{ profile.years_in_ministry|default_if_none:'Not provided' }}</dd></div>
     </dl>
 </section>
 
 <section class="p-card">
-    <div class="p-card-head"><h2 class="p-card-title">Education and languages</h2></div>
+    <div class="p-card-head"><h2 class="p-card-title">{% translate "Education and languages" %}</h2></div>
     <dl class="p-meta grid gap-5 p-5 sm:grid-cols-2">
-        <div><dt>Education level</dt><dd>{{ profile.get_education_level_display|default:'Not provided' }}</dd></div>
-        <div><dt>Languages</dt><dd>{{ profile.languages_spoken|default:'Not provided' }}</dd></div>
-        {% if profile.bio %}<div class="sm:col-span-2"><dt>About</dt><dd class="whitespace-pre-line font-normal leading-relaxed p-slate">{{ profile.bio }}</dd></div>{% endif %}
+        <div><dt>{% translate "Education level" %}</dt><dd>{{ profile.get_education_level_display|translated|default:'Not provided' }}</dd></div>
+        <div><dt>{% translate "Languages" %}</dt><dd>{{ profile.languages_spoken|default:'Not provided' }}</dd></div>
+        {% if profile.bio %}<div class="sm:col-span-2"><dt>{% translate "About" %}</dt><dd class="whitespace-pre-line font-normal leading-relaxed p-slate">{{ profile.bio }}</dd></div>{% endif %}
     </dl>
 </section>

@@ -1,8 +1,9 @@
 {% extends 'ui/base.html' %}
+{% load i18n %}
 
 {% block title %}Edit profile{% endblock %}
-{% block eyebrow %}<a href="{% url 'accounts:profile' %}">My profile</a>{% endblock %}
-{% block heading %}Edit profile{% endblock %}
+{% block eyebrow %}<a href="{% url 'accounts:profile' %}">{% translate "My profile" %}</a>{% endblock %}
+{% block heading %}{% translate "Edit profile" %}{% endblock %}
 
 {% block body %}
 <form method="post" enctype="multipart/form-data" class="max-w-4xl space-y-6" novalidate>
@@ -11,7 +12,7 @@
     {% include 'ui/_form_errors.html' %}
 
     <section class="p-card">
-        <div class="p-card-head"><h2 class="p-card-title">Contact</h2></div>
+        <div class="p-card-head"><h2 class="p-card-title">{% translate "Contact" %}</h2></div>
         <div class="grid gap-5 p-5 sm:grid-cols-2">
             {% for field in user_form %}{% include 'ui/_field.html' %}{% endfor %}
             {% include 'ui/_field.html' with field=form.whatsapp_number %}
@@ -19,7 +20,7 @@
     </section>
 
     <section class="p-card">
-        <div class="p-card-head"><h2 class="p-card-title">Location</h2></div>
+        <div class="p-card-head"><h2 class="p-card-title">{% translate "Location" %}</h2></div>
         <div class="grid gap-5 p-5 sm:grid-cols-2">
             {% include 'ui/_field.html' with field=form.country %}
             {% include 'ui/_field.html' with field=form.region %}
@@ -28,7 +29,7 @@
     </section>
 
     <section class="p-card">
-        <div class="p-card-head"><h2 class="p-card-title">Ministry</h2></div>
+        <div class="p-card-head"><h2 class="p-card-title">{% translate "Ministry" %}</h2></div>
         <div class="grid gap-5 p-5 sm:grid-cols-2">
             {% include 'ui/_field.html' with field=form.church_name wide=True %}
             {% include 'ui/_field.html' with field=form.church_affiliation %}
@@ -39,7 +40,7 @@
     </section>
 
     <section class="p-card">
-        <div class="p-card-head"><h2 class="p-card-title">Education and languages</h2></div>
+        <div class="p-card-head"><h2 class="p-card-title">{% translate "Education and languages" %}</h2></div>
         <div class="grid gap-5 p-5 sm:grid-cols-2">
             {% include 'ui/_field.html' with field=form.education_level %}
             {% include 'ui/_field.html' with field=form.date_of_birth %}
@@ -48,14 +49,14 @@
     </section>
 
     <section class="p-card">
-        <div class="p-card-head"><h2 class="p-card-title">About you</h2></div>
+        <div class="p-card-head"><h2 class="p-card-title">{% translate "About you" %}</h2></div>
         <div class="grid gap-5 p-5">
             {% include 'ui/_field.html' with field=form.bio %}
             {% include 'ui/_field.html' with field=form.profile_photo %}
         </div>
         <div class="p-card-foot">
-            <a class="p-btn-ghost" href="{% url 'accounts:profile' %}">Cancel</a>
-            <button type="submit" class="p-btn">Save changes</button>
+            <a class="p-btn-ghost" href="{% url 'accounts:profile' %}">{% translate "Cancel" %}</a>
+            <button type="submit" class="p-btn">{% translate "Save changes" %}</button>
         </div>
     </section>
 </form>

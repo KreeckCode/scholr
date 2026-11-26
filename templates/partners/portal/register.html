@@ -1,13 +1,14 @@
 {% extends 'ui/base.html' %}
+{% load i18n %}
 {% load partners_tags %}
 
 {% block title %}Register: {{ session_obj.course.code }}{% endblock %}
 {% block subnav %}{% include 'partners/portal/_nav.html' %}{% endblock %}
 {% block eyebrow %}{{ cohort.name }}{% endblock %}
 {% block heading %}{{ session_obj.course.code }} register{% endblock %}
-{% block subheading %}<p class="mt-2 text-sm p-slate">{{ session_obj.course.title }} &middot; {{ session_obj.session_date|date:'l d F Y' }} &middot; {{ session_obj.hours }} hours</p>{% endblock %}
+{% block subheading %}<p class="mt-2 text-sm p-slate">{% blocktranslate trimmed with title=session_obj.course.title session_date=session_obj.session_date|date:'l d F Y' hours=session_obj.hours %}{{ title }} &middot; {{ session_date }} &middot; {{ hours }} hours{% endblocktranslate %}</p>{% endblock %}
 {% block actions %}
-<a class="p-btn-ghost" href="{% url 'partners:session_register_pdf' location_id=location.public_id cohort_id=cohort.public_id session_id=session_obj.public_id %}" target="_blank" rel="noopener">Print paper register</a>
+<a class="p-btn-ghost" href="{% url 'partners:session_register_pdf' location_id=location.public_id cohort_id=cohort.public_id session_id=session_obj.public_id %}" target="_blank" rel="noopener">{% translate "Print paper register" %}</a>
 {% endblock %}
 
 {% block body %}
@@ -15,15 +16,15 @@
 <form method="post" class="p-card overflow-hidden" x-data>
     {% csrf_token %}
     <div class="p-card-head flex flex-wrap items-center justify-between gap-3">
-        <p class="text-sm p-slate">Tap a mark for each person. Typing up a paper register works the same way.</p>
-        <button type="button" class="p-btn-ghost p-btn-sm" @click="$root.querySelectorAll('input[value=present]').forEach(input => input.checked = true)">Mark everyone present</button>
+        <p class="text-sm p-slate">{% translate "Tap a mark for each person. Typing up a paper register works the same way." %}</p>
+        <button type="button" class="p-btn-ghost p-btn-sm" @click="$root.querySelectorAll('input[value=present]').forEach(input => input.checked = true)">{% translate "Mark everyone present" %}</button>
     </div>
     <ul class="p-list">
         {% for membership, mark in rows %}
         <li class="flex flex-col gap-3 px-5 py-3.5 sm:flex-row sm:items-center sm:justify-between">
             <span class="text-sm font-semibold p-navy">{{ membership.participant.full_name }}</span>
             <fieldset class="flex flex-wrap gap-2">
-                <legend class="sr-only">Attendance for {{ membership.participant.full_name }}</legend>
+                <legend class="sr-only">{% blocktranslate trimmed with full_name=membership.participant.full_name %}Attendance for {{ full_name }}{% endblocktranslate %}</legend>
                 {% for value, label in statuses %}
                 <label class="p-mark">
                     <input type="radio" name="mark_{{ membership.public_id }}" value="{{ value }}" {% if mark and mark.status == value %}checked{% endif %}>
@@ -33,12 +34,12 @@
             </fieldset>
         </li>
         {% empty %}
-        <li class="p-empty">No participants in this cohort yet.</li>
+        <li class="p-empty">{% translate "No participants in this cohort yet." %}</li>
         {% endfor %}
     </ul>
     {% if rows %}
     <div class="p-card-foot">
-        <button type="submit" class="p-btn">Save register</button>
+        <button type="submit" class="p-btn">{% translate "Save register" %}</button>
     </div>
     {% endif %}
 </form>
@@ -48,10 +49,10 @@
         {% for membership, mark in rows %}
         <li class="flex items-center justify-between px-5 py-3.5 text-sm">
             <span class="font-semibold p-navy">{{ membership.participant.full_name }}</span>
-            {% if mark %}{% include 'partners/_badge.html' with value=mark.status label=mark.get_status_display %}{% else %}<span class="text-xs p-muted">Not marked</span>{% endif %}
+            {% if mark %}{% include 'partners/_badge.html' with value=mark.status label=mark.get_status_display|translated %}{% else %}<span class="text-xs p-muted">{% translate "Not marked" %}</span>{% endif %}
         </li>
         {% empty %}
-        <li class="p-empty">No participants in this cohort yet.</li>
+        <li class="p-empty">{% translate "No participants in this cohort yet." %}</li>
         {% endfor %}
     </ul>
 </div>

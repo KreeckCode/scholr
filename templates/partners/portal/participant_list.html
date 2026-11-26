@@ -1,4 +1,5 @@
 {% extends 'ui/base.html' %}
+{% load i18n %}
 {% load partners_tags %}
 
 {% block title %}Participants &middot; {{ location.name }}{% endblock %}
@@ -6,15 +7,15 @@
 {% block eyebrow %}{{ location.name }}{% endblock %}
 {% block heading %}Participants{% endblock %}
 {% block actions %}
-{% if can_add %}<a class="p-btn" href="{% url 'partners:participant_create' location_id=location.public_id %}">Add participant</a>{% endif %}
-{% if is_coordinator %}<a class="p-btn-ghost" href="{% url 'partners:participant_import' location_id=location.public_id %}">Import CSV</a>{% endif %}
+{% if can_add %}<a class="p-btn" href="{% url 'partners:participant_create' location_id=location.public_id %}">{% translate "Add participant" %}</a>{% endif %}
+{% if is_coordinator %}<a class="p-btn-ghost" href="{% url 'partners:participant_import' location_id=location.public_id %}">{% translate "Import CSV" %}</a>{% endif %}
 {% endblock %}
 
 {% block body %}
 <form method="get" class="p-toolbar p-toolbar-center">
-    <label for="q" class="sr-only">Search participants</label>
-    <input id="q" type="search" name="q" value="{{ query }}" placeholder="Search by name or church" class="w-full sm:max-w-sm">
-    <button type="submit" class="p-btn-ghost">Search</button>
+    <label for="q" class="sr-only">{% translate "Search participants" %}</label>
+    <input id="q" type="search" name="q" value="{{ query }}" placeholder="{% translate 'Search by name or church' %}" class="w-full sm:max-w-sm">
+    <button type="submit" class="p-btn-ghost">{% translate "Search" %}</button>
 </form>
 
 <div class="p-card overflow-hidden">
@@ -22,10 +23,10 @@
         <table class="p-table">
             <thead>
                 <tr>
-                    <th scope="col">Name</th>
-                    <th scope="col">Church</th>
-                    {% if can_view_contacts %}<th scope="col">Phone</th>{% endif %}
-                    <th scope="col">Cohorts</th>
+                    <th scope="col">{% translate "Name" %}</th>
+                    <th scope="col">{% translate "Church" %}</th>
+                    {% if can_view_contacts %}<th scope="col">{% translate "Phone" %}</th>{% endif %}
+                    <th scope="col">{% translate "Cohorts" %}</th>
                 </tr>
             </thead>
             <tbody>
@@ -36,12 +37,12 @@
                     {% if can_view_contacts %}<td class="whitespace-nowrap">{{ participant.phone|default:'' }}</td>{% endif %}
                     <td>
                         {% for membership in participant.cohort_memberships.all %}
-                        <span class="mr-1 inline-block text-xs p-slate">{{ membership.cohort.name }}{% if membership.status != 'enrolled' %} <span class="p-muted">({{ membership.get_status_display|lower }})</span>{% endif %}</span>{% if not forloop.last %}<span class="p-muted">,</span>{% endif %}
-                        {% empty %}<span class="text-xs p-muted">Not in a cohort</span>{% endfor %}
+                        <span class="mr-1 inline-block text-xs p-slate">{{ membership.cohort.name }}{% if membership.status != 'enrolled' %} <span class="p-muted">({{ membership.get_status_display|translated|lower }})</span>{% endif %}</span>{% if not forloop.last %}<span class="p-muted">,</span>{% endif %}
+                        {% empty %}<span class="text-xs p-muted">{% translate "Not in a cohort" %}</span>{% endfor %}
                     </td>
                 </tr>
                 {% empty %}
-                <tr><td colspan="{% if can_view_contacts %}4{% else %}3{% endif %}" class="p-empty">No participants{% if query %} match "{{ query }}"{% endif %}.</td></tr>
+                <tr><td colspan="{% if can_view_contacts %}4{% else %}3{% endif %}" class="p-empty">{% translate "No participants" %}{% if query %} {% blocktranslate trimmed with query=query %}match "{{ query }}"{% endblocktranslate %}{% endif %}.</td></tr>
                 {% endfor %}
             </tbody>
         </table>

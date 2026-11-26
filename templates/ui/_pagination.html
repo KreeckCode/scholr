@@ -1,12 +1,13 @@
+{% load i18n %}
 {% if is_paginated %}
-<nav class="mt-6 flex flex-wrap items-center justify-between gap-3 text-sm" aria-label="Pagination">
-    <p class="p-muted">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</p>
+<nav class="mt-6 flex flex-wrap items-center justify-between gap-3 text-sm" aria-label="{% translate 'Pagination' %}">
+    <p class="p-muted">{% blocktranslate trimmed with number=page_obj.number num_pages=page_obj.paginator.num_pages %}Page {{ number }} of {{ num_pages }}{% endblocktranslate %}</p>
     <div class="flex gap-2">
         {% if page_obj.has_previous %}
-        <a class="p-btn-ghost p-btn-sm" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key|urlencode }}={{ value|urlencode }}&amp;{% endif %}{% endfor %}page={{ page_obj.previous_page_number }}">Previous</a>
+        <a class="p-btn-ghost p-btn-sm" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key|urlencode }}={{ value|urlencode }}&amp;{% endif %}{% endfor %}page={{ page_obj.previous_page_number }}">{% translate "Previous" %}</a>
         {% endif %}
         {% if page_obj.has_next %}
-        <a class="p-btn-ghost p-btn-sm" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key|urlencode }}={{ value|urlencode }}&amp;{% endif %}{% endfor %}page={{ page_obj.next_page_number }}">Next</a>
+        <a class="p-btn-ghost p-btn-sm" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key|urlencode }}={{ value|urlencode }}&amp;{% endif %}{% endfor %}page={{ page_obj.next_page_number }}">{% translate "Next" %}</a>
         {% endif %}
     </div>
 </nav>

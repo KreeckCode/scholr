@@ -127,6 +127,8 @@ TEMPLATES = [
                 'scholr.context_processors.features',
                 'scholr.context_processors.cart',
             ],
+            # The split and translated filters, available in every template
+            'builtins': ['main.templatetags.scholr_extras'],
         },
     },
 ]

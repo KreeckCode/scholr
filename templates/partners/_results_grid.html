@@ -1,11 +1,12 @@
+{% load i18n %}
 {% load partners_tags %}
 <div class="p-card overflow-hidden">
     <div class="overflow-x-auto">
         <table class="p-table text-sm">
             <thead>
                 <tr>
-                    <th scope="col" class="sticky left-0 z-10" style="background: var(--p-subtle);">Participant</th>
-                    {% if show_cohort %}<th scope="col">Cohort</th>{% endif %}
+                    <th scope="col" class="sticky left-0 z-10" style="background: var(--p-subtle);">{% translate "Participant" %}</th>
+                    {% if show_cohort %}<th scope="col">{% translate "Cohort" %}</th>{% endif %}
                     {% for course in courses %}<th scope="col" class="whitespace-nowrap text-center" title="{{ course.title }}">{{ course.code }}</th>{% endfor %}
                 </tr>
             </thead>
@@ -24,26 +25,26 @@
                         {% if view == 'online' %}
                             {% with result=cell.online %}
                             {% if not result %}
-                                <span class="p-muted" title="No online results">&ndash;</span>
+                                <span class="p-muted" title="{% translate 'No online results' %}">&ndash;</span>
                             {% elif not result.quizzes_total %}
-                                <span class="text-xs p-muted">No quizzes</span>
+                                <span class="text-xs p-muted">{% translate "No quizzes" %}</span>
                             {% elif result.is_complete %}
                                 <span class="p-badge {% if result.passed %}p-badge-good{% else %}p-badge-bad{% endif %}">{{ result.overall_percentage|floatformat:0 }}%</span>
                             {% elif result.quizzes_attempted %}
-                                <span class="block text-xs font-semibold p-navy">{{ result.quizzes_attempted }} of {{ result.quizzes_total }}</span>
-                                <span class="block text-xs p-muted">averaging {{ result.attempted_percentage|floatformat:0 }}%</span>
+                                <span class="block text-xs font-semibold p-navy">{% blocktranslate trimmed with quizzes_attempted=result.quizzes_attempted quizzes_total=result.quizzes_total %}{{ quizzes_attempted }} of {{ quizzes_total }}{% endblocktranslate %}</span>
+                                <span class="block text-xs p-muted">{% blocktranslate trimmed with attempted_percentage=result.attempted_percentage|floatformat:0 %}averaging {{ attempted_percentage }}%{% endblocktranslate %}</span>
                             {% else %}
-                                <span class="text-xs p-muted">Not started</span>
+                                <span class="text-xs p-muted">{% translate "Not started" %}</span>
                             {% endif %}
                             {% endwith %}
                         {% else %}
                             {% with result=cell.programme %}
                             {% if not result %}
-                                <span class="p-muted" title="No result yet">&ndash;</span>
+                                <span class="p-muted" title="{% translate 'No result yet' %}">&ndash;</span>
                             {% else %}
                                 {% if result.exam_score is not None %}<span class="block font-semibold p-navy">{{ result.exam_score|floatformat:0 }}%</span>{% endif %}
-                                {% include 'partners/_badge.html' with value=result.status label=result.get_status_display %}
-                                {% if result.signed_off_at %}<span class="block text-xs p-muted">Signed off</span>{% endif %}
+                                {% include 'partners/_badge.html' with value=result.status label=result.get_status_display|translated %}
+                                {% if result.signed_off_at %}<span class="block text-xs p-muted">{% translate "Signed off" %}</span>{% endif %}
                             {% endif %}
                             {% endwith %}
                         {% endif %}
@@ -51,13 +52,13 @@
                     {% endfor %}
                 </tr>
                 {% empty %}
-                <tr><td colspan="{{ courses|length|add:2 }}" class="p-empty">No participants match.</td></tr>
+                <tr><td colspan="{{ courses|length|add:2 }}" class="p-empty">{% translate "No participants match." %}</td></tr>
                 {% endfor %}
             </tbody>
             {% if rows %}
             <tfoot>
                 <tr>
-                    <th scope="row" class="sticky left-0 z-10 text-xs" style="background: var(--p-subtle);">Passed{% if view == 'online' %} online{% endif %}</th>
+                    <th scope="row" class="sticky left-0 z-10 text-xs" style="background: var(--p-subtle);">{% translate "Passed" %}{% if view == 'online' %} {% translate "online" %}{% endif %}</th>
                     {% if show_cohort %}<td></td>{% endif %}
                     {% for summary in summaries %}<td class="text-center text-xs font-semibold p-navy">{{ summary.passed }}</td>{% endfor %}
                 </tr>
@@ -68,8 +69,8 @@
 </div>
 <p class="mt-3 text-xs p-muted">
     {% if view == 'online' %}
-    Online scores count unattempted quizzes as zero. A course is passed online once every quiz is attempted and the overall score is {{ pass_mark }}% or more. Partly finished courses show how many quizzes are done and the average so far.
+    {% blocktranslate trimmed with pass_mark=pass_mark %}Online scores count unattempted quizzes as zero. A course is passed online once every quiz is attempted and the overall score is {{ pass_mark }}% or more. Partly finished courses show how many quizzes are done and the average so far.{% endblocktranslate %}
     {% else %}
-    Programme results are the scores recorded by the location and include the classroom attendance requirement.
+    {% translate "Programme results are the scores recorded by the location and include the classroom attendance requirement." %}
     {% endif %}
 </p>

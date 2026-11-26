@@ -1,4 +1,5 @@
 {% extends 'ui/base.html' %}
+{% load i18n %}
 {% load static %}
 
 {% block title %}{{ location.name }}: location and events{% endblock %}
@@ -9,15 +10,15 @@
 {% block subheading %}<p class="mt-2 text-sm p-slate">{% if location.address %}{{ location.address }}{% else %}{% if location.city %}{{ location.city }}, {% endif %}{% if location.region %}{{ location.region }}, {% endif %}{{ location.country_name }}{% endif %}</p>{% endblock %}
 
 {% block actions %}
-{% if links %}<a class="p-btn" href="{{ links.google }}" target="_blank" rel="noopener">Directions in Google Maps</a>{% endif %}
-{% if can_edit_place %}<a class="p-btn-ghost" href="{% url 'partners:location_place_edit' location_id=location.public_id %}">Edit position and directions</a>{% endif %}
+{% if links %}<a class="p-btn" href="{{ links.google }}" target="_blank" rel="noopener">{% translate "Directions in Google Maps" %}</a>{% endif %}
+{% if can_edit_place %}<a class="p-btn-ghost" href="{% url 'partners:location_place_edit' location_id=location.public_id %}">{% translate "Edit position and directions" %}</a>{% endif %}
 {% endblock %}
 
 {% block body %}
 {% if location.hides_identities and is_staff_viewer %}
 <div class="p-alert p-alert-warn">
-    <p class="p-alert-title">This location is marked sensitive</p>
-    <p class="mt-1">On the network map it shows only as an approximate area, without its name. Your visit to this page has been recorded.</p>
+    <p class="p-alert-title">{% translate "This location is marked sensitive" %}</p>
+    <p class="mt-1">{% translate "On the network map it shows only as an approximate area, without its name. Your visit to this page has been recorded." %}</p>
 </div>
 {% endif %}
 
@@ -27,40 +28,40 @@
             {% if config.position %}
             <div class="p-map p-map-sm rounded-none" data-place-view role="img" aria-label="Map showing {{ location.name }}"></div>
             <div class="p-card-foot justify-start">
-                <a class="p-btn-ghost p-btn-sm" href="{{ links.apple }}" target="_blank" rel="noopener">Apple Maps</a>
-                <a class="p-btn-ghost p-btn-sm" href="{{ links.osm }}" target="_blank" rel="noopener">OpenStreetMap</a>
-                <button type="button" class="p-btn-ghost p-btn-sm" data-copy-text="{{ links.coordinates }}">Copy coordinates</button>
-                {% if not location.hides_identities %}<a class="p-btn-ghost p-btn-sm" href="{{ links.share }}" target="_blank" rel="noopener">Share on WhatsApp</a>{% endif %}
+                <a class="p-btn-ghost p-btn-sm" href="{{ links.apple }}" target="_blank" rel="noopener">{% translate "Apple Maps" %}</a>
+                <a class="p-btn-ghost p-btn-sm" href="{{ links.osm }}" target="_blank" rel="noopener">{% translate "OpenStreetMap" %}</a>
+                <button type="button" class="p-btn-ghost p-btn-sm" data-copy-text="{{ links.coordinates }}">{% translate "Copy coordinates" %}</button>
+                {% if not location.hides_identities %}<a class="p-btn-ghost p-btn-sm" href="{{ links.share }}" target="_blank" rel="noopener">{% translate "Share on WhatsApp" %}</a>{% endif %}
                 <span class="ml-auto font-mono text-xs p-muted">{{ links.coordinates }}</span>
             </div>
             {% if not location.position_is_confirmed %}
-            <div class="p-alert p-alert-warn m-5">The position is estimated from the town name.{% if can_edit_place %} <a class="font-semibold underline" href="{% url 'partners:location_place_edit' location_id=location.public_id %}">Place the pin exactly</a> so visitors arrive at the right door.{% endif %}</div>
+            <div class="p-alert p-alert-warn m-5">{% translate "The position is estimated from the town name." %}{% if can_edit_place %} <a class="font-semibold underline" href="{% url 'partners:location_place_edit' location_id=location.public_id %}">{% translate "Place the pin exactly" %}</a> {% translate "so visitors arrive at the right door." %}{% endif %}</div>
             {% endif %}
             {% else %}
             <div class="p-empty">
-                <p class="font-semibold p-navy">This location is not on the map yet</p>
-                {% if can_edit_place %}<a class="p-btn mt-4" href="{% url 'partners:location_place_edit' location_id=location.public_id %}">Set the position</a>{% endif %}
+                <p class="font-semibold p-navy">{% translate "This location is not on the map yet" %}</p>
+                {% if can_edit_place %}<a class="p-btn mt-4" href="{% url 'partners:location_place_edit' location_id=location.public_id %}">{% translate "Set the position" %}</a>{% endif %}
             </div>
             {% endif %}
         </section>
 
         <section class="p-card">
-            <div class="p-card-head"><h2 class="p-card-title">Getting there</h2></div>
+            <div class="p-card-head"><h2 class="p-card-title">{% translate "Getting there" %}</h2></div>
             <dl class="p-meta space-y-5 p-5">
-                <div><dt>How to get there</dt><dd class="p-prose font-normal">{{ location.directions|default:'No directions yet.' }}</dd></div>
+                <div><dt>{% translate "How to get there" %}</dt><dd class="p-prose font-normal">{{ location.directions|default:'No directions yet.' }}</dd></div>
                 <div class="grid gap-5 sm:grid-cols-2">
-                    <div><dt>Address</dt><dd>{{ location.address|default:'Not given' }}</dd></div>
-                    <div><dt>Nearest airport</dt><dd>{{ location.nearest_airport|default:'Not given' }}</dd></div>
+                    <div><dt>{% translate "Address" %}</dt><dd>{{ location.address|default:'Not given' }}</dd></div>
+                    <div><dt>{% translate "Nearest airport" %}</dt><dd>{{ location.nearest_airport|default:'Not given' }}</dd></div>
                 </div>
-                {% if location.travel_notes %}<div><dt>Travel notes</dt><dd class="p-prose font-normal">{{ location.travel_notes }}</dd></div>{% endif %}
-                {% if location.position_confirmed_by %}<div><dt>Pin checked</dt><dd class="font-normal p-slate">{{ location.position_confirmed_by.get_full_name|default:location.position_confirmed_by.username }}, {{ location.position_confirmed_at|date:'d M Y' }} ({{ location.get_position_source_display|lower }})</dd></div>{% endif %}
+                {% if location.travel_notes %}<div><dt>{% translate "Travel notes" %}</dt><dd class="p-prose font-normal">{{ location.travel_notes }}</dd></div>{% endif %}
+                {% if location.position_confirmed_by %}<div><dt>{% translate "Pin checked" %}</dt><dd class="font-normal p-slate">{{ location.position_confirmed_by.get_full_name|default:location.position_confirmed_by.username }}, {{ location.position_confirmed_at|date:'d M Y' }} ({{ location.get_position_source_display|translated|lower }})</dd></div>{% endif %}
             </dl>
         </section>
 
         <section class="p-card overflow-hidden">
             <div class="p-card-head">
-                <h2 class="p-card-title">Events</h2>
-                {% if can_edit_place %}<a class="p-btn-ghost p-btn-sm" href="{% url 'partners:event_create' location_id=location.public_id %}">Add event</a>{% endif %}
+                <h2 class="p-card-title">{% translate "Events" %}</h2>
+                {% if can_edit_place %}<a class="p-btn-ghost p-btn-sm" href="{% url 'partners:event_create' location_id=location.public_id %}">{% translate "Add event" %}</a>{% endif %}
             </div>
             <ul class="p-list">
                 {% for event in events %}
@@ -69,20 +70,20 @@
                         <div class="min-w-0">
                             <p class="text-sm font-semibold p-navy">{{ event.title }}</p>
                             <p class="text-xs p-muted">
-                                {{ event.get_kind_display }} &middot; {{ event.starts_on|date:'D d M Y' }}{% if event.ends_on and event.ends_on != event.starts_on %} to {{ event.ends_on|date:'D d M Y' }}{% endif %}{% if event.starts_at %}, {{ event.starts_at|time:'H:i' }}{% endif %}{% if event.cohort %} &middot; {{ event.cohort.name }}{% endif %}
+                                {% blocktranslate trimmed with get_kind_display=event.get_kind_display|translated starts_on=event.starts_on|date:'D d M Y' %}{{ get_kind_display }} &middot; {{ starts_on }}{% endblocktranslate %}{% if event.ends_on and event.ends_on != event.starts_on %} {% blocktranslate trimmed with ends_on=event.ends_on|date:'D d M Y' %}to {{ ends_on }}{% endblocktranslate %}{% endif %}{% if event.starts_at %}, {{ event.starts_at|time:'H:i' }}{% endif %}{% if event.cohort %} {% blocktranslate trimmed with name=event.cohort.name %}&middot; {{ name }}{% endblocktranslate %}{% endif %}
                             </p>
-                            {% if event.venue %}<p class="mt-1 text-xs p-slate">At {{ event.venue }}</p>{% endif %}
-                            {% if event.attendees.all %}<p class="mt-1 text-xs p-slate">METP staff going: {% for person in event.attendees.all %}{{ person.get_full_name|default:person.username }}{% if not forloop.last %}, {% endif %}{% endfor %}</p>{% endif %}
+                            {% if event.venue %}<p class="mt-1 text-xs p-slate">{% blocktranslate trimmed with venue=event.venue %}At {{ venue }}{% endblocktranslate %}</p>{% endif %}
+                            {% if event.attendees.all %}<p class="mt-1 text-xs p-slate">{% translate "METP staff going:" %} {% for person in event.attendees.all %}{{ person.get_full_name|default:person.username }}{% if not forloop.last %}, {% endif %}{% endfor %}</p>{% endif %}
                         </div>
                         <div class="flex items-center gap-2">
-                            <span class="p-badge {% if event.status == 'confirmed' %}p-badge-good{% else %}p-badge-info{% endif %}">{{ event.get_status_display }}</span>
-                            {% if can_edit_place %}<a class="p-btn-ghost p-btn-sm" href="{% url 'partners:event_edit' location_id=location.public_id event_id=event.public_id %}">Edit</a>{% endif %}
+                            <span class="p-badge {% if event.status == 'confirmed' %}p-badge-good{% else %}p-badge-info{% endif %}">{{ event.get_status_display|translated }}</span>
+                            {% if can_edit_place %}<a class="p-btn-ghost p-btn-sm" href="{% url 'partners:event_edit' location_id=location.public_id event_id=event.public_id %}">{% translate "Edit" %}</a>{% endif %}
                         </div>
                     </div>
                     {% if event.notes %}<p class="p-prose mt-2 text-xs">{{ event.notes }}</p>{% endif %}
                 </li>
                 {% empty %}
-                <li class="p-empty">No graduations, visits or trainings planned.</li>
+                <li class="p-empty">{% translate "No graduations, visits or trainings planned." %}</li>
                 {% endfor %}
             </ul>
         </section>
@@ -90,23 +91,23 @@
 
     <aside class="min-w-0 space-y-6">
         <section class="p-card">
-            <div class="p-card-head"><h2 class="p-card-title">Who to contact</h2></div>
+            <div class="p-card-head"><h2 class="p-card-title">{% translate "Who to contact" %}</h2></div>
             <ul class="p-list">
                 {% if location.arrival_contact_name or location.arrival_contact_phone %}
                 <li class="px-5 py-3.5 text-sm">
-                    <p class="font-semibold p-navy">{{ location.arrival_contact_name|default:'Arrival contact' }} <span class="font-normal p-muted">&middot; on arrival</span></p>
+                    <p class="font-semibold p-navy">{{ location.arrival_contact_name|default:'Arrival contact' }} <span class="font-normal p-muted">{% translate "&middot; on arrival" %}</span></p>
                     {% if can_view_contacts %}{% include 'partners/_phone_actions.html' with phone=location.arrival_contact_phone email='' %}{% endif %}
                 </li>
                 {% endif %}
                 {% for member in coordinators %}
                 <li class="px-5 py-3.5 text-sm">
-                    <p class="font-semibold p-navy">{{ member.user.get_full_name|default:member.user.username }} <span class="font-normal p-muted">&middot; coordinator</span></p>
+                    <p class="font-semibold p-navy">{{ member.user.get_full_name|default:member.user.username }} <span class="font-normal p-muted">{% translate "&middot; coordinator" %}</span></p>
                     {% if can_view_contacts %}{% include 'partners/_phone_actions.html' with phone=member.user.phone_number email=member.user.email %}{% endif %}
                 </li>
                 {% endfor %}
                 {% for member in facilitators %}
                 <li class="px-5 py-3.5 text-sm">
-                    <p class="font-semibold p-navy">{{ member.user.get_full_name|default:member.user.username }} <span class="font-normal p-muted">&middot; facilitator</span></p>
+                    <p class="font-semibold p-navy">{{ member.user.get_full_name|default:member.user.username }} <span class="font-normal p-muted">{% translate "&middot; facilitator" %}</span></p>
                     {% if can_view_contacts %}{% include 'partners/_phone_actions.html' with phone=member.user.phone_number email=member.user.email %}{% endif %}
                 </li>
                 {% endfor %}
@@ -117,19 +118,19 @@
                 </li>
                 {% endif %}
                 {% if not coordinators and not facilitators and not location.arrival_contact_name and not location.arrival_contact_phone %}{% if not contact or not can_view_contacts %}
-                <li class="p-empty">Nobody added yet.{% if is_coordinator or is_staff_viewer %} Add the team on the Team tab, or an arrival contact under Edit position and directions.{% endif %}</li>
+                <li class="p-empty">{% translate "Nobody added yet." %}{% if is_coordinator or is_staff_viewer %} {% translate "Add the team on the Team tab, or an arrival contact under Edit position and directions." %}{% endif %}</li>
                 {% endif %}{% endif %}
             </ul>
         </section>
 
         {% if running_cohorts %}
         <section class="p-card">
-            <div class="p-card-head"><h2 class="p-card-title">Running cohorts</h2></div>
+            <div class="p-card-head"><h2 class="p-card-title">{% translate "Running cohorts" %}</h2></div>
             <ul class="p-list">
                 {% for cohort in running_cohorts %}
                 <li class="px-5 py-3 text-sm">
                     <p class="font-semibold p-navy">{{ cohort.name }}</p>
-                    <p class="text-xs p-muted">{% if cohort.next_session %}Next session {{ cohort.next_session.course.code }}, {{ cohort.next_session.session_date|date:'d M Y' }}{% else %}No session planned{% endif %}</p>
+                    <p class="text-xs p-muted">{% if cohort.next_session %}{% blocktranslate trimmed with code=cohort.next_session.course.code session_date=cohort.next_session.session_date|date:'d M Y' %}Next session {{ code }}, {{ session_date }}{% endblocktranslate %}{% else %}{% translate "No session planned" %}{% endif %}</p>
                 </li>
                 {% endfor %}
             </ul>
@@ -138,12 +139,12 @@
 
         {% if nearby %}
         <section class="p-card">
-            <div class="p-card-head"><h2 class="p-card-title">Within {{ nearby_km }} km</h2></div>
+            <div class="p-card-head"><h2 class="p-card-title">{% blocktranslate trimmed with nearby_km=nearby_km %}Within {{ nearby_km }} km{% endblocktranslate %}</h2></div>
             <ul class="p-list">
                 {% for item in nearby %}
                 <li class="flex items-center justify-between gap-3 px-5 py-3 text-sm">
                     <span class="min-w-0"><span class="block truncate font-semibold p-navy">{{ item.location.name }}</span><span class="block truncate text-xs p-muted">{{ item.location.organisation.name }}</span></span>
-                    <span class="shrink-0 text-xs tabular-nums p-muted">{{ item.km }} km</span>
+                    <span class="shrink-0 text-xs tabular-nums p-muted">{% blocktranslate trimmed with km=item.km %}{{ km }} km{% endblocktranslate %}</span>
                 </li>
                 {% endfor %}
             </ul>
@@ -152,7 +153,7 @@
 
         {% if access_log %}
         <section class="p-card">
-            <div class="p-card-head"><h2 class="p-card-title">Recently viewed by</h2></div>
+            <div class="p-card-head"><h2 class="p-card-title">{% translate "Recently viewed by" %}</h2></div>
             <ul class="p-list">
                 {% for entry in access_log %}
                 <li class="flex items-center justify-between gap-3 px-5 py-2.5 text-xs">
