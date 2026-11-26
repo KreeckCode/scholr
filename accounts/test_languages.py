@@ -15,6 +15,12 @@ ON.insert(ON.index('django.contrib.auth.middleware.AuthenticationMiddleware') + 
 MULTILINGUAL = override_settings(SCHOLR_MULTILINGUAL_ENABLED=True, MIDDLEWARE=ON)
 
 
+def make_moodle():
+    from integration.models import MoodleInstance
+    return MoodleInstance.objects.create(name='Test', base_url='http://moodle.test', ws_token='x',
+                                         is_active=True, is_primary=True)
+
+
 def make(role=User.STUDENT, **extra):
     user = User.objects.create(username=f'{role}{User.objects.count()}', role=role, is_verified=True, **extra)
     user.set_password('Correct-horse-9')
@@ -97,13 +103,25 @@ class MoodleLanguageTests(TestCase):
     @MULTILINGUAL
     def test_a_changed_language_is_sent_to_moodle(self):
         from integration.models import MoodleUserMapping
+        from integration.moodle_client import MoodleClient
+        from integration.tasks import update_moodle_language
+        make_moodle()
+        user = make(preferred_language='pt')
+        MoodleUserMapping.objects.update_or_create(
+            cas_user=user, defaults={'moodle_user_id': 77, 'moodle_username': user.username})
+        # A real client is built; only the call over the network is replaced
+        with mock.patch.object(MoodleClient, 'update_user') as update_user:
+            self.assertEqual(update_moodle_language.apply(args=[user.pk]).get(), {'user': user.pk, 'lang': 'pt'})
+        update_user.assert_called_once_with(77, {'lang': 'pt'})
+
+    @MULTILINGUAL
+    def test_nothing_to_send_without_a_moodle(self):
+        from integration.models import MoodleUserMapping
         from integration.tasks import update_moodle_language
         user = make(preferred_language='pt')
         MoodleUserMapping.objects.update_or_create(
             cas_user=user, defaults={'moodle_user_id': 77, 'moodle_username': user.username})
-        with mock.patch('integration.moodle_client.MoodleClient') as client:
-            self.assertEqual(update_moodle_language.apply(args=[user.pk]).get(), {'user': user.pk, 'lang': 'pt'})
-        client.return_value.update_user.assert_called_once_with(77, {'lang': 'pt'})
+        self.assertEqual(update_moodle_language.apply(args=[user.pk]).get(), {'skipped': 'no Moodle configured'})
 
 
 @override_settings(SCHOLR_STAFF_LMS_PORTAL_ENABLED=True, MOODLE_COHORT_VIEWER_ROLE_ID=9,
@@ -128,7 +146,9 @@ class RoleChangeMoodleTests(TestCase):
 
     def test_old_enrolments_are_removed_from_every_course(self):
         from integration.models import Course, CourseCategory, MoodleUserMapping
+        from integration.moodle_client import MoodleClient
         from integration.tasks import revoke_staff_lms_access
+        make_moodle()
         user = make(User.LEADER)
         MoodleUserMapping.objects.update_or_create(
             cas_user=user, defaults={'moodle_user_id': 41, 'moodle_username': user.username})
@@ -136,11 +156,11 @@ class RoleChangeMoodleTests(TestCase):
         for number in (101, 102):
             Course.objects.create(title=f'METP{number}', short_name=f'METP{number}', category=category,
                                   moodle_course_id=number)
-        with mock.patch('integration.moodle_client.MoodleClient') as client:
+        with mock.patch.object(MoodleClient, 'unenrol_user') as unenrol_user:
             result = revoke_staff_lms_access.apply(args=[user.pk, User.ADMIN]).get()
         self.assertEqual(result['removed'], 2)
-        client.return_value.unenrol_user.assert_any_call(41, 101, 3)
-        client.return_value.unenrol_user.assert_any_call(41, 102, 3)
+        unenrol_user.assert_any_call(41, 101, 3)
+        unenrol_user.assert_any_call(41, 102, 3)
 
     def test_a_role_change_triggers_it(self):
         from accounts.roles import change_role

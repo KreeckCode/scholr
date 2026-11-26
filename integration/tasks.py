@@ -88,6 +88,15 @@ def queue_online_results_refresh():
     return True
 
 
+def primary_moodle_client():
+    """A client for the active primary Moodle, or None when none is set up."""
+    from .models import MoodleInstance
+    from .moodle_client import MoodleClient
+
+    instance = MoodleInstance.objects.filter(is_active=True, is_primary=True).first()
+    return MoodleClient(base_url=instance.base_url, token=instance.ws_token) if instance else None
+
+
 def queue_moodle_language_update(user_id):
     """Send someone's new language to Moodle once the change is saved."""
     from django.db import transaction
@@ -107,9 +116,11 @@ def update_moodle_language(self, user_id):
     if not mapping or not mapping.moodle_user_id:
         return {'skipped': 'no LMS account yet'}
     language = moodle_language(mapping.cas_user)
+    client = primary_moodle_client()
+    if client is None:
+        return {'skipped': 'no Moodle configured'}
     try:
-        from .moodle_client import MoodleClient
-        MoodleClient().update_user(mapping.moodle_user_id, {'lang': language})
+        client.update_user(mapping.moodle_user_id, {'lang': language})
     except Exception as exc:
         raise self.retry(exc=exc)
     return {'user': user_id, 'lang': language}
@@ -141,7 +152,6 @@ def revoke_staff_lms_access(self, user_id, old_role):
     if it has any, is granted the next time the person uses the LMS Portal.
     """
     from .models import Course, MoodleUserMapping
-    from .moodle_client import MoodleClient
     from .staff_access import _access_cache_key
 
     mapping = MoodleUserMapping.objects.filter(cas_user_id=user_id).select_related('cas_user').first()
@@ -149,7 +159,9 @@ def revoke_staff_lms_access(self, user_id, old_role):
     if not mapping or not mapping.moodle_user_id or not old_course_role:
         return {'skipped': 'nothing to remove'}
 
-    client = MoodleClient()
+    client = primary_moodle_client()
+    if client is None:
+        return {'skipped': 'no Moodle configured'}
     removed, failed = 0, []
     for course_id in Course.objects.filter(moodle_course_id__isnull=False).values_list('moodle_course_id', flat=True):
         try:
