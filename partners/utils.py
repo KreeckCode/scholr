@@ -69,3 +69,18 @@ def enqueue(task, *args):
         logger.exception('Could not queue %s%s', getattr(task, 'name', task), args)
         return False
     return True
+
+
+def workbook_response(workbook, name):
+    """Stream a workbook as a download."""
+    from io import BytesIO
+    from django.http import HttpResponse
+
+    buffer = BytesIO()
+    workbook.save(buffer)
+    response = HttpResponse(
+        buffer.getvalue(), content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    )
+    response['Content-Disposition'] = f'attachment; filename="{name}"'
+    response['Cache-Control'] = 'private, no-store'
+    return response

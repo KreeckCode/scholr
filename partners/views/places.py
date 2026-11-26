@@ -17,7 +17,7 @@ from django.views.generic import CreateView, TemplateView, UpdateView
 
 from partners.exceptions import PartnersError
 from partners.forms import LocationEventForm, LocationPlaceForm
-from partners.mixins import LEADER_READS, LocationMixin, NetworkStaffMixin
+from partners.mixins import NETWORK_READS, LocationMixin, NetworkStaffMixin
 from partners.models import LocationAccessLog, LocationEvent, TrainingLocation
 from partners.services import places, scope
 from partners.utils import client_ip
@@ -40,14 +40,15 @@ def map_config(**extra):
 # ==================== STAFF MAP ====================
 
 class MapView(NetworkStaffMixin, TemplateView):
-    network_roles = LEADER_READS
+    network_roles = NETWORK_READS
     template_name = 'partners/staff/map.html'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         today = timezone.localdate()
         events = list(
-            places.upcoming_events(today).select_related('location__organisation', 'cohort')
+            places.upcoming_events(today, scope.locations_in_reach(self.request.user))
+            .select_related('location__organisation', 'cohort')
             .prefetch_related('attendees')[:12]
         )
         context.update({
@@ -63,31 +64,31 @@ class MapView(NetworkStaffMixin, TemplateView):
 
 
 class MapDataView(NetworkStaffMixin, View):
-    network_roles = LEADER_READS
+    network_roles = NETWORK_READS
 
     def get(self, request):
-        response = JsonResponse(places.map_data())
+        response = JsonResponse(places.map_data(locations=scope.locations_in_reach(request.user)))
         response['Cache-Control'] = 'private, no-store'
         return response
 
 
 class MapPanelView(NetworkStaffMixin, TemplateView):
     """The details shown beside the map for one dot. Sensitive locations get only a pointer to their page."""
-    network_roles = LEADER_READS
+    network_roles = NETWORK_READS
 
     template_name = 'partners/staff/_map_panel.html'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         location = get_object_or_404(
-            TrainingLocation.objects.select_related('organisation__partnership', 'licence')
+            scope.locations_in_reach(self.request.user).select_related('organisation__partnership', 'licence')
             .prefetch_related('organisation__contacts'),
             public_id=self.kwargs['location_id'],
         )
         context['location'] = location
         if not location.hides_identities:
             context.update(places.location_brief(location))
-            context['nearby'] = places.nearby(location)
+            context['nearby'] = places.nearby(location, within=scope.locations_in_reach(self.request.user))
             context['nearby_km'] = places.NEARBY_KM
         return context
 
@@ -99,7 +100,7 @@ class MapPanelView(NetworkStaffMixin, TemplateView):
 
 class TripSheetView(NetworkStaffMixin, View):
     """A printable trip with every stop's contacts, directions and events, for travel without signal."""
-    network_roles = LEADER_READS
+    network_roles = NETWORK_READS
 
     def get(self, request):
         from weasyprint import HTML
@@ -153,7 +154,7 @@ class LocationPlaceView(LocationMixin, TemplateView):
         context.update({
             'can_edit_place': places.can_edit_place(self.request.user, location),
             'config': map_config(position=places.exact_position(location)),
-            'nearby': [] if location.hides_identities else places.nearby(location),
+            'nearby': [] if location.hides_identities else places.nearby(location, within=_nearby_scope(self.request.user)),
             'nearby_km': places.NEARBY_KM,
             'access_log': (
                 location.access_logs.select_related('user')[:8]
@@ -248,3 +249,10 @@ class EventCancelView(PlaceEditorMixin, View):
         else:
             messages.success(request, f'{event.title} cancelled.')
         return redirect(place_url(self.location))
+
+
+def _nearby_scope(user):
+    """Hub administrators in the portal only hear about locations in their own reach."""
+    if scope.network_role(user) == 'hub_admin':
+        return scope.locations_in_reach(user)
+    return None

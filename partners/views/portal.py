@@ -871,5 +871,24 @@ class CohortResultsOverviewView(CohortMixin, TemplateView):
             'pass_mark': settings.PARTNERS_PASS_MARK,
             'online_synced_at': results.last_synced(),
             'show_cohort': False,
+            'export_url': reverse('partners:cohort_results_export', kwargs={
+                'location_id': self.location.public_id, 'cohort_id': self.cohort.public_id,
+            }) + '?',
         })
         return context
+
+
+class CohortResultsExportView(CohortMixin, View):
+    """One cohort's results as a spreadsheet, for anyone who can open the cohort."""
+
+    def dispatch(self, request, *args, **kwargs):
+        if not online_results_enabled():
+            raise Http404
+        return super().dispatch(request, *args, **kwargs)
+
+    def get(self, request, *args, **kwargs):
+        from partners.services import exports
+        from partners.utils import workbook_response
+        view = request.GET.get('view') if request.GET.get('view') in results.VIEWS else results.PROGRAMME
+        workbook = exports.build_workbook(request.user, view, {'cohort': self.cohort.public_id})
+        return workbook_response(workbook, exports.filename(view))

@@ -39,7 +39,8 @@ from partners.models import (
     TrainingLocation,
     country_name,
 )
-from partners.services import licences, network, organisations, pipeline, reach, results, scope
+from partners.services import exports, licences, network, organisations, pipeline, reach, results, scope
+from partners.utils import workbook_response
 from partners.utils import write_csv
 
 
@@ -676,9 +677,29 @@ class ResultsOverviewView(NetworkStaffMixin, TemplateView):
             'rows': rows,
             'page': page,
             'query': query.urlencode(),
+            'export_url': reverse('partners:results_export') + '?' + query.urlencode(),
+            'export_splits': True,
             'summaries': results.course_summaries(rows, courses, view),
             'pass_mark': settings.PARTNERS_PASS_MARK,
             'online_synced_at': results.last_synced(),
             'show_cohort': True,
         })
         return context
+
+
+class ResultsExportView(NetworkStaffMixin, View):
+    """The results overview as a spreadsheet: same filters, same reach, optionally a sheet per partner or cohort."""
+    network_roles = RESULTS_READS
+
+    def dispatch(self, request, *args, **kwargs):
+        from scholr.features import online_results_enabled
+        if not online_results_enabled():
+            raise Http404
+        return super().dispatch(request, *args, **kwargs)
+
+    def get(self, request):
+        params = request.GET
+        view = params.get('view') if params.get('view') in results.VIEWS else results.PROGRAMME
+        filters = {key: params.get(key, '') for key in ('country', 'organisation', 'location', 'cohort')}
+        workbook = exports.build_workbook(request.user, view, filters, split=params.get('split', exports.ONE_SHEET))
+        return workbook_response(workbook, exports.filename(view))

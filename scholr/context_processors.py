@@ -50,6 +50,6 @@ def _network_permissions(user):
         'NETWORK_CAN_MANAGE_LICENCES': scope.can_manage_licences(user),
         'NETWORK_CAN_ENTER_PORTAL': scope.can_enter_portal(user),
         'NETWORK_CAN_EXPORT': staff,
-        'NETWORK_SEES_MAP': staff or role == 'leader',
+        'NETWORK_SEES_MAP': staff or role is not None,
         'NETWORK_SEES_RESULTS': staff or role in ('leader', 'hub_admin'),
     }

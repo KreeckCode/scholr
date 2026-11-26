@@ -280,13 +280,17 @@ def cancel_event(event, actor):
 
 # ==================== READING ====================
 
-def upcoming_events(today=None):
+def upcoming_events(today=None, locations=None):
+    """Planned and confirmed events soon, at these locations when given, otherwise everywhere."""
     today = today or timezone.localdate()
-    return LocationEvent.objects.filter(
+    events = LocationEvent.objects.filter(
         status__in=[LocationEvent.Status.PLANNED, LocationEvent.Status.CONFIRMED],
         starts_on__gte=today,
         starts_on__lte=today + timedelta(days=EVENT_HORIZON_DAYS),
-    ).order_by('starts_on', 'starts_at')
+    )
+    if locations is not None:
+        events = events.filter(location__in=locations)
+    return events.order_by('starts_on', 'starts_at')
 
 
 def _event_summary(event):
@@ -299,16 +303,17 @@ def _event_summary(event):
     }
 
 
-def map_data(today=None):
-    """Everything the staff map draws, in one payload of plain values. Two queries in total."""
+def map_data(today=None, locations=None):
+    """Everything the staff map draws, for these locations when given, in one payload of plain values."""
     today = today or timezone.localdate()
+    within = locations
     locations = (
-        TrainingLocation.objects.select_related('organisation__partnership')
+        (TrainingLocation.objects.all() if within is None else within).select_related('organisation__partnership')
         .annotate(running=Count('cohorts', filter=Q(cohorts__status=Cohort.Status.RUNNING), distinct=True))
         .order_by('country', 'name')
     )
     next_event = {}
-    for event in upcoming_events(today):
+    for event in upcoming_events(today, within):
         next_event.setdefault(event.location_id, event)
 
     features, missing = [], []
@@ -351,15 +356,18 @@ def map_data(today=None):
     return {'features': features, 'missing': missing, 'today': today.isoformat()}
 
 
-def nearby(location, radius_km=NEARBY_KM, limit=5):
-    """Other ordinary locations within reach, nearest first. Sensitive locations are never listed."""
+def nearby(location, radius_km=NEARBY_KM, limit=5, within=None):
+    """
+    Other ordinary locations close by, nearest first, from within when given (someone's reach).
+    Sensitive locations are never listed.
+    """
     if not location.has_position:
         return []
     lat, lng = float(location.latitude), float(location.longitude)
     lat_span = radius_km / 111.0
     lng_span = radius_km / max(1.0, 111.0 * math.cos(math.radians(lat)))
     candidates = (
-        TrainingLocation.objects.exclude(pk=location.pk).exclude(SENSITIVE)
+        (TrainingLocation.objects.all() if within is None else within).exclude(pk=location.pk).exclude(SENSITIVE)
         .exclude(status=TrainingLocation.Status.CLOSED)
         .filter(
             latitude__gte=lat - lat_span, latitude__lte=lat + lat_span,
@@ -434,9 +442,9 @@ def plan_trip(public_ids, user, nearest_first=False, today=None):
     Stops for a trip, in the order chosen. Sensitive locations and locations without a position
     are left out and reported, because a trip sheet would print their exact details.
     """
-    # Leaders may plan a trip too: it prints what they can already see, and changes nothing
-    if not (scope.is_programme_staff(user) or scope.network_role(user) == 'leader'):
-        raise PermissionDenied('Programme staff and leaders only.')
+    # Anyone on the network staff may plan a trip, but only through locations in their reach
+    if scope.network_role(user) is None:
+        raise PermissionDenied('Partner network staff only.')
     today = today or timezone.localdate()
     seen, ids = set(), []
     for value in public_ids:
@@ -450,7 +458,7 @@ def plan_trip(public_ids, user, nearest_first=False, today=None):
 
     by_id = {
         str(location.public_id): location
-        for location in TrainingLocation.objects.filter(public_id__in=ids).select_related('organisation')
+        for location in scope.locations_in_reach(user).filter(public_id__in=ids).select_related('organisation')
     }
     stops, skipped = [], []
     for public_id in ids:

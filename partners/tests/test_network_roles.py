@@ -160,12 +160,13 @@ class FailClosedSweepTests(NetworkTestCase):
     # Hub administrators work as programme staff inside their reach, except for these
     HUB_ADMIN_REFUSED = {
         'licence_action', 'licence_delete', 'network_export', 'organisation_coverage',
-        'map', 'map_data', 'map_panel', 'map_trip',
         'staff_list', 'staff_create', 'staff_detail', 'staff_role', 'staff_countries', 'staff_partners',
         'staff_activation_link',
     }
     # Ambassadors' partner here is outside the sweep's Kenyan partner, so its own pages are not found
-    AMBASSADOR_CAN = {'pipeline', 'organisation_list', 'licence_list', 'network', 'organisation_create'}
+    AMBASSADOR_CAN = {
+        'pipeline', 'organisation_list', 'licence_list', 'network', 'organisation_create', 'map', 'map_data', 'map_trip',
+    }
     # Leaders may read these, and only these. Every change is still refused.
     LEADER_CAN_READ = {
         'pipeline', 'organisation_list', 'organisation_detail', 'licence_list', 'licence_detail',

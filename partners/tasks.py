@@ -16,8 +16,11 @@ from django.utils import timezone
 logger = logging.getLogger(__name__)
 
 
-def staff_recipients():
-    """PARTNERS_STAFF_EMAILS plus every active programme staff user with an email."""
+def staff_recipients(organisation=None):
+    """
+    PARTNERS_STAFF_EMAILS plus every active programme staff user with an email, and, for news
+    about one partner, the hub administrators who cover it.
+    """
     from accounts.models import User
 
     addresses = {address.lower() for address in settings.PARTNERS_STAFF_EMAILS}
@@ -26,7 +29,21 @@ def staff_recipients():
             role=User.PROGRAMME_STAFF, is_active=True,
         ).exclude(email__isnull=True).exclude(email='').values_list('email', flat=True)
     )
+    if organisation is not None:
+        addresses.update(hub_admin_emails(organisation))
     return sorted(addresses)
+
+
+def hub_admin_emails(organisation):
+    """Hub administrators covering this partner, by its country or by a direct assignment."""
+    from accounts.models import User
+    from partners.services.reach import coverage_for
+
+    coverage = coverage_for(organisation)
+    return sorted({
+        person.email.lower() for person in coverage['by_country'] + coverage['assigned']
+        if person.role == User.HUB_ADMIN and person.email
+    })
 
 
 def absolute(path):
@@ -63,7 +80,7 @@ def notify_staff_of_enquiry(self, partnership_id, created):
     }
     subject = f"{'New' if created else 'Repeat'} METP partner enquiry: {partnership.organisation.name}"
     try:
-        return _send(subject, 'partners/emails/enquiry_staff.txt', context, staff_recipients())
+        return _send(subject, 'partners/emails/enquiry_staff.txt', context, staff_recipients(partnership.organisation))
     except Exception as exc:
         raise self.retry(exc=exc)
 
@@ -101,7 +118,9 @@ def update_licence_statuses():
         if partnership is not None and partnership.owner and partnership.owner.email:
             recipients.append(partnership.owner.email)
         if not recipients:
-            recipients = staff_recipients()
+            recipients = staff_recipients(organisation)
+        else:
+            recipients += hub_admin_emails(organisation)
         context = {'licence': licence, 'organisation': organisation, 'days': licence.days_remaining(today)}
         try:
             reminded += bool(_send(
@@ -140,9 +159,34 @@ def stalled_partnerships_digest():
     ]
     if not rows:
         return 0
-    return _send(
+    sent = _send(
         f'METP pipeline: {len(rows)} partnership(s) need attention',
         'partners/emails/stalled_digest.txt',
         {'rows': rows, 'today': today, 'stall_days': settings.PARTNERS_STALL_DAYS},
         staff_recipients(),
     )
+    return sent + _hub_admin_digests(rows, today)
+
+
+def _hub_admin_digests(rows, today):
+    """Each hub administrator gets the same digest, cut down to the partners they cover."""
+    from accounts.models import User
+    from partners.services import scope
+
+    sent = 0
+    hub_admins = User.objects.filter(role=User.HUB_ADMIN, is_active=True).exclude(email__isnull=True).exclude(email='')
+    for hub_admin in hub_admins:
+        reach = set(scope.organisations_in_reach(hub_admin).values_list('pk', flat=True))
+        theirs = [row for row in rows if row['partnership'].organisation_id in reach]
+        if not theirs:
+            continue
+        try:
+            sent += _send(
+                f'METP pipeline: {len(theirs)} of your partnership(s) need attention',
+                'partners/emails/stalled_digest.txt',
+                {'rows': theirs, 'today': today, 'stall_days': settings.PARTNERS_STALL_DAYS},
+                [hub_admin.email],
+            )
+        except Exception:
+            logger.exception('Stalled digest for hub administrator %s failed', hub_admin.pk)
+    return sent

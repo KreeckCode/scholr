@@ -81,13 +81,13 @@ class HubAdminReachTests(NetworkStaffTestCase):
         self.assertEqual(self.client.get(kenya).status_code, 200)
         self.assertEqual(self.client.get(nigeria).status_code, 404)
 
-    def test_lands_on_the_pipeline_with_no_map(self):
+    def test_lands_on_the_pipeline_with_the_map(self):
         self.assertRedirects(self.client.get(reverse('accounts:dashboard')), self.url('pipeline'),
                              fetch_redirect_response=False)
         page = self.client.get(self.url('pipeline'))
-        self.assertNotContains(page, self.url('map'))
+        self.assertContains(page, self.url('map'))
         self.assertContains(page, 'Hub admin')
-        self.assertEqual(self.client.get(self.url('map')).status_code, 403)
+        self.assertEqual(self.client.get(self.url('map')).status_code, 200)
 
 
 class HubAdminEditingTests(NetworkStaffTestCase):
@@ -191,10 +191,10 @@ class AmbassadorTests(NetworkStaffTestCase):
         added = PartnerOrganisation.objects.get(name='Kumasi Light')
         self.assertIn(added, scope.organisations_in_reach(self.ambassador))
 
-    def test_no_results_map_or_portal(self):
+    def test_map_but_no_results_or_portal(self):
         with override_settings(SCHOLR_ONLINE_RESULTS_ENABLED=True):
             self.assertEqual(self.client.get(self.url('results_overview')).status_code, 403)
-        self.assertEqual(self.client.get(self.url('map')).status_code, 403)
+        self.assertEqual(self.client.get(self.url('map')).status_code, 200)
         dashboard = reverse('partners:location_dashboard', kwargs={'location_id': self.nigeria_location.public_id})
         self.assertEqual(self.client.get(dashboard).status_code, 404)
 

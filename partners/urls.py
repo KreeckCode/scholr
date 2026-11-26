@@ -20,6 +20,7 @@ urlpatterns = [
     path('network/', staff.NetworkView.as_view(), name='network'),
     path('network/export.csv', staff.NetworkExportView.as_view(), name='network_export'),
     path('results/', staff.ResultsOverviewView.as_view(), name='results_overview'),
+    path('results/export/', staff.ResultsExportView.as_view(), name='results_export'),
 
     # ==================== STAFF MANAGEMENT (system administrators) ====================
     path('staff/', people.StaffListView.as_view(), name='staff_list'),
@@ -83,6 +84,7 @@ urlpatterns = [
     path(f'{cohort}enrol/', portal.CohortEnrolView.as_view(), name='cohort_enrol'),
     path(f'{cohort}results/', portal.ResultsView.as_view(), name='cohort_results'),
     path(f'{cohort}results/overview/', portal.CohortResultsOverviewView.as_view(), name='cohort_results_overview'),
+    path(f'{cohort}results/export/', portal.CohortResultsExportView.as_view(), name='cohort_results_export'),
     path(f'{cohort}members/<uuid:membership_id>/<slug:action>/', portal.MembershipActionView.as_view(),
          name='membership_action'),
 

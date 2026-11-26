@@ -398,6 +398,7 @@
                         {% include 'base/nav/_nav_link.html' with url='partners:organisation_list' label='Partners' active_paths='/partners/organisations/' %}
                         {% include 'base/nav/_nav_link.html' with url='partners:licence_list' label='Licences' active_paths='/partners/licences/' %}
                         {% include 'base/nav/_nav_link.html' with url='partners:network' label='Network' active_paths='/partners/network/' %}
+                        {% include 'base/nav/_nav_link.html' with url='partners:map' label='Map' active_paths='/partners/map/' %}
                         {% if user.role == 'hub_admin' %}{% include 'base/nav/_nav_link.html' with url='partners:portal_home' label='Locations' active_paths='/partners/portal/' %}{% endif %}
                         {% endif %}
 
@@ -662,6 +663,7 @@
                     <a href="{% url 'partners:organisation_list' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">Partners</a>
                     <a href="{% url 'partners:licence_list' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">Licences</a>
                     <a href="{% url 'partners:network' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">Network</a>
+                    <a href="{% url 'partners:map' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">Map</a>
                     {% if user.role == 'hub_admin' %}<a href="{% url 'partners:portal_home' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">Locations</a>{% endif %}
                     {% endif %}
 
