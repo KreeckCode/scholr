@@ -1,5 +1,7 @@
 """Per-profile branding. SITE_PROFILE in .env selects one of these."""
 import os
+
+from django.utils.translation import gettext_lazy as _
 SITE_BRANDS = {
 
     'snap': {
@@ -92,18 +94,18 @@ SITE_BRANDS = {
         'same_as':          ['https://metp.ca', 'https://www.globaledinstitute.ca'],
         'locale':           'en_CA',
 
-        'footer_blurb':     'A non-formal ministry training program of the GlobalEd Institute at '
-                            'Summit Pacific College, equipping leaders with little or no access to '
-                            'formal theological training.',
+        'footer_blurb':     _('A non-formal ministry training program of the GlobalEd Institute at '
+                              'Summit Pacific College, equipping leaders with little or no access to '
+                              'formal theological training.'),
         'footer_column':    'METP',
         'footer_links':     [
-            {'label': 'About METP',        'url': 'https://metp.ca/about/', 'external': True},
-            {'label': 'Updates',           'url': 'https://metp.ca/blog/', 'external': True},
-            {'label': 'Course overview',   'url': 'https://metp.ca/wp-content/uploads/2025/03/METP-Course-Overview-2025-03-02.pdf', 'external': True},
-            {'label': 'Donate',            'url': 'https://paoc.org/donate/ministryessentialstrainingprogram-metp', 'external': True},
+            {'label': _('About METP'),     'url': 'https://metp.ca/about/', 'external': True},
+            {'label': _('Updates'),        'url': 'https://metp.ca/blog/', 'external': True},
+            {'label': _('Course overview'), 'url': 'https://metp.ca/wp-content/uploads/2025/03/METP-Course-Overview-2025-03-02.pdf', 'external': True},
+            {'label': _('Donate'),         'url': 'https://paoc.org/donate/ministryessentialstrainingprogram-metp', 'external': True},
         ],
-        'footer_note':      'Part of the GlobalEd department of Mission Global and the '
-                            'Pentecostal Assemblies of Canada.',
+        'footer_note':      _('Part of the GlobalEd department of Mission Global and the '
+                              'Pentecostal Assemblies of Canada.'),
         'copyright':        'GlobalEd Institute',
         'copyright_note':   '',
 

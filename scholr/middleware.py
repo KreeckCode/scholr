@@ -47,3 +47,21 @@ class FeatureFlagMiddleware:
                 raise Http404
 
         return self.get_response(request)
+
+
+class UserLanguageMiddleware:
+    """After sign-in, the language someone chose wins over their browser's."""
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        from django.conf import settings
+        from django.utils import translation
+
+        user = getattr(request, 'user', None)
+        language = getattr(user, 'preferred_language', '') if user is not None and user.is_authenticated else ''
+        if language and language in dict(settings.LANGUAGES):
+            translation.activate(language)
+            request.LANGUAGE_CODE = language
+        return self.get_response(request)

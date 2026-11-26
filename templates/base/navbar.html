@@ -1,4 +1,5 @@
 {% load static %}
+{% load i18n %}
 
 <style>
     .snap-nav               { font-family: 'Poppins', system-ui, sans-serif; }
@@ -73,23 +74,23 @@
 
                     {# -------- COMMERCIAL STUDENT -------- #}
                     {% if user.role == 'student' %}
-                        {% include 'base/nav/_nav_link.html' with url='accounts:dashboard' label='Dashboard' active_paths='dashboard' %}
+                        {% include 'base/nav/_nav_link.html' with url='accounts:dashboard' label=_("Dashboard") active_paths='dashboard' %}
                         {% if SCHOLR_LMS_ENABLED %}
-                        {% if SCHOLR_PURCHASES_ENABLED %}{% include 'base/nav/_nav_link.html' with url='shop:catalog' label='Browse Courses' active_paths='catalog' %}{% endif %}
-                        {% include 'base/nav/_nav_link.html' with url='shop:my_courses' label='My Learning' active_paths='my-courses' %}
-                        {% if SCHOLR_PURCHASES_ENABLED %}{% include 'base/nav/_nav_link.html' with url='shop:order_list' label='Orders' active_paths='orders' %}{% endif %}
+                        {% if SCHOLR_PURCHASES_ENABLED %}{% include 'base/nav/_nav_link.html' with url='shop:catalog' label=_("Browse Courses") active_paths='catalog' %}{% endif %}
+                        {% include 'base/nav/_nav_link.html' with url='shop:my_courses' label=_("My Learning") active_paths='my-courses' %}
+                        {% if SCHOLR_PURCHASES_ENABLED %}{% include 'base/nav/_nav_link.html' with url='shop:order_list' label=_("Orders") active_paths='orders' %}{% endif %}
                         {% endif %}
 
                     {# -------- COMMERCIAL DEAN -------- #}
                     {% elif user.role == 'dean' %}
-                        {% include 'base/nav/_nav_link.html' with url='accounts:dashboard' label='Dashboard' active_paths='dashboard' %}
-                        {% include 'base/nav/_nav_link.html' with url='accounts:student_list' label='Learners' active_paths='students' %}
+                        {% include 'base/nav/_nav_link.html' with url='accounts:dashboard' label=_("Dashboard") active_paths='dashboard' %}
+                        {% include 'base/nav/_nav_link.html' with url='accounts:student_list' label=_("Learners") active_paths='students' %}
 
                     {# -------- COMMERCIAL ADMIN -------- #}
                     {% elif user.role == 'admin' %}
-                        {% include 'base/nav/_nav_link.html' with url='accounts:dashboard' label='Dashboard' active_paths='dashboard' %}
+                        {% include 'base/nav/_nav_link.html' with url='accounts:dashboard' label=_("Dashboard") active_paths='dashboard' %}
                         {% if SCHOLR_PARTNERS_ENABLED %}
-                        {% include 'base/nav/_nav_link.html' with url='partners:pipeline' label='Partners' active_paths='/partners/' %}
+                        {% include 'base/nav/_nav_link.html' with url='partners:pipeline' label=_("Partners") active_paths='/partners/' %}
                         {% endif %}
 
                         {% if SCHOLR_LMS_ENABLED %}
@@ -216,7 +217,7 @@
 
                     {# -------- TEACHER -------- #}
                     {% elif user.role == 'teacher' %}
-                        {% include 'base/nav/_nav_link.html' with url='accounts:dashboard' label='Dashboard' active_paths='dashboard' %}
+                        {% include 'base/nav/_nav_link.html' with url='accounts:dashboard' label=_("Dashboard") active_paths='dashboard' %}
                         <div class="relative" x-data="{ open: false }">
                             <button @click="open = !open" @keydown.escape.window="open = false" type="button"
                                     class="flex items-center gap-1 rounded-full px-4 py-2 text-sm font-medium
@@ -247,7 +248,7 @@
 
                     {# -------- HOD -------- #}
                     {% elif user.role == 'hod' %}
-                        {% include 'base/nav/_nav_link.html' with url='accounts:dashboard' label='Dashboard' active_paths='dashboard' %}
+                        {% include 'base/nav/_nav_link.html' with url='accounts:dashboard' label=_("Dashboard") active_paths='dashboard' %}
                         <div class="relative" x-data="{ open: false }">
                             <button @click="open = !open" @keydown.escape.window="open = false" type="button"
                                     class="flex items-center gap-1 rounded-full px-4 py-2 text-sm font-medium
@@ -278,7 +279,7 @@
 
                    
                     {% elif user.role == 'principal' or user.role == 'admin_clerk' %}
-                        {% include 'base/nav/_nav_link.html' with url='accounts:dashboard' label='Dashboard' active_paths='dashboard' %}
+                        {% include 'base/nav/_nav_link.html' with url='accounts:dashboard' label=_("Dashboard") active_paths='dashboard' %}
                         <div class="relative" x-data="{ open: false }">
                             <button @click="open = !open" @keydown.escape.window="open = false" type="button"
                                     class="flex items-center gap-1 rounded-full px-4 py-2 text-sm font-medium
@@ -360,52 +361,52 @@
 
                     {# -------- PARENT -------- #}
                     {% elif user.role == 'parent' %}
-                        {% include 'base/nav/_nav_link.html' with url='accounts:dashboard' label='Dashboard' active_paths='dashboard' %}
+                        {% include 'base/nav/_nav_link.html' with url='accounts:dashboard' label=_("Dashboard") active_paths='dashboard' %}
                         {% if SCHOLR_ACADEMICS_ENABLED %}
-                        {% include 'base/nav/_nav_link.html' with url='academics:portal_dashboard' label='My Children' active_paths='portal' %}
+                        {% include 'base/nav/_nav_link.html' with url='academics:portal_dashboard' label=_("My Children") active_paths='portal' %}
                         {% endif %}
 
                     {# -------- SCHOOL LEARNER -------- #}
                     {% elif user.role == 'learner' %}
-                        {% include 'base/nav/_nav_link.html' with url='accounts:dashboard' label='Dashboard' active_paths='dashboard' %}
+                        {% include 'base/nav/_nav_link.html' with url='accounts:dashboard' label=_("Dashboard") active_paths='dashboard' %}
                         {% if SCHOLR_BRIDGE_ENABLED %}
-                        {% include 'base/nav/_nav_link.html' with url='academics:learner_lms_dashboard' label='My Online Courses' active_paths='lms' %}
+                        {% include 'base/nav/_nav_link.html' with url='academics:learner_lms_dashboard' label=_("My Online Courses") active_paths='lms' %}
                         {% endif %}
 
                     {% elif user.role == 'programme_staff' %}
                         {% if SCHOLR_PARTNERS_ENABLED %}
-                        {% include 'base/nav/_nav_link.html' with url='partners:pipeline' label='Pipeline' active_paths='/partners/pipeline/' %}
-                        {% include 'base/nav/_nav_link.html' with url='partners:organisation_list' label='Partners' active_paths='/partners/organisations/' %}
-                        {% include 'base/nav/_nav_link.html' with url='partners:licence_list' label='Licences' active_paths='/partners/licences/' %}
-                        {% include 'base/nav/_nav_link.html' with url='partners:network' label='Network' active_paths='/partners/network/' %}
-                        {% include 'base/nav/_nav_link.html' with url='partners:map' label='Map' active_paths='/partners/map/' %}
+                        {% include 'base/nav/_nav_link.html' with url='partners:pipeline' label=_("Pipeline") active_paths='/partners/pipeline/' %}
+                        {% include 'base/nav/_nav_link.html' with url='partners:organisation_list' label=_("Partners") active_paths='/partners/organisations/' %}
+                        {% include 'base/nav/_nav_link.html' with url='partners:licence_list' label=_("Licences") active_paths='/partners/licences/' %}
+                        {% include 'base/nav/_nav_link.html' with url='partners:network' label=_("Network") active_paths='/partners/network/' %}
+                        {% include 'base/nav/_nav_link.html' with url='partners:map' label=_("Map") active_paths='/partners/map/' %}
                         {% endif %}
 
                     {% elif user.role == 'leader' %}
-                        {% include 'base/nav/_nav_link.html' with url='accounts:admin_dashboard' label='Dashboard' active_paths='/dashboard/admin/' %}
+                        {% include 'base/nav/_nav_link.html' with url='accounts:admin_dashboard' label=_("Dashboard") active_paths='/dashboard/admin/' %}
                         {% if SCHOLR_PARTNERS_ENABLED %}
-                        {% include 'base/nav/_nav_link.html' with url='partners:pipeline' label='Pipeline' active_paths='/partners/pipeline/' %}
-                        {% include 'base/nav/_nav_link.html' with url='partners:organisation_list' label='Partners' active_paths='/partners/organisations/' %}
-                        {% include 'base/nav/_nav_link.html' with url='partners:licence_list' label='Licences' active_paths='/partners/licences/' %}
-                        {% include 'base/nav/_nav_link.html' with url='partners:network' label='Network' active_paths='/partners/network/' %}
-                        {% include 'base/nav/_nav_link.html' with url='partners:map' label='Map' active_paths='/partners/map/' %}
+                        {% include 'base/nav/_nav_link.html' with url='partners:pipeline' label=_("Pipeline") active_paths='/partners/pipeline/' %}
+                        {% include 'base/nav/_nav_link.html' with url='partners:organisation_list' label=_("Partners") active_paths='/partners/organisations/' %}
+                        {% include 'base/nav/_nav_link.html' with url='partners:licence_list' label=_("Licences") active_paths='/partners/licences/' %}
+                        {% include 'base/nav/_nav_link.html' with url='partners:network' label=_("Network") active_paths='/partners/network/' %}
+                        {% include 'base/nav/_nav_link.html' with url='partners:map' label=_("Map") active_paths='/partners/map/' %}
                         {% endif %}
-                        {% include 'base/nav/_nav_link.html' with url='accounts:analytics' label='Analytics' active_paths='/dashboard/analytics/' %}
+                        {% include 'base/nav/_nav_link.html' with url='accounts:analytics' label=_("Analytics") active_paths='/dashboard/analytics/' %}
 
                     {% elif user.role == 'hub_admin' or user.role == 'ambassador' %}
                         {% if SCHOLR_PARTNERS_ENABLED %}
-                        {% include 'base/nav/_nav_link.html' with url='partners:pipeline' label='Pipeline' active_paths='/partners/pipeline/' %}
-                        {% include 'base/nav/_nav_link.html' with url='partners:organisation_list' label='Partners' active_paths='/partners/organisations/' %}
-                        {% include 'base/nav/_nav_link.html' with url='partners:licence_list' label='Licences' active_paths='/partners/licences/' %}
-                        {% include 'base/nav/_nav_link.html' with url='partners:network' label='Network' active_paths='/partners/network/' %}
-                        {% include 'base/nav/_nav_link.html' with url='partners:map' label='Map' active_paths='/partners/map/' %}
-                        {% if user.role == 'hub_admin' %}{% include 'base/nav/_nav_link.html' with url='partners:portal_home' label='Locations' active_paths='/partners/portal/' %}{% endif %}
+                        {% include 'base/nav/_nav_link.html' with url='partners:pipeline' label=_("Pipeline") active_paths='/partners/pipeline/' %}
+                        {% include 'base/nav/_nav_link.html' with url='partners:organisation_list' label=_("Partners") active_paths='/partners/organisations/' %}
+                        {% include 'base/nav/_nav_link.html' with url='partners:licence_list' label=_("Licences") active_paths='/partners/licences/' %}
+                        {% include 'base/nav/_nav_link.html' with url='partners:network' label=_("Network") active_paths='/partners/network/' %}
+                        {% include 'base/nav/_nav_link.html' with url='partners:map' label=_("Map") active_paths='/partners/map/' %}
+                        {% if user.role == 'hub_admin' %}{% include 'base/nav/_nav_link.html' with url='partners:portal_home' label=_("Locations") active_paths='/partners/portal/' %}{% endif %}
                         {% endif %}
 
                     {% elif user.role == 'partner' %}
                         {% if SCHOLR_PARTNERS_ENABLED %}
-                        {% include 'base/nav/_nav_link.html' with url='partners:portal_home' label='My location' active_paths='/partners/portal/' %}
-                        {% include 'base/nav/_nav_link.html' with url='partners:offline_app' label='Offline registers' active_paths='/partners/offline/' %}
+                        {% include 'base/nav/_nav_link.html' with url='partners:portal_home' label=_("My location") active_paths='/partners/portal/' %}
+                        {% include 'base/nav/_nav_link.html' with url='partners:offline_app' label=_("Offline registers") active_paths='/partners/offline/' %}
                         {% endif %}
 
                     {% endif %}{# end role checks #}
@@ -413,7 +414,7 @@
                     {% else %}
                     {# ===== GUEST ===== #}
                     {% if SCHOLR_PURCHASES_ENABLED %}
-                    {% include 'base/nav/_nav_link.html' with url='shop:catalog' label='Browse Courses' active_paths='catalog' %}
+                    {% include 'base/nav/_nav_link.html' with url='shop:catalog' label=_("Browse Courses") active_paths='catalog' %}
                     {% endif %}
                     {% endif %}{# end is_authenticated #}
 
@@ -512,12 +513,12 @@
                     {% endif %}
                     <a href="{% url 'accounts:login' %}"
                        class="snap-pill inline-flex rounded-full px-4 py-2 text-sm font-medium">
-                        Log in
+                        {% translate "Log in" %}
                     </a>
                     {% if SCHOLR_SELF_REGISTRATION %}
-                    <a href="{% url 'accounts:register' %}" ...>Register</a>
+                    <a href="{% url 'accounts:register' %}" ...>{% translate "Register" %}</a>
                     {% elif SCHOLR_ENROLLMENT_ENABLED %}
-                    <a href="{% url 'enrollment:landing' %}" ...>Apply</a>
+                    <a href="{% url 'enrollment:landing' %}" ...>{% translate "Apply" %}</a>
                     {% endif %}
                 {% endif %}
 
@@ -530,7 +531,7 @@
          x-data="{ open: false }">
         <div class="mx-auto max-w-7xl px-4 sm:px-6">
             <div class="flex h-12 items-center justify-between">
-                <span class="text-xs font-semibold snap-text-muted uppercase tracking-wider">Navigation</span>
+                <span class="text-xs font-semibold snap-text-muted uppercase tracking-wider">{% translate "Navigation" %}</span>
                 <button @click="open = !open" type="button"
                         class="snap-pill inline-flex h-9 w-9 items-center justify-center rounded-full">
                     <svg x-show="!open" class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -565,117 +566,117 @@
                 </div>
 
                 {% if user.role == 'student' %}
-                    <a href="{% url 'accounts:dashboard' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">Dashboard</a>
+                    <a href="{% url 'accounts:dashboard' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">{% translate "Dashboard" %}</a>
                     {% if SCHOLR_LMS_ENABLED %}
-                    {% if SCHOLR_PURCHASES_ENABLED %}<a href="{% url 'shop:catalog' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">Browse Courses</a>{% endif %}
-                    <a href="{% url 'shop:my_courses' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">My Learning</a>
-                    {% if SCHOLR_PURCHASES_ENABLED %}<a href="{% url 'shop:order_list' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">Orders</a>{% endif %}
+                    {% if SCHOLR_PURCHASES_ENABLED %}<a href="{% url 'shop:catalog' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">{% translate "Browse Courses" %}</a>{% endif %}
+                    <a href="{% url 'shop:my_courses' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">{% translate "My Learning" %}</a>
+                    {% if SCHOLR_PURCHASES_ENABLED %}<a href="{% url 'shop:order_list' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">{% translate "Orders" %}</a>{% endif %}
                     {% endif %}
 
                 {% elif user.role == 'dean' %}
-                    <a href="{% url 'accounts:dashboard' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">Dashboard</a>
-                    <a href="{% url 'accounts:student_list' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">Learners</a>
+                    <a href="{% url 'accounts:dashboard' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">{% translate "Dashboard" %}</a>
+                    <a href="{% url 'accounts:student_list' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">{% translate "Learners" %}</a>
 
                 {% elif user.role == 'admin' %}
-                    <a href="{% url 'accounts:dashboard' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">Dashboard</a>
+                    <a href="{% url 'accounts:dashboard' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">{% translate "Dashboard" %}</a>
                     {% if SCHOLR_PARTNERS_ENABLED %}
-                    <a href="{% url 'partners:pipeline' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">Partner network</a>
+                    <a href="{% url 'partners:pipeline' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">{% translate "Partner network" %}</a>
                     {% endif %}
                     {% if SCHOLR_LMS_ENABLED %}
                     <p class="px-4 pt-3 pb-1 text-xs font-semibold snap-text-muted uppercase tracking-wider">{{ brand.name }}</p>
-                    <a href="{% url 'accounts:student_list' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">Learners</a>
-                    <a href="{% url 'integration:course_list' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">Courses</a>
-                    <a href="{% url 'shop:bundle_list' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">Bundles</a>
-                    {% if SCHOLR_PURCHASES_ENABLED %}<a href="{% url 'shop:catalog' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">Catalogue</a>{% endif %}
-                    <a href="{% url 'integration:dashboard' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">Integration</a>
-                    <a href="{% url 'integration:sync_dashboard' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">Sync</a>
-                    <a href="{% url 'accounts:analytics' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">Analytics</a>
-                    <a href="{% url 'shop:eft_payment_queue' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">EFT Payments</a>
+                    <a href="{% url 'accounts:student_list' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">{% translate "Learners" %}</a>
+                    <a href="{% url 'integration:course_list' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">{% translate "Courses" %}</a>
+                    <a href="{% url 'shop:bundle_list' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">{% translate "Bundles" %}</a>
+                    {% if SCHOLR_PURCHASES_ENABLED %}<a href="{% url 'shop:catalog' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">{% translate "Catalogue" %}</a>{% endif %}
+                    <a href="{% url 'integration:dashboard' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">{% translate "Integration" %}</a>
+                    <a href="{% url 'integration:sync_dashboard' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">{% translate "Sync" %}</a>
+                    <a href="{% url 'accounts:analytics' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">{% translate "Analytics" %}</a>
+                    <a href="{% url 'shop:eft_payment_queue' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">{% translate "EFT Payments" %}</a>
                     {% endif %}
                     {% if SCHOLR_ACADEMICS_ENABLED %}
-                    <p class="px-4 pt-3 pb-1 text-xs font-semibold snap-text-muted uppercase tracking-wider">School</p>
-                    <a href="{% url 'academics:learner_list' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">Learners</a>
-                    <a href="{% url 'academics:at_risk' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">At-Risk</a>
-                    <a href="{% url 'academics:analytics_dashboard' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">School Analytics</a>
+                    <p class="px-4 pt-3 pb-1 text-xs font-semibold snap-text-muted uppercase tracking-wider">{% translate "School" %}</p>
+                    <a href="{% url 'academics:learner_list' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">{% translate "Learners" %}</a>
+                    <a href="{% url 'academics:at_risk' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">{% translate "At-Risk" %}</a>
+                    <a href="{% url 'academics:analytics_dashboard' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">{% translate "School Analytics" %}</a>
                     {% endif %}
                     {% if SCHOLR_BRIDGE_ENABLED %}
-                    <a href="{% url 'academics:lms_accounts' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">Online Learning</a>
+                    <a href="{% url 'academics:lms_accounts' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">{% translate "Online Learning" %}</a>
                     {% endif %}
 
                 {% elif user.role == 'teacher' or user.role == 'hod' %}
-                    <a href="{% url 'accounts:dashboard' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">Dashboard</a>
-                    <a href="{% url 'academics:learner_list' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">Learners</a>
-                    <a href="{% url 'academics:at_risk' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">At-Risk</a>
+                    <a href="{% url 'accounts:dashboard' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">{% translate "Dashboard" %}</a>
+                    <a href="{% url 'academics:learner_list' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">{% translate "Learners" %}</a>
+                    <a href="{% url 'academics:at_risk' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">{% translate "At-Risk" %}</a>
                     {% if SCHOLR_BRIDGE_ENABLED %}
-                    <a href="{% url 'academics:class_online_status' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">Class Online Status</a>
+                    <a href="{% url 'academics:class_online_status' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">{% translate "Class Online Status" %}</a>
                     {% endif %}
 
                 {% elif user.role == 'principal' or user.role == 'admin_clerk' %}
-                    <a href="{% url 'accounts:dashboard' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">Dashboard</a>
-                    <a href="{% url 'academics:learner_list' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">Learners</a>
-                    <a href="{% url 'academics:at_risk' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">At-Risk</a>
-                    <p class="px-4 pt-3 pb-1 text-xs font-semibold snap-text-muted uppercase tracking-wider">Reports</p>
-                    <a href="{% url 'academics:analytics_dashboard' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">Analytics</a>
-                    <a href="{% url 'academics:academic_report' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">Academic Report</a>
-                    <a href="{% url 'academics:enrollment_report' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">Enrollment Report</a>
+                    <a href="{% url 'accounts:dashboard' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">{% translate "Dashboard" %}</a>
+                    <a href="{% url 'academics:learner_list' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">{% translate "Learners" %}</a>
+                    <a href="{% url 'academics:at_risk' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">{% translate "At-Risk" %}</a>
+                    <p class="px-4 pt-3 pb-1 text-xs font-semibold snap-text-muted uppercase tracking-wider">{% translate "Reports" %}</p>
+                    <a href="{% url 'academics:analytics_dashboard' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">{% translate "Analytics" %}</a>
+                    <a href="{% url 'academics:academic_report' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">{% translate "Academic Report" %}</a>
+                    <a href="{% url 'academics:enrollment_report' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">{% translate "Enrollment Report" %}</a>
                     {% if SCHOLR_BRIDGE_ENABLED %}
-                    <p class="px-4 pt-3 pb-1 text-xs font-semibold snap-text-muted uppercase tracking-wider">Online Learning</p>
-                    <a href="{% url 'academics:online_learning_dashboard' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">Overview</a>
-                    <a href="{% url 'academics:lms_accounts' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">LMS Accounts</a>
-                    <a href="{% url 'academics:online_learning_report' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">Progress Report</a>
+                    <p class="px-4 pt-3 pb-1 text-xs font-semibold snap-text-muted uppercase tracking-wider">{% translate "Online Learning" %}</p>
+                    <a href="{% url 'academics:online_learning_dashboard' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">{% translate "Overview" %}</a>
+                    <a href="{% url 'academics:lms_accounts' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">{% translate "LMS Accounts" %}</a>
+                    <a href="{% url 'academics:online_learning_report' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">{% translate "Progress Report" %}</a>
                     {% endif %}
 
                 {% elif user.role == 'parent' %}
-                    <a href="{% url 'accounts:dashboard' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">Dashboard</a>
+                    <a href="{% url 'accounts:dashboard' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">{% translate "Dashboard" %}</a>
                     {% if SCHOLR_ACADEMICS_ENABLED %}
-                    <a href="{% url 'academics:portal_dashboard' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">My Children</a>
+                    <a href="{% url 'academics:portal_dashboard' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">{% translate "My Children" %}</a>
                     {% endif %}
 
                 {% elif user.role == 'learner' %}
-                    <a href="{% url 'accounts:dashboard' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">Dashboard</a>
+                    <a href="{% url 'accounts:dashboard' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">{% translate "Dashboard" %}</a>
                     {% if SCHOLR_BRIDGE_ENABLED %}
-                    <a href="{% url 'academics:learner_lms_dashboard' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">Online Courses</a>
+                    <a href="{% url 'academics:learner_lms_dashboard' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">{% translate "Online Courses" %}</a>
                     {% endif %}
 
                 {% elif user.role == 'programme_staff' %}
                     {% if SCHOLR_PARTNERS_ENABLED %}
-                    <a href="{% url 'partners:pipeline' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">Pipeline</a>
-                    <a href="{% url 'partners:organisation_list' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">Partners</a>
-                    <a href="{% url 'partners:licence_list' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">Licences</a>
-                    <a href="{% url 'partners:network' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">Network</a>
-                    <a href="{% url 'partners:map' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">Map</a>
+                    <a href="{% url 'partners:pipeline' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">{% translate "Pipeline" %}</a>
+                    <a href="{% url 'partners:organisation_list' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">{% translate "Partners" %}</a>
+                    <a href="{% url 'partners:licence_list' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">{% translate "Licences" %}</a>
+                    <a href="{% url 'partners:network' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">{% translate "Network" %}</a>
+                    <a href="{% url 'partners:map' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">{% translate "Map" %}</a>
                     {% endif %}
 
                 {% elif user.role == 'leader' %}
-                    <a href="{% url 'accounts:admin_dashboard' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">Dashboard</a>
+                    <a href="{% url 'accounts:admin_dashboard' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">{% translate "Dashboard" %}</a>
                     {% if SCHOLR_PARTNERS_ENABLED %}
-                    <a href="{% url 'partners:pipeline' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">Pipeline</a>
-                    <a href="{% url 'partners:organisation_list' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">Partners</a>
-                    <a href="{% url 'partners:licence_list' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">Licences</a>
-                    <a href="{% url 'partners:network' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">Network</a>
-                    <a href="{% url 'partners:map' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">Map</a>
+                    <a href="{% url 'partners:pipeline' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">{% translate "Pipeline" %}</a>
+                    <a href="{% url 'partners:organisation_list' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">{% translate "Partners" %}</a>
+                    <a href="{% url 'partners:licence_list' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">{% translate "Licences" %}</a>
+                    <a href="{% url 'partners:network' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">{% translate "Network" %}</a>
+                    <a href="{% url 'partners:map' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">{% translate "Map" %}</a>
                     {% endif %}
-                    <a href="{% url 'accounts:analytics' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">Analytics</a>
+                    <a href="{% url 'accounts:analytics' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">{% translate "Analytics" %}</a>
 
                 {% elif user.role == 'hub_admin' or user.role == 'ambassador' %}
                     {% if SCHOLR_PARTNERS_ENABLED %}
-                    <a href="{% url 'partners:pipeline' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">Pipeline</a>
-                    <a href="{% url 'partners:organisation_list' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">Partners</a>
-                    <a href="{% url 'partners:licence_list' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">Licences</a>
-                    <a href="{% url 'partners:network' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">Network</a>
-                    <a href="{% url 'partners:map' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">Map</a>
-                    {% if user.role == 'hub_admin' %}<a href="{% url 'partners:portal_home' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">Locations</a>{% endif %}
+                    <a href="{% url 'partners:pipeline' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">{% translate "Pipeline" %}</a>
+                    <a href="{% url 'partners:organisation_list' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">{% translate "Partners" %}</a>
+                    <a href="{% url 'partners:licence_list' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">{% translate "Licences" %}</a>
+                    <a href="{% url 'partners:network' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">{% translate "Network" %}</a>
+                    <a href="{% url 'partners:map' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">{% translate "Map" %}</a>
+                    {% if user.role == 'hub_admin' %}<a href="{% url 'partners:portal_home' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">{% translate "Locations" %}</a>{% endif %}
                     {% endif %}
 
                 {% elif user.role == 'partner' %}
                     {% if SCHOLR_PARTNERS_ENABLED %}
-                    <a href="{% url 'partners:portal_home' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">My location</a>
-                    <a href="{% url 'partners:offline_app' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">Offline registers</a>
+                    <a href="{% url 'partners:portal_home' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">{% translate "My location" %}</a>
+                    <a href="{% url 'partners:offline_app' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">{% translate "Offline registers" %}</a>
                     {% endif %}
                 {% endif %}
 
                 <div class="snap-dd-rule mt-2 pt-2">
-                    <a href="{% url 'accounts:profile' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">Profile</a>
+                    <a href="{% url 'accounts:profile' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">{% translate "Profile" %}</a>
                     <form method="post" action="{% url 'accounts:logout' %}">
                         {% csrf_token %}
                         <button type="submit" class="w-full text-left block rounded-xl px-4 py-3 text-sm font-medium text-red-600 hover:bg-red-50">
@@ -686,12 +687,12 @@
 
                 {% else %}
                 {% if SCHOLR_PURCHASES_ENABLED %}
-                <a href="{% url 'shop:catalog' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">Browse Courses</a>
+                <a href="{% url 'shop:catalog' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">{% translate "Browse Courses" %}</a>
                 {% endif %}
-                <a href="{% url 'accounts:login' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">Log in</a>
+                <a href="{% url 'accounts:login' %}" class="snap-dd-item block rounded-xl px-4 py-3 text-sm font-medium">{% translate "Log in" %}</a>
                 {% if SCHOLR_LMS_ENABLED and SCHOLR_SELF_REGISTRATION %}
                 <a href="{% url 'accounts:register' %}" class="block rounded-xl px-4 py-3 text-sm font-semibold"
-                   style="background: rgba(18,165,148,0.10); color: var(--snap-teal-deep);">Register free</a>
+                   style="background: rgba(18,165,148,0.10); color: var(--snap-teal-deep);">{% translate "Register free" %}</a>
                 {% endif %}
                 {% endif %}
 

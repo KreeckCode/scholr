@@ -1,4 +1,5 @@
 {% extends 'ui/base.html' %}
+{% load i18n %}
 
 {% block title %}Sign in{% endblock %}
 {% block pagehead %}{% endblock %}
@@ -7,8 +8,9 @@
 <div class="p-auth py-4 sm:py-10">
     <div class="mb-6 text-center">
         <p class="p-eyebrow">{{ brand.name }}</p>
-        <h1 class="p-display mt-1 text-2xl font-semibold p-navy sm:text-3xl">Sign in</h1>
-        <p class="mt-2 text-sm p-slate">{% if SCHOLR_EMAIL_SIGN_IN_ENABLED %}Use your username, email address or phone number.{% else %}Use your username or phone number, with the country code.{% endif %}</p>
+        <h1 class="p-display mt-1 text-2xl font-semibold p-navy sm:text-3xl">{% translate "Sign in" %}</h1>
+        <p class="mt-2 text-sm p-slate">{% if SCHOLR_EMAIL_SIGN_IN_ENABLED %}{% translate "Use your username, email address or phone number." %}{% else %}{% translate "Use your username or phone number, with the country code." %}{% endif %}</p>
+        {% include 'base/_language_switcher.html' with switcher_class='mt-4 justify-center' %}
     </div>
 
     <form method="post" class="p-card p-6 sm:p-8" novalidate>
@@ -18,15 +20,15 @@
             {% include 'ui/_field.html' with field=form.username %}
             {% include 'ui/_field.html' with field=form.password %}
             {% include 'ui/_field.html' with field=form.remember_me %}
-            {% if SCHOLR_PARTNERS_ENABLED %}<p class="p-help -mt-2">Leave this ticked on your own phone or laptop. Taking registers without signal needs it.</p>{% endif %}
+            {% if SCHOLR_PARTNERS_ENABLED %}<p class="p-help -mt-2">{% translate "Leave this ticked on your own phone or laptop. Taking registers without signal needs it." %}</p>{% endif %}
         </div>
-        <button type="submit" class="p-btn p-btn-block mt-6">Sign in</button>
+        <button type="submit" class="p-btn p-btn-block mt-6">{% translate "Sign in" %}</button>
     </form>
 
     {% if SCHOLR_SELF_REGISTRATION %}
-    <p class="mt-6 text-center text-sm p-slate">New here? Enrol to a course to sign in</p>
+    <p class="mt-6 text-center text-sm p-slate">{% translate "New here? Enrol to a course to sign in" %}</p>
     {% elif SCHOLR_ENROLLMENT_ENABLED %}
-    <p class="mt-6 text-center text-sm p-slate">New learner? <a class="p-link" href="{% url 'enrollment:landing' %}">Start an application</a></p>
+    <p class="mt-6 text-center text-sm p-slate">{% translate "New learner?" %} <a class="p-link" href="{% url 'enrollment:landing' %}">{% translate "Start an application" %}</a></p>
     {% endif %}
 </div>
 {% endblock %}

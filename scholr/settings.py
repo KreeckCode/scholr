@@ -47,6 +47,8 @@ SCHOLR_STAFF_LMS_PORTAL_ENABLED = env_flag('SCHOLR_STAFF_LMS_PORTAL_ENABLED')
 SCHOLR_ONLINE_RESULTS_ENABLED = env_flag('SCHOLR_ONLINE_RESULTS_ENABLED')
 # Sign in with email or phone as well as username. METP only.
 SCHOLR_EMAIL_SIGN_IN_ENABLED = env_flag('SCHOLR_EMAIL_SIGN_IN_ENABLED')
+# Pages in each person's chosen language. METP only; off, everything stays in English as before.
+SCHOLR_MULTILINGUAL_ENABLED = env_flag('SCHOLR_MULTILINGUAL_ENABLED')
 
 # ==================== SITE PROFILE AND BRANDING ====================
 
@@ -91,6 +93,13 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+if SCHOLR_MULTILINGUAL_ENABLED:
+    # The browser's or cookie's language first, then a signed-in person's saved choice over it
+    MIDDLEWARE.insert(MIDDLEWARE.index('django.contrib.sessions.middleware.SessionMiddleware') + 1,
+                      'django.middleware.locale.LocaleMiddleware')
+    MIDDLEWARE.insert(MIDDLEWARE.index('django.contrib.auth.middleware.AuthenticationMiddleware') + 1,
+                      'scholr.middleware.UserLanguageMiddleware')
 
 if DEBUG:
     MIDDLEWARE.insert(0, 'debug_toolbar.middleware.DebugToolbarMiddleware')
@@ -175,6 +184,19 @@ AUTH_PASSWORD_VALIDATORS = [
 # ==================== INTERNATIONALISATION ====================
 
 LANGUAGE_CODE = 'en-gb'
+# Each language is named in itself, so people can find their own in the list
+LANGUAGES = [
+    ('en', 'English'),
+    ('fr', 'Français'),
+    ('sw', 'Kiswahili'),
+    ('pt', 'Português'),
+    ('es', 'Español'),
+]
+LOCALE_PATHS = [BASE_DIR / 'locale']
+LANGUAGE_COOKIE_NAME = 'scholr_language'
+LANGUAGE_COOKIE_AGE = 60 * 60 * 24 * 365
+# Moodle language pack for each of ours; each pack must be installed in Moodle
+MOODLE_LANGUAGES = {'en': 'en', 'fr': 'fr', 'sw': 'sw', 'pt': 'pt', 'es': 'es'}
 TIME_ZONE = 'Africa/Johannesburg'
 USE_I18N = True
 USE_TZ = True
@@ -215,7 +237,11 @@ SECURE_SSL_REDIRECT = env_flag('SECURE_SSL_REDIRECT')
 SECURE_HSTS_SECONDS = int(os.getenv('SECURE_HSTS_SECONDS', '0'))
 SECURE_HSTS_INCLUDE_SUBDOMAINS = env_flag('SECURE_HSTS_INCLUDE_SUBDOMAINS')
 SECURE_HSTS_PRELOAD = env_flag('SECURE_HSTS_PRELOAD')
-SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https') if SECURE_SSL_REDIRECT else None
+# Trust Nginx's X-Forwarded-Proto so links Django builds use https on domains served over it.
+# Only safe because Nginx always overwrites that header; METP sets SCHOLR_TRUST_PROXY_HTTPS.
+SECURE_PROXY_SSL_HEADER = (
+    ('HTTP_X_FORWARDED_PROTO', 'https') if SECURE_SSL_REDIRECT or env_flag('SCHOLR_TRUST_PROXY_HTTPS') else None
+)
 
 SECURE_CONTENT_TYPE_NOSNIFF = True
 X_FRAME_OPTIONS = 'DENY'

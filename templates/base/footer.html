@@ -1,4 +1,5 @@
 {% load static %}
+{% load i18n %}
 
 <style>
     .snap-footer            { font-family: 'Poppins', system-ui, sans-serif;
@@ -47,7 +48,7 @@
                 <div class="flex items-center gap-2 mt-6">
                     <span class="inline-flex h-2 w-2 rounded-full"
                           style="background: var(--snap-teal-bright); box-shadow: 0 0 0 4px rgba(22,194,174,0.14);"></span>
-                    <span class="text-xs snap-foot-faint">Platform operational</span>
+                    <span class="text-xs snap-foot-faint">{% translate "Platform operational" %}</span>
                 </div>
 
                 {% if brand.website %}
@@ -60,47 +61,47 @@
             </div>
 
             <div class="md:col-span-2">
-                <h4 class="snap-foot-head mb-4">{% if site_profile == 'school' %}Your account{% else %}Learning{% endif %}</h4>
+                <h4 class="snap-foot-head mb-4">{% if site_profile == 'school' %}{% translate "Your account" %}{% else %}{% translate "Learning" %}{% endif %}</h4>
                 <ul class="space-y-2.5">
                     {% if user.is_authenticated %}
-                    <li><a href="{% url 'accounts:dashboard' %}" class="snap-foot-link">Dashboard</a></li>
+                    <li><a href="{% url 'accounts:dashboard' %}" class="snap-foot-link">{% translate "Dashboard" %}</a></li>
 
                     {% if user.role == 'student' and SCHOLR_LMS_ENABLED %}
-                    {% if SCHOLR_PURCHASES_ENABLED %}<li><a href="{% url 'shop:catalog' %}" class="snap-foot-link">Browse courses</a></li>{% endif %}
-                    <li><a href="{% url 'shop:my_courses' %}" class="snap-foot-link">My learning</a></li>
-                    {% if SCHOLR_PURCHASES_ENABLED %}<li><a href="{% url 'shop:order_list' %}" class="snap-foot-link">My orders</a></li>{% endif %}
+                    {% if SCHOLR_PURCHASES_ENABLED %}<li><a href="{% url 'shop:catalog' %}" class="snap-foot-link">{% translate "Browse courses" %}</a></li>{% endif %}
+                    <li><a href="{% url 'shop:my_courses' %}" class="snap-foot-link">{% translate "My learning" %}</a></li>
+                    {% if SCHOLR_PURCHASES_ENABLED %}<li><a href="{% url 'shop:order_list' %}" class="snap-foot-link">{% translate "My orders" %}</a></li>{% endif %}
 
                     {% elif user.role in 'teacher,hod,principal,admin_clerk' and SCHOLR_ACADEMICS_ENABLED %}
-                    <li><a href="{% url 'academics:learner_list' %}" class="snap-foot-link">Learners</a></li>
-                    <li><a href="{% url 'academics:at_risk' %}" class="snap-foot-link">At-risk</a></li>
+                    <li><a href="{% url 'academics:learner_list' %}" class="snap-foot-link">{% translate "Learners" %}</a></li>
+                    <li><a href="{% url 'academics:at_risk' %}" class="snap-foot-link">{% translate "At-risk" %}</a></li>
 
                     {% elif user.role == 'parent' and SCHOLR_ACADEMICS_ENABLED %}
-                    <li><a href="{% url 'academics:portal_dashboard' %}" class="snap-foot-link">My children</a></li>
+                    <li><a href="{% url 'academics:portal_dashboard' %}" class="snap-foot-link">{% translate "My children" %}</a></li>
 
                     {% elif user.role == 'learner' and SCHOLR_BRIDGE_ENABLED %}
-                    <li><a href="{% url 'academics:learner_lms_dashboard' %}" class="snap-foot-link">Online courses</a></li>
+                    <li><a href="{% url 'academics:learner_lms_dashboard' %}" class="snap-foot-link">{% translate "Online courses" %}</a></li>
 
                     {% elif user.role == 'admin' %}
                         {% if SCHOLR_LMS_ENABLED %}
-                        <li><a href="{% url 'integration:course_list' %}" class="snap-foot-link">Courses</a></li>
-                        {% if SCHOLR_PURCHASES_ENABLED %}<li><a href="{% url 'shop:catalog' %}" class="snap-foot-link">Catalogue</a></li>{% endif %}
+                        <li><a href="{% url 'integration:course_list' %}" class="snap-foot-link">{% translate "Courses" %}</a></li>
+                        {% if SCHOLR_PURCHASES_ENABLED %}<li><a href="{% url 'shop:catalog' %}" class="snap-foot-link">{% translate "Catalogue" %}</a></li>{% endif %}
                         {% endif %}
                         {% if SCHOLR_ACADEMICS_ENABLED %}
-                        <li><a href="{% url 'academics:analytics_dashboard' %}" class="snap-foot-link">Analytics</a></li>
+                        <li><a href="{% url 'academics:analytics_dashboard' %}" class="snap-foot-link">{% translate "Analytics" %}</a></li>
                         {% endif %}
                     {% endif %}
 
                     {% else %}
                     {% if SCHOLR_PURCHASES_ENABLED and site_profile != 'school' %}
-                    <li><a href="{% url 'shop:catalog' %}" class="snap-foot-link">Browse courses</a></li>
+                    <li><a href="{% url 'shop:catalog' %}" class="snap-foot-link">{% translate "Browse courses" %}</a></li>
                     {% endif %}
                     {% if SCHOLR_ENROLLMENT_ENABLED and site_profile == 'school' %}
-                    <li><a href="{% url 'enrollment:landing' %}" class="snap-foot-link">Apply</a></li>
-                    <li><a href="{% url 'enrollment:status' %}" class="snap-foot-link">Application status</a></li>
+                    <li><a href="{% url 'enrollment:landing' %}" class="snap-foot-link">{% translate "Apply" %}</a></li>
+                    <li><a href="{% url 'enrollment:status' %}" class="snap-foot-link">{% translate "Application status" %}</a></li>
                     {% endif %}
-                    <li><a href="{% url 'accounts:login' %}" class="snap-foot-link">Log in</a></li>
+                    <li><a href="{% url 'accounts:login' %}" class="snap-foot-link">{% translate "Log in" %}</a></li>
                     {% if SCHOLR_LMS_ENABLED and SCHOLR_SELF_REGISTRATION %}
-                    <li><a href="{% url 'accounts:register' %}" class="snap-foot-link">Create an account</a></li>
+                    <li><a href="{% url 'accounts:register' %}" class="snap-foot-link">{% translate "Create an account" %}</a></li>
                     {% endif %}
                     {% endif %}
                 </ul>
@@ -126,7 +127,7 @@
             </div>
 
             <div class="md:col-span-3">
-                <h4 class="snap-foot-head mb-4">Contact</h4>
+                <h4 class="snap-foot-head mb-4">{% translate "Contact" %}</h4>
                 <ul class="space-y-3">
                     {% if brand.email %}
                     <li class="flex items-start gap-2.5">
@@ -171,14 +172,15 @@
 
         <div class="snap-foot-rule mt-12 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
             <p class="text-xs snap-foot-faint text-center sm:text-left">
-                &copy; {% now "Y" %} {{ brand.copyright }}. All rights reserved.
+                &copy; {% now "Y" %} {{ brand.copyright }}. {% translate "All rights reserved." %}
                 {{ brand.copyright_note }}
             </p>
             <div class="flex flex-wrap items-center justify-center gap-4">
+                {% include 'base/_language_switcher.html' with switcher_id='footer' switcher_class='snap-foot-faint' %}
                 {% if SCHOLR_LMS_ENABLED %}
                 <span class="inline-flex items-center gap-1.5 text-xs snap-foot-faint">
                     <span class="h-1.5 w-1.5 rounded-full" style="background: var(--snap-teal);"></span>
-                    Course platform active
+                    {% translate "Course platform active" %}
                 </span>
                 {% endif %}
                 {% if SCHOLR_ACADEMICS_ENABLED %}

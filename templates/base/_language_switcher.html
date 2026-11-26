@@ -1,0 +1,17 @@
+{% load i18n %}
+{% if SCHOLR_MULTILINGUAL_ENABLED %}
+{% get_current_language as current_language %}
+{% get_available_languages as available_languages %}
+<form method="post" action="{% url 'accounts:set_language' %}" class="flex items-center gap-2 {{ switcher_class }}">
+    {% csrf_token %}
+    <input type="hidden" name="next" value="{{ request.get_full_path }}">
+    <label for="language-{{ switcher_id|default:'page' }}" class="text-xs opacity-80">{% translate "Language" %}</label>
+    <select id="language-{{ switcher_id|default:'page' }}" name="language" onchange="this.form.submit()"
+            class="rounded-lg border px-2 py-1 text-sm" style="border-color: var(--p-line, #cbd5e1); background: transparent; color: inherit;">
+        {% for code, name in available_languages %}
+        <option value="{{ code }}" lang="{{ code }}" {% if current_language|slice:':2' == code %}selected{% endif %} style="color: #0f172a;">{{ name }}</option>
+        {% endfor %}
+    </select>
+    <noscript><button type="submit" class="p-btn-ghost p-btn-sm">{% translate "Change" %}</button></noscript>
+</form>
+{% endif %}

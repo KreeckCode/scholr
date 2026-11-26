@@ -723,3 +723,26 @@ def analytics_view(request):
         'registrations_total': sum(row['count'] for row in registrations),
         'registrations_peak': max((row['count'] for row in registrations), default=0),
     })
+
+
+@require_POST
+def set_language_view(request):
+    """Switch the page language, and for signed-in people remember it on their account and in Moodle."""
+    from django.conf import settings
+    from scholr.features import multilingual_enabled
+
+    response = redirect(safe_redirect_target(request, fallback='accounts:login'))
+    language = request.POST.get('language', '')
+    if not multilingual_enabled() or language not in dict(settings.LANGUAGES):
+        return response
+    response.set_cookie(
+        settings.LANGUAGE_COOKIE_NAME, language, max_age=settings.LANGUAGE_COOKIE_AGE,
+        samesite='Lax', secure=settings.SESSION_COOKIE_SECURE,
+    )
+    user = request.user
+    if user.is_authenticated and user.preferred_language != language:
+        user.preferred_language = language
+        user.save(update_fields=['preferred_language'])
+        from integration.tasks import queue_moodle_language_update
+        queue_moodle_language_update(user.pk)
+    return response

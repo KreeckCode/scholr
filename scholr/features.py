@@ -64,3 +64,8 @@ def online_results_enabled() -> bool:
 def email_sign_in_enabled() -> bool:
     """Sign in with email or phone as well as username."""
     return getattr(settings, 'SCHOLR_EMAIL_SIGN_IN_ENABLED', False)
+
+
+def multilingual_enabled() -> bool:
+    """Pages in each person's chosen language."""
+    return getattr(settings, 'SCHOLR_MULTILINGUAL_ENABLED', False)

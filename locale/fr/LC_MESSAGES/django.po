@@ -1,0 +1,404 @@
+# Scholr French translations.
+# First draft by Claude for METP; have a native French speaker review before learners rely on it.
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: Scholr (METP)\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-11-26 05:36+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: French\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#: accounts/forms.py:213 accounts/forms.py:216
+msgid "Username or phone number"
+msgstr "Nom d'utilisateur ou numéro de téléphone"
+
+#: accounts/forms.py:223 accounts/forms.py:226
+msgid "Password"
+msgstr "Mot de passe"
+
+#: accounts/forms.py:235
+msgid "Keep me signed in"
+msgstr "Rester connecté"
+
+#: accounts/forms.py:242 accounts/forms.py:243
+msgid "Username, email or phone number"
+msgstr "Nom d'utilisateur, e-mail ou numéro de téléphone"
+
+#: accounts/models.py:95
+msgid "email address"
+msgstr "adresse e-mail"
+
+#: scholr/brands.py:97
+msgid ""
+"A non-formal ministry training program of the GlobalEd Institute at Summit "
+"Pacific College, equipping leaders with little or no access to formal "
+"theological training."
+msgstr ""
+"Un programme non formel de formation au ministère du GlobalEd Institute du "
+"Summit Pacific College, qui équipe des responsables ayant peu ou pas accès à"
+" une formation théologique formelle."
+
+#: scholr/brands.py:102
+msgid "About METP"
+msgstr "À propos du METP"
+
+#: scholr/brands.py:103
+msgid "Updates"
+msgstr "Actualités"
+
+#: scholr/brands.py:104
+#| msgid "Overview"
+msgid "Course overview"
+msgstr "Aperçu des cours"
+
+#: scholr/brands.py:105
+msgid "Donate"
+msgstr "Faire un don"
+
+#: scholr/brands.py:107
+msgid ""
+"Part of the GlobalEd department of Mission Global and the Pentecostal "
+"Assemblies of Canada."
+msgstr ""
+"Rattaché au département GlobalEd de Mission Global et des Assemblées de la "
+"Pentecôte du Canada."
+
+#: templates/accounts/login.html:11 templates/accounts/login.html:25
+msgid "Sign in"
+msgstr "Se connecter"
+
+#: templates/accounts/login.html:12
+msgid "Use your username, email address or phone number."
+msgstr ""
+"Utilisez votre nom d'utilisateur, votre adresse e-mail ou votre numéro de "
+"téléphone."
+
+#: templates/accounts/login.html:12
+msgid "Use your username or phone number, with the country code."
+msgstr ""
+"Utilisez votre nom d'utilisateur ou votre numéro de téléphone, avec "
+"l'indicatif du pays."
+
+#: templates/accounts/login.html:23
+msgid ""
+"Leave this ticked on your own phone or laptop. Taking registers without "
+"signal needs it."
+msgstr ""
+"Laissez cette case cochée sur votre propre téléphone ou ordinateur. Elle est"
+" nécessaire pour faire l'appel sans réseau."
+
+#: templates/accounts/login.html:29
+msgid "New here? Enrol to a course to sign in"
+msgstr "Nouveau ici ? Inscrivez-vous à un cours pour vous connecter"
+
+#: templates/accounts/login.html:31
+msgid "New learner?"
+msgstr "Nouvel apprenant ?"
+
+#: templates/accounts/login.html:31
+msgid "Start an application"
+msgstr "Commencer une candidature"
+
+#: templates/base/_language_switcher.html:8
+msgid "Language"
+msgstr "Langue"
+
+#: templates/base/_language_switcher.html:15
+msgid "Change"
+msgstr "Changer"
+
+#: templates/base/footer.html:51
+msgid "Platform operational"
+msgstr "Plateforme opérationnelle"
+
+#: templates/base/footer.html:64
+#| msgid "Create an account"
+msgid "Your account"
+msgstr "Votre compte"
+
+#: templates/base/footer.html:64
+#| msgid "My Learning"
+msgid "Learning"
+msgstr "Apprentissage"
+
+#: templates/base/footer.html:67 templates/base/navbar.html:77
+#: templates/base/navbar.html:86 templates/base/navbar.html:91
+#: templates/base/navbar.html:220 templates/base/navbar.html:251
+#: templates/base/navbar.html:282 templates/base/navbar.html:364
+#: templates/base/navbar.html:371 templates/base/navbar.html:386
+#: templates/base/navbar.html:569 templates/base/navbar.html:577
+#: templates/base/navbar.html:581 templates/base/navbar.html:607
+#: templates/base/navbar.html:615 templates/base/navbar.html:630
+#: templates/base/navbar.html:636 templates/base/navbar.html:651
+msgid "Dashboard"
+msgstr "Tableau de bord"
+
+#: templates/base/footer.html:70 templates/base/footer.html:96
+msgid "Browse courses"
+msgstr "Parcourir les cours"
+
+#: templates/base/footer.html:71
+msgid "My learning"
+msgstr "Mon apprentissage"
+
+#: templates/base/footer.html:72
+msgid "My orders"
+msgstr "Mes commandes"
+
+#: templates/base/footer.html:75 templates/base/navbar.html:87
+#: templates/base/navbar.html:578 templates/base/navbar.html:587
+#: templates/base/navbar.html:598 templates/base/navbar.html:608
+#: templates/base/navbar.html:616
+msgid "Learners"
+msgstr "Apprenants"
+
+#: templates/base/footer.html:76
+msgid "At-risk"
+msgstr "À risque"
+
+#: templates/base/footer.html:79
+msgid "My children"
+msgstr "Mes enfants"
+
+#: templates/base/footer.html:82
+msgid "Online courses"
+msgstr "Cours en ligne"
+
+#: templates/base/footer.html:86 templates/base/navbar.html:588
+msgid "Courses"
+msgstr "Cours"
+
+#: templates/base/footer.html:87 templates/base/navbar.html:590
+msgid "Catalogue"
+msgstr "Catalogue"
+
+#: templates/base/footer.html:90 templates/base/navbar.html:394
+#: templates/base/navbar.html:593 templates/base/navbar.html:619
+#: templates/base/navbar.html:659
+msgid "Analytics"
+msgstr "Statistiques"
+
+#: templates/base/footer.html:99 templates/base/navbar.html:521
+msgid "Apply"
+msgstr "Postuler"
+
+#: templates/base/footer.html:100
+msgid "Application status"
+msgstr "État de la candidature"
+
+#: templates/base/footer.html:102 templates/base/navbar.html:516
+#: templates/base/navbar.html:692
+msgid "Log in"
+msgstr "Se connecter"
+
+#: templates/base/footer.html:104
+msgid "Create an account"
+msgstr "Créer un compte"
+
+#: templates/base/footer.html:130
+msgid "Contact"
+msgstr "Contact"
+
+#: templates/base/footer.html:175
+msgid "All rights reserved."
+msgstr "Tous droits réservés."
+
+#: templates/base/footer.html:183
+msgid "Course platform active"
+msgstr "Plateforme de cours active"
+
+#: templates/base/navbar.html:79 templates/base/navbar.html:417
+#: templates/base/navbar.html:571 templates/base/navbar.html:690
+msgid "Browse Courses"
+msgstr "Parcourir les cours"
+
+#: templates/base/navbar.html:80 templates/base/navbar.html:572
+msgid "My Learning"
+msgstr "Mon apprentissage"
+
+#: templates/base/navbar.html:81 templates/base/navbar.html:573
+msgid "Orders"
+msgstr "Commandes"
+
+#: templates/base/navbar.html:93 templates/base/navbar.html:379
+#: templates/base/navbar.html:389 templates/base/navbar.html:399
+#: templates/base/navbar.html:644 templates/base/navbar.html:654
+#: templates/base/navbar.html:664 templates/partners/staff/_nav.html:5
+msgid "Partners"
+msgstr "Partenaires"
+
+#: templates/base/navbar.html:366 templates/base/navbar.html:632
+msgid "My Children"
+msgstr "Mes enfants"
+
+#: templates/base/navbar.html:373
+msgid "My Online Courses"
+msgstr "Mes cours en ligne"
+
+#: templates/base/navbar.html:378 templates/base/navbar.html:388
+#: templates/base/navbar.html:398 templates/base/navbar.html:643
+#: templates/base/navbar.html:653 templates/base/navbar.html:663
+#: templates/partners/staff/_nav.html:4
+msgid "Pipeline"
+msgstr "Suivi"
+
+#: templates/base/navbar.html:380 templates/base/navbar.html:390
+#: templates/base/navbar.html:400 templates/base/navbar.html:645
+#: templates/base/navbar.html:655 templates/base/navbar.html:665
+#: templates/partners/staff/_nav.html:6
+msgid "Licences"
+msgstr "Licences"
+
+#: templates/base/navbar.html:381 templates/base/navbar.html:391
+#: templates/base/navbar.html:401 templates/base/navbar.html:646
+#: templates/base/navbar.html:656 templates/base/navbar.html:666
+#: templates/partners/staff/_nav.html:7
+msgid "Network"
+msgstr "Réseau"
+
+#: templates/base/navbar.html:382 templates/base/navbar.html:392
+#: templates/base/navbar.html:402 templates/base/navbar.html:647
+#: templates/base/navbar.html:657 templates/base/navbar.html:667
+#: templates/partners/staff/_nav.html:10
+msgid "Map"
+msgstr "Carte"
+
+#: templates/base/navbar.html:403 templates/base/navbar.html:668
+msgid "Locations"
+msgstr "Sites"
+
+#: templates/base/navbar.html:408 templates/base/navbar.html:673
+msgid "My location"
+msgstr "Mon site"
+
+#: templates/base/navbar.html:409 templates/base/navbar.html:674
+msgid "Offline registers"
+msgstr "Registres hors ligne"
+
+#: templates/base/navbar.html:519
+msgid "Register"
+msgstr "S'inscrire"
+
+#: templates/base/navbar.html:534
+msgid "Navigation"
+msgstr "Navigation"
+
+#: templates/base/navbar.html:583
+msgid "Partner network"
+msgstr "Réseau de partenaires"
+
+#: templates/base/navbar.html:589
+msgid "Bundles"
+msgstr "Formules"
+
+#: templates/base/navbar.html:591
+msgid "Integration"
+msgstr "Intégration"
+
+#: templates/base/navbar.html:592
+msgid "Sync"
+msgstr "Synchronisation"
+
+#: templates/base/navbar.html:594
+msgid "EFT Payments"
+msgstr "Paiements par virement"
+
+#: templates/base/navbar.html:597
+msgid "School"
+msgstr "École"
+
+#: templates/base/navbar.html:599 templates/base/navbar.html:609
+#: templates/base/navbar.html:617
+msgid "At-Risk"
+msgstr "À risque"
+
+#: templates/base/navbar.html:600
+msgid "School Analytics"
+msgstr "Statistiques de l'école"
+
+#: templates/base/navbar.html:603 templates/base/navbar.html:623
+msgid "Online Learning"
+msgstr "Apprentissage en ligne"
+
+#: templates/base/navbar.html:611
+msgid "Class Online Status"
+msgstr "Activité en ligne de la classe"
+
+#: templates/base/navbar.html:618
+msgid "Reports"
+msgstr "Rapports"
+
+#: templates/base/navbar.html:620
+msgid "Academic Report"
+msgstr "Bulletin scolaire"
+
+#: templates/base/navbar.html:621
+msgid "Enrollment Report"
+msgstr "Rapport des inscriptions"
+
+#: templates/base/navbar.html:624
+msgid "Overview"
+msgstr "Vue d'ensemble"
+
+#: templates/base/navbar.html:625
+msgid "LMS Accounts"
+msgstr "Comptes LMS"
+
+#: templates/base/navbar.html:626
+msgid "Progress Report"
+msgstr "Rapport de progression"
+
+#: templates/base/navbar.html:638
+msgid "Online Courses"
+msgstr "Cours en ligne"
+
+#: templates/base/navbar.html:679
+msgid "Profile"
+msgstr "Profil"
+
+#: templates/base/navbar.html:695
+msgid "Register free"
+msgstr "Inscription gratuite"
+
+#: templates/partners/portal/_nav.html:6
+msgid "Back to the network"
+msgstr "Retour au réseau"
+
+#: templates/partners/portal/_nav.html:10
+msgid "Cohorts"
+msgstr "Cohortes"
+
+#: templates/partners/portal/_nav.html:11
+msgid "Participants"
+msgstr "Participants"
+
+#: templates/partners/portal/_nav.html:12
+msgid "Team"
+msgstr "Équipe"
+
+#: templates/partners/portal/_nav.html:13
+msgid "Location and events"
+msgstr "Site et événements"
+
+#: templates/partners/portal/_nav.html:15
+msgid "Offline conflicts"
+msgstr "Conflits hors ligne"
+
+#: templates/partners/portal/_nav.html:18
+msgid "Offline app"
+msgstr "Application hors ligne"
+
+#: templates/partners/staff/_nav.html:8
+msgid "Results"
+msgstr "Résultats"
+
+#: templates/partners/staff/_nav.html:9
+msgid "Staff"
+msgstr "Personnel"

@@ -1,4 +1,5 @@
 from django import forms
+from django.utils.translation import gettext_lazy as _
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.core.exceptions import ValidationError
 from .models import User, UserProfile
@@ -209,19 +210,20 @@ class CustomAuthenticationForm(AuthenticationForm):
     """
     
     username = forms.CharField(
-        label='Username or Phone Number',
+        label=_('Username or phone number'),
         widget=forms.TextInput(attrs={
             'class': 'form-control',
-            'placeholder': 'Username or Phone Number',
+            'placeholder': _('Username or phone number'),
             'autocomplete': 'username',
             'autofocus': True
         })
     )
     
     password = forms.CharField(
+        label=_('Password'),
         widget=forms.PasswordInput(attrs={
             'class': 'form-control',
-            'placeholder': 'Password',
+            'placeholder': _('Password'),
             'autocomplete': 'current-password'
         })
     )
@@ -230,15 +232,15 @@ class CustomAuthenticationForm(AuthenticationForm):
         required=False,
         initial=True,
         widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}),
-        label='Keep me signed in'
+        label=_('Keep me signed in')
     )
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         from scholr.features import email_sign_in_enabled
         if email_sign_in_enabled():
-            self.fields['username'].label = 'Username, email or phone number'
-            self.fields['username'].widget.attrs['placeholder'] = 'Username, email or phone number'
+            self.fields['username'].label = _('Username, email or phone number')
+            self.fields['username'].widget.attrs['placeholder'] = _('Username, email or phone number')
 
     def clean_username(self):
         # accounts.backends.IdentifierBackend works out which account this names

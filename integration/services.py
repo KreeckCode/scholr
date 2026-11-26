@@ -1,4 +1,5 @@
 import logging
+from integration.languages import moodle_language
 from typing import List, Dict, Optional
 from django.db import transaction
 from django.utils import timezone
@@ -235,6 +236,7 @@ class MoodleIntegrationService:
                             'phone1': user.phone_number,
                             'city': user.profile.region if hasattr(user, 'profile') else '',
                             'country': self._get_country_code(user.profile.country) if hasattr(user, 'profile') else 'ZA',
+                            'lang': moodle_language(user),
                         }
                         
                         moodle_user_id = self.client.create_user(user_data)

@@ -35,7 +35,7 @@
                     <span class="p-label-sm">Reason (optional)</span>
                     <input type="text" name="note" maxlength="255" class="mt-1 block w-full" placeholder="For example: now covering East Africa">
                 </label>
-                <p class="text-xs p-muted">Moodle enrolments are not removed by a role change. Someone moving away from a teaching role keeps their Moodle access until it is removed in Moodle.</p>
+                <p class="text-xs p-muted">If the new role has a different kind of Moodle access, their old Moodle course enrolments are removed. The new role's access is given the next time they use the LMS Portal.</p>
                 <div class="flex justify-end">
                     <button type="submit" class="p-btn" :disabled="!role" onclick="return confirm('Change this person\'s role?');">Change role</button>
                 </div>

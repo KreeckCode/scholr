@@ -17,6 +17,7 @@ from django.db import transaction
 from accounts.models import User
 from partners.countries import COUNTRIES
 from .exceptions import MoodleAPIError
+from .languages import moodle_language
 from .models import Course, MoodleUserMapping
 from .services import MoodleIntegrationService
 from .utils import generate_moodle_password
@@ -142,6 +143,7 @@ class StaffLMSAccess:
             'firstname': user.first_name.strip() or user.username,
             'lastname': user.last_name.strip() or user.get_role_display(),
             'email': (user.email or '').strip() or f'{moodle_username}@judea.local',
+            'lang': moodle_language(user),
         }
         if user.phone_number:
             payload['phone1'] = user.phone_number

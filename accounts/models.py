@@ -99,6 +99,9 @@ class User(AbstractUser):
     )
     
     # Account status fields
+    # Empty means the browser's language, or English
+    preferred_language = models.CharField(max_length=10, blank=True, default='')
+
     is_verified = models.BooleanField(
         default=False,
         help_text="Whether dean/admin has verified this account"

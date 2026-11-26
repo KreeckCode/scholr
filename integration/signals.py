@@ -347,6 +347,12 @@ _connect_reach_signals()
 def _connect_role_change_signals():
     from accounts.roles import role_changed
 
+    @receiver(role_changed, dispatch_uid='integration_revoke_old_lms_access')
+    def remove_old_lms_access(sender, user, old_role, new_role, **kwargs):
+        """A role with a different Moodle course role loses the old enrolments."""
+        from .tasks import queue_staff_lms_revocation
+        queue_staff_lms_revocation(user.pk, old_role, new_role)
+
     @receiver(role_changed, dispatch_uid='integration_forget_staff_lms_access')
     def forget_cached_lms_access(sender, user, **kwargs):
         """A new role means a new Moodle role, so the next LMS Portal visit must not be served from cache."""

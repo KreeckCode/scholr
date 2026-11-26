@@ -31,4 +31,5 @@ urlpatterns = [
     
     # ==================== ANALYTICS (ADMINS) ====================
     path('analytics/', views.analytics_view, name='analytics'),
+    path('language/', views.set_language_view, name='set_language'),
 ]
